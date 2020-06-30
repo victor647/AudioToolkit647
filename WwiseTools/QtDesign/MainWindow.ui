@@ -6,404 +6,362 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1113</width>
-    <height>289</height>
+    <width>1013</width>
+    <height>464</height>
    </rect>
   </property>
   <property name="windowTitle">
    <string>WwiseTools</string>
   </property>
   <widget class="QWidget" name="centralwidget">
-   <widget class="QGroupBox" name="grpBatchProcess">
-    <property name="geometry">
-     <rect>
-      <x>740</x>
-      <y>20</y>
-      <width>361</width>
-      <height>221</height>
-     </rect>
-    </property>
-    <property name="title">
-     <string>选中对象批处理</string>
-    </property>
-    <layout class="QVBoxLayout" name="verticalLayout">
-     <item>
-      <layout class="QHBoxLayout" name="horizontalLayout_2">
-       <item>
-        <widget class="QLineEdit" name="iptSelectionFilter"/>
-       </item>
-       <item>
-        <widget class="QPushButton" name="btnFilterSelection">
-         <property name="minimumSize">
-          <size>
-           <width>150</width>
-           <height>0</height>
-          </size>
-         </property>
-         <property name="text">
-          <string>筛选名称包含字符的对象</string>
-         </property>
-        </widget>
-       </item>
-       <item>
-        <widget class="QCheckBox" name="cbxCaseSensitive">
-         <property name="text">
-          <string>区分大小写</string>
-         </property>
-        </widget>
-       </item>
-      </layout>
-     </item>
-     <item>
-      <layout class="QHBoxLayout" name="horizontalLayout_3">
-       <item>
-        <widget class="QComboBox" name="cbbDescendantType"/>
-       </item>
-       <item>
-        <widget class="QPushButton" name="btnSelectDescendants">
-         <property name="text">
-          <string>选取所有特定类型子对象</string>
-         </property>
-        </widget>
-       </item>
-      </layout>
-     </item>
-     <item>
-      <layout class="QHBoxLayout" name="horizontalLayout_4">
-       <property name="bottomMargin">
-        <number>0</number>
-       </property>
-       <item>
-        <widget class="QPushButton" name="btnGetBankSize">
-         <property name="text">
-          <string>计算选中的Bank总资源大小</string>
-         </property>
-        </widget>
-       </item>
-       <item>
-        <widget class="QPushButton" name="btnCreateBanks">
-         <property name="text">
-          <string>为每个对象创建一个Bank</string>
-         </property>
-        </widget>
-       </item>
-      </layout>
-     </item>
-     <item>
-      <layout class="QHBoxLayout" name="horizontalLayout_5">
-       <item>
-        <widget class="QRadioButton" name="rbnAllLowerCase">
-         <property name="text">
-          <string>全小写</string>
-         </property>
-        </widget>
-       </item>
-       <item>
-        <widget class="QRadioButton" name="rbnTitleCase">
-         <property name="text">
-          <string>首字母大写</string>
-         </property>
-         <property name="checked">
-          <bool>true</bool>
-         </property>
-        </widget>
-       </item>
-       <item>
-        <widget class="QPushButton" name="btnApplyNameConvention">
-         <property name="text">
-          <string>修改命名规范</string>
-         </property>
-        </widget>
-       </item>
-      </layout>
-     </item>
-     <item>
-      <widget class="QPushButton" name="btnApplySourceEdit">
+   <layout class="QVBoxLayout" name="verticalLayout">
+    <item>
+     <layout class="QHBoxLayout" name="horizontalLayout">
+      <item>
+       <widget class="QLabel" name="lblWaapiPort">
+        <property name="maximumSize">
+         <size>
+          <width>60</width>
+          <height>16777215</height>
+         </size>
+        </property>
+        <property name="text">
+         <string>WAAPI Port</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QSpinBox" name="spbWaapiPort">
+        <property name="maximumSize">
+         <size>
+          <width>80</width>
+          <height>16777215</height>
+         </size>
+        </property>
+        <property name="minimum">
+         <number>1000</number>
+        </property>
+        <property name="maximum">
+         <number>9999</number>
+        </property>
+        <property name="value">
+         <number>8080</number>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QPushButton" name="btnWaapiConnect">
+        <property name="text">
+         <string>Connect to Wwise</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QPushButton" name="btnGetSelectedObjects">
+        <property name="text">
+         <string>Get Wwise Selection</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QPushButton" name="btnRemoveSelection">
+        <property name="text">
+         <string>Remove Table Selection</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QPushButton" name="btnClearObjects">
+        <property name="text">
+         <string>Clear List</string>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </item>
+    <item>
+     <widget class="QTableWidget" name="tblActiveObjects">
+      <property name="editTriggers">
+       <set>QAbstractItemView::NoEditTriggers</set>
+      </property>
+      <column>
        <property name="text">
-        <string>将淡入淡出和裁剪应用到源文件中</string>
+        <string>Name</string>
        </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="QPushButton" name="btnAssignSwitch">
+      </column>
+      <column>
        <property name="text">
-        <string>根据名称为Switch Container子对象自动分配</string>
+        <string>Type</string>
        </property>
-      </widget>
-     </item>
-    </layout>
-   </widget>
-   <widget class="QWidget" name="">
-    <property name="geometry">
-     <rect>
-      <x>10</x>
-      <y>11</y>
-      <width>721</width>
-      <height>231</height>
-     </rect>
-    </property>
-    <layout class="QVBoxLayout" name="verticalLayout_2">
-     <item>
-      <layout class="QHBoxLayout" name="horizontalLayout">
-       <item>
-        <widget class="QLabel" name="lblWaapiPort">
-         <property name="maximumSize">
-          <size>
-           <width>60</width>
-           <height>16777215</height>
-          </size>
-         </property>
-         <property name="text">
-          <string>WAAPI端口</string>
-         </property>
-        </widget>
-       </item>
-       <item>
-        <widget class="QSpinBox" name="spbWaapiPort">
-         <property name="maximumSize">
-          <size>
-           <width>80</width>
-           <height>16777215</height>
-          </size>
-         </property>
-         <property name="minimum">
-          <number>1000</number>
-         </property>
-         <property name="maximum">
-          <number>9999</number>
-         </property>
-         <property name="value">
-          <number>8080</number>
-         </property>
-        </widget>
-       </item>
-       <item>
-        <widget class="QPushButton" name="btnWaapiConnect">
-         <property name="text">
-          <string>连接Wwise</string>
-         </property>
-        </widget>
-       </item>
-       <item>
-        <widget class="QPushButton" name="btnGetSelectedObjects">
-         <property name="text">
-          <string>获取Wwise选中的对象</string>
-         </property>
-        </widget>
-       </item>
-       <item>
-        <widget class="QPushButton" name="btnClearObjects">
-         <property name="text">
-          <string>清空列表</string>
-         </property>
-        </widget>
-       </item>
-       <item>
-        <widget class="QPushButton" name="btnOpenInMultiEditor">
-         <property name="text">
-          <string>在批量编辑器中打开</string>
-         </property>
-        </widget>
-       </item>
-      </layout>
-     </item>
-     <item>
-      <widget class="QListWidget" name="lstActiveObjects"/>
-     </item>
-    </layout>
-   </widget>
+      </column>
+      <column>
+       <property name="text">
+        <string>Path</string>
+       </property>
+      </column>
+     </widget>
+    </item>
+    <item>
+     <layout class="QHBoxLayout" name="horizontalLayout_3">
+      <item>
+       <widget class="QCheckBox" name="cbxKeepSelf">
+        <property name="maximumSize">
+         <size>
+          <width>80</width>
+          <height>16777215</height>
+         </size>
+        </property>
+        <property name="text">
+         <string>Keep Self</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QCheckBox" name="cbxRecursiveFind">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="text">
+         <string>Recursive</string>
+        </property>
+        <property name="checked">
+         <bool>true</bool>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QPushButton" name="btnFindParent">
+        <property name="text">
+         <string>Find Parent</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QPushButton" name="btnFindChildren">
+        <property name="text">
+         <string>Find Children</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QComboBox" name="cbbDescendantType"/>
+      </item>
+      <item>
+       <widget class="QPushButton" name="btnFilterByType">
+        <property name="text">
+         <string>Filter by Type</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QLineEdit" name="iptSelectionFilter">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QCheckBox" name="cbxCaseSensitive">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="text">
+         <string>Case Sensitive</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QPushButton" name="btnFilterByName">
+        <property name="text">
+         <string>Filter by Name</string>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </item>
+   </layout>
   </widget>
   <widget class="QMenuBar" name="menubar">
    <property name="geometry">
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>1113</width>
+     <width>1013</width>
      <height>23</height>
     </rect>
    </property>
+   <widget class="QMenu" name="mnuAudioSource">
+    <property name="title">
+     <string>AudioSource</string>
+    </property>
+    <addaction name="actApplyEditsToOriginal"/>
+    <addaction name="actResetSourceEdits"/>
+   </widget>
+   <widget class="QMenu" name="mnuLogicContainers">
+    <property name="title">
+     <string>Containers</string>
+    </property>
+    <addaction name="actAssignSwitchMappings"/>
+   </widget>
+   <widget class="QMenu" name="mnuSoundBank">
+    <property name="title">
+     <string>SoundBank</string>
+    </property>
+    <addaction name="actCalculateBankSize"/>
+    <addaction name="actCreateSoundBank"/>
+   </widget>
+   <widget class="QMenu" name="mnuCommon">
+    <property name="title">
+     <string>Common</string>
+    </property>
+    <widget class="QMenu" name="menuRename">
+     <property name="title">
+      <string>Rename</string>
+     </property>
+     <addaction name="actChangeToTitleCase"/>
+     <addaction name="actChangeToLowerCase"/>
+     <addaction name="actChangeToUpperCase"/>
+    </widget>
+    <addaction name="actDeleteObjects"/>
+    <addaction name="menuRename"/>
+    <addaction name="actMultiEditor"/>
+    <addaction name="actBatchRenamer"/>
+   </widget>
+   <widget class="QMenu" name="mnuWorkUnit">
+    <property name="title">
+     <string>WorkUnit</string>
+    </property>
+    <addaction name="actConvertToWorkUnit"/>
+   </widget>
+   <addaction name="mnuCommon"/>
+   <addaction name="mnuAudioSource"/>
+   <addaction name="mnuLogicContainers"/>
+   <addaction name="mnuSoundBank"/>
+   <addaction name="mnuWorkUnit"/>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
+  <action name="actionEnable">
+   <property name="text">
+    <string>Enable</string>
+   </property>
+  </action>
+  <action name="actionDisable">
+   <property name="text">
+    <string>Disable</string>
+   </property>
+  </action>
+  <action name="actionEnable_2">
+   <property name="text">
+    <string>Enable</string>
+   </property>
+  </action>
+  <action name="actionDisable_2">
+   <property name="text">
+    <string>Disable</string>
+   </property>
+  </action>
+  <action name="actApplyEditsToOriginal">
+   <property name="text">
+    <string>Apply Edits to Original</string>
+   </property>
+  </action>
+  <action name="actResetSourceEdits">
+   <property name="text">
+    <string>Reset Edits</string>
+   </property>
+  </action>
+  <action name="actAssignSwitchMappings">
+   <property name="text">
+    <string>Assign Switch Mappings</string>
+   </property>
+  </action>
+  <action name="actionEnable_3">
+   <property name="text">
+    <string>Enable</string>
+   </property>
+  </action>
+  <action name="actionDisable_3">
+   <property name="text">
+    <string>Disable</string>
+   </property>
+  </action>
+  <action name="actDeleteObjects">
+   <property name="text">
+    <string>Delete</string>
+   </property>
+  </action>
+  <action name="actCalculateBankSize">
+   <property name="text">
+    <string>Calculate Size</string>
+   </property>
+  </action>
+  <action name="actCreateSoundBank">
+   <property name="text">
+    <string>Create Per Object</string>
+   </property>
+  </action>
+  <action name="actionPlay">
+   <property name="text">
+    <string>Play</string>
+   </property>
+  </action>
+  <action name="actionStop">
+   <property name="text">
+    <string>Stop</string>
+   </property>
+  </action>
+  <action name="actionPause">
+   <property name="text">
+    <string>Pause</string>
+   </property>
+  </action>
+  <action name="actionBreak">
+   <property name="text">
+    <string>Break</string>
+   </property>
+  </action>
+  <action name="actChangeToTitleCase">
+   <property name="text">
+    <string>Title Case</string>
+   </property>
+  </action>
+  <action name="actChangeToLowerCase">
+   <property name="text">
+    <string>Lower Case</string>
+   </property>
+  </action>
+  <action name="actChangeToUpperCase">
+   <property name="text">
+    <string>Upper Case</string>
+   </property>
+  </action>
+  <action name="actMultiEditor">
+   <property name="text">
+    <string>Multi Editor</string>
+   </property>
+  </action>
+  <action name="actBatchRenamer">
+   <property name="text">
+    <string>Batch Rename</string>
+   </property>
+  </action>
+  <action name="actConvertToWorkUnit">
+   <property name="text">
+    <string>Convert to Work Unit</string>
+   </property>
+  </action>
  </widget>
  <resources/>
- <connections>
-  <connection>
-   <sender>btnCreateBanks</sender>
-   <signal>clicked()</signal>
-   <receiver>MainWindow</receiver>
-   <slot>create_bank_per_object()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>1019</x>
-     <y>144</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>24</x>
-     <y>238</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>btnGetBankSize</sender>
-   <signal>clicked()</signal>
-   <receiver>MainWindow</receiver>
-   <slot>calculate_bank_size()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>881</x>
-     <y>146</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>142</x>
-     <y>243</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>btnWaapiConnect</sender>
-   <signal>clicked()</signal>
-   <receiver>MainWindow</receiver>
-   <slot>connect_to_wwise()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>187</x>
-     <y>46</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>239</x>
-     <y>64</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>btnApplySourceEdit</sender>
-   <signal>clicked()</signal>
-   <receiver>MainWindow</receiver>
-   <slot>apply_source_edits()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>826</x>
-     <y>222</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>93</x>
-     <y>217</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>btnAssignSwitch</sender>
-   <signal>clicked()</signal>
-   <receiver>MainWindow</receiver>
-   <slot>assign_switch_container()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>913</x>
-     <y>243</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>183</x>
-     <y>232</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>btnFilterSelection</sender>
-   <signal>clicked()</signal>
-   <receiver>MainWindow</receiver>
-   <slot>filter_selection()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>1000</x>
-     <y>86</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>299</x>
-     <y>109</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>btnSelectDescendants</sender>
-   <signal>clicked()</signal>
-   <receiver>MainWindow</receiver>
-   <slot>select_descendants_by_type()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>1062</x>
-     <y>119</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>393</x>
-     <y>162</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>btnApplyNameConvention</sender>
-   <signal>clicked()</signal>
-   <receiver>MainWindow</receiver>
-   <slot>apply_naming_convention()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>1075</x>
-     <y>182</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>382</x>
-     <y>216</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>btnGetSelectedObjects</sender>
-   <signal>clicked()</signal>
-   <receiver>MainWindow</receiver>
-   <slot>get_selected_objects()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>373</x>
-     <y>45</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>8</x>
-     <y>69</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>btnClearObjects</sender>
-   <signal>clicked()</signal>
-   <receiver>MainWindow</receiver>
-   <slot>clear_object_list()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>495</x>
-     <y>47</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>363</x>
-     <y>79</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>btnOpenInMultiEditor</sender>
-   <signal>clicked()</signal>
-   <receiver>MainWindow</receiver>
-   <slot>open_in_multi_editor()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>676</x>
-     <y>43</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>698</x>
-     <y>27</y>
-    </hint>
-   </hints>
-  </connection>
- </connections>
+ <connections/>
  <slots>
   <slot>create_bank_per_object()</slot>
   <slot>calculate_bank_size()</slot>
@@ -413,8 +371,12 @@
   <slot>filter_selection()</slot>
   <slot>select_descendants_by_type()</slot>
   <slot>apply_naming_convention()</slot>
-  <slot>get_selected_objects()</slot>
+  <slot>get_selected_objects(string)</slot>
   <slot>clear_object_list()</slot>
   <slot>open_in_multi_editor()</slot>
+  <slot>delete_all_objects()</slot>
+  <slot>reset_source_editor()</slot>
+  <slot>enable_inclusion()</slot>
+  <slot>disable_inclusion()</slot>
  </slots>
 </ui>

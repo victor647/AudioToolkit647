@@ -1,5 +1,23 @@
 import win32api, os
-import ScriptingTools
+from ObjectTools import WaapiTools, ScriptingTools, WorkUnitTools
+
+
+# 为每个选中的对象创建一个SoundBank
+def create_sound_bank(client, obj):
+    # 创建同名bank
+    new_bank = WaapiTools.create_object(client, obj['name'], 'SoundBank', '\\SoundBanks\\Default Work Unit', False)
+    # 为bank添加内容
+    set_args = {
+        'soundbank': new_bank['id'],
+        'operation': 'add',
+        'inclusions': [
+            {
+                'object': obj['id'],
+                'filter': ['events', 'structures', 'media']
+            }
+        ]
+    }
+    client.call('ak.wwise.core.soundbank.setInclusions', set_args)
 
 
 # 获取选中的Bank的大小
