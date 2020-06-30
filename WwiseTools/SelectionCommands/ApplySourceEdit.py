@@ -1,14 +1,14 @@
 ﻿from Libraries.SSWave import SWaveObject
-
+import ScriptingTools
 
 Client = None
 
 
 # 将Source Editor里编辑的信息写入源文件中
-def apply_source_edit(client, selected_objects):
+def apply_source_edit(client, objects):
     global Client
     Client = client
-    for obj in selected_objects:
+    for obj in objects:
         obj_guid = obj['id']
         type_args = {
             'from': {

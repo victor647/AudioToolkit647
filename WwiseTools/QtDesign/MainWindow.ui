@@ -6,117 +6,209 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>511</width>
-    <height>315</height>
+    <width>1113</width>
+    <height>289</height>
    </rect>
   </property>
   <property name="windowTitle">
    <string>WwiseTools</string>
   </property>
   <widget class="QWidget" name="centralwidget">
-   <widget class="QGroupBox" name="groupBox">
+   <widget class="QGroupBox" name="grpBatchProcess">
     <property name="geometry">
      <rect>
-      <x>10</x>
-      <y>50</y>
-      <width>181</width>
-      <height>131</height>
+      <x>740</x>
+      <y>20</y>
+      <width>361</width>
+      <height>221</height>
      </rect>
     </property>
     <property name="title">
-     <string>Selection Batch Process</string>
+     <string>选中对象批处理</string>
     </property>
     <layout class="QVBoxLayout" name="verticalLayout">
      <item>
-      <widget class="QPushButton" name="btnCreateBanks">
-       <property name="text">
-        <string>Create Bank per Object</string>
-       </property>
-      </widget>
+      <layout class="QHBoxLayout" name="horizontalLayout_2">
+       <item>
+        <widget class="QLineEdit" name="iptSelectionFilter"/>
+       </item>
+       <item>
+        <widget class="QPushButton" name="btnFilterSelection">
+         <property name="minimumSize">
+          <size>
+           <width>150</width>
+           <height>0</height>
+          </size>
+         </property>
+         <property name="text">
+          <string>筛选名称包含字符的对象</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QCheckBox" name="cbxCaseSensitive">
+         <property name="text">
+          <string>区分大小写</string>
+         </property>
+        </widget>
+       </item>
+      </layout>
      </item>
      <item>
-      <widget class="QPushButton" name="btnGetBankSize">
-       <property name="text">
-        <string>Calculate Bank Size</string>
+      <layout class="QHBoxLayout" name="horizontalLayout_3">
+       <item>
+        <widget class="QComboBox" name="cbbDescendantType"/>
+       </item>
+       <item>
+        <widget class="QPushButton" name="btnSelectDescendants">
+         <property name="text">
+          <string>选取所有特定类型子对象</string>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </item>
+     <item>
+      <layout class="QHBoxLayout" name="horizontalLayout_4">
+       <property name="bottomMargin">
+        <number>0</number>
        </property>
-      </widget>
+       <item>
+        <widget class="QPushButton" name="btnGetBankSize">
+         <property name="text">
+          <string>计算选中的Bank总资源大小</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QPushButton" name="btnCreateBanks">
+         <property name="text">
+          <string>为每个对象创建一个Bank</string>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </item>
+     <item>
+      <layout class="QHBoxLayout" name="horizontalLayout_5">
+       <item>
+        <widget class="QRadioButton" name="rbnAllLowerCase">
+         <property name="text">
+          <string>全小写</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QRadioButton" name="rbnTitleCase">
+         <property name="text">
+          <string>首字母大写</string>
+         </property>
+         <property name="checked">
+          <bool>true</bool>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QPushButton" name="btnApplyNameConvention">
+         <property name="text">
+          <string>修改命名规范</string>
+         </property>
+        </widget>
+       </item>
+      </layout>
      </item>
      <item>
       <widget class="QPushButton" name="btnApplySourceEdit">
        <property name="text">
-        <string>Apply Edits to Source Files</string>
+        <string>将淡入淡出和裁剪应用到源文件中</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QPushButton" name="btnAssignSwitch">
+       <property name="text">
+        <string>根据名称为Switch Container子对象自动分配</string>
        </property>
       </widget>
      </item>
     </layout>
    </widget>
-   <widget class="QWidget" name="layoutWidget">
+   <widget class="QWidget" name="">
     <property name="geometry">
      <rect>
       <x>10</x>
-      <y>10</y>
-      <width>491</width>
-      <height>25</height>
+      <y>11</y>
+      <width>721</width>
+      <height>231</height>
      </rect>
     </property>
-    <layout class="QHBoxLayout" name="horizontalLayout">
+    <layout class="QVBoxLayout" name="verticalLayout_2">
      <item>
-      <widget class="QLabel" name="lblWaapiPort">
-       <property name="maximumSize">
-        <size>
-         <width>60</width>
-         <height>16777215</height>
-        </size>
-       </property>
-       <property name="text">
-        <string>WAAPI Port</string>
-       </property>
-      </widget>
+      <layout class="QHBoxLayout" name="horizontalLayout">
+       <item>
+        <widget class="QLabel" name="lblWaapiPort">
+         <property name="maximumSize">
+          <size>
+           <width>60</width>
+           <height>16777215</height>
+          </size>
+         </property>
+         <property name="text">
+          <string>WAAPI端口</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QSpinBox" name="spbWaapiPort">
+         <property name="maximumSize">
+          <size>
+           <width>80</width>
+           <height>16777215</height>
+          </size>
+         </property>
+         <property name="minimum">
+          <number>1000</number>
+         </property>
+         <property name="maximum">
+          <number>9999</number>
+         </property>
+         <property name="value">
+          <number>8080</number>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QPushButton" name="btnWaapiConnect">
+         <property name="text">
+          <string>连接Wwise</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QPushButton" name="btnGetSelectedObjects">
+         <property name="text">
+          <string>获取Wwise选中的对象</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QPushButton" name="btnClearObjects">
+         <property name="text">
+          <string>清空列表</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QPushButton" name="btnOpenInMultiEditor">
+         <property name="text">
+          <string>在批量编辑器中打开</string>
+         </property>
+        </widget>
+       </item>
+      </layout>
      </item>
      <item>
-      <widget class="QSpinBox" name="spbWaapiPort">
-       <property name="maximumSize">
-        <size>
-         <width>60</width>
-         <height>16777215</height>
-        </size>
-       </property>
-       <property name="minimum">
-        <number>1000</number>
-       </property>
-       <property name="maximum">
-        <number>9999</number>
-       </property>
-       <property name="value">
-        <number>8080</number>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="QPushButton" name="btnWaapiConnect">
-       <property name="maximumSize">
-        <size>
-         <width>100</width>
-         <height>16777215</height>
-        </size>
-       </property>
-       <property name="text">
-        <string>Connect</string>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="QLabel" name="lblWaapiStatus">
-       <property name="minimumSize">
-        <size>
-         <width>150</width>
-         <height>0</height>
-        </size>
-       </property>
-       <property name="text">
-        <string>Wwise not connected...</string>
-       </property>
-      </widget>
+      <widget class="QListWidget" name="lstActiveObjects"/>
      </item>
     </layout>
    </widget>
@@ -126,7 +218,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>511</width>
+     <width>1113</width>
      <height>23</height>
     </rect>
    </property>
@@ -142,8 +234,8 @@
    <slot>create_bank_per_object()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>115</x>
-     <y>104</y>
+     <x>1019</x>
+     <y>144</y>
     </hint>
     <hint type="destinationlabel">
      <x>24</x>
@@ -158,8 +250,8 @@
    <slot>calculate_bank_size()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>150</x>
-     <y>136</y>
+     <x>881</x>
+     <y>146</y>
     </hint>
     <hint type="destinationlabel">
      <x>142</x>
@@ -174,8 +266,8 @@
    <slot>connect_to_wwise()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>204</x>
-     <y>45</y>
+     <x>187</x>
+     <y>46</y>
     </hint>
     <hint type="destinationlabel">
      <x>239</x>
@@ -190,12 +282,124 @@
    <slot>apply_source_edits()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>96</x>
-     <y>176</y>
+     <x>826</x>
+     <y>222</y>
     </hint>
     <hint type="destinationlabel">
      <x>93</x>
      <y>217</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>btnAssignSwitch</sender>
+   <signal>clicked()</signal>
+   <receiver>MainWindow</receiver>
+   <slot>assign_switch_container()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>913</x>
+     <y>243</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>183</x>
+     <y>232</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>btnFilterSelection</sender>
+   <signal>clicked()</signal>
+   <receiver>MainWindow</receiver>
+   <slot>filter_selection()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>1000</x>
+     <y>86</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>299</x>
+     <y>109</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>btnSelectDescendants</sender>
+   <signal>clicked()</signal>
+   <receiver>MainWindow</receiver>
+   <slot>select_descendants_by_type()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>1062</x>
+     <y>119</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>393</x>
+     <y>162</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>btnApplyNameConvention</sender>
+   <signal>clicked()</signal>
+   <receiver>MainWindow</receiver>
+   <slot>apply_naming_convention()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>1075</x>
+     <y>182</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>382</x>
+     <y>216</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>btnGetSelectedObjects</sender>
+   <signal>clicked()</signal>
+   <receiver>MainWindow</receiver>
+   <slot>get_selected_objects()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>373</x>
+     <y>45</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>8</x>
+     <y>69</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>btnClearObjects</sender>
+   <signal>clicked()</signal>
+   <receiver>MainWindow</receiver>
+   <slot>clear_object_list()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>495</x>
+     <y>47</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>363</x>
+     <y>79</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>btnOpenInMultiEditor</sender>
+   <signal>clicked()</signal>
+   <receiver>MainWindow</receiver>
+   <slot>open_in_multi_editor()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>676</x>
+     <y>43</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>698</x>
+     <y>27</y>
     </hint>
    </hints>
   </connection>
@@ -205,5 +409,12 @@
   <slot>calculate_bank_size()</slot>
   <slot>connect_to_wwise()</slot>
   <slot>apply_source_edits()</slot>
+  <slot>assign_switch_container()</slot>
+  <slot>filter_selection()</slot>
+  <slot>select_descendants_by_type()</slot>
+  <slot>apply_naming_convention()</slot>
+  <slot>get_selected_objects()</slot>
+  <slot>clear_object_list()</slot>
+  <slot>open_in_multi_editor()</slot>
  </slots>
 </ui>
