@@ -11,7 +11,7 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>处理中，请耐心等待</string>
+   <string>Processing Commands</string>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
    <item>
@@ -35,7 +35,7 @@
       </font>
      </property>
      <property name="text">
-      <string>正在处理：</string>
+      <string>Current Working on</string>
      </property>
     </widget>
    </item>

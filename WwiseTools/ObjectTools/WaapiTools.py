@@ -1,17 +1,49 @@
+Client = None 
+
+
+# 开始记录操作
+def begin_undo_group():
+    Client.call('ak.wwise.core.undo.beginGroup')
+
+
+# 结束记录操作
+def end_undo_group():
+    end_args = {
+        'displayName': 'WAAPI'
+    }
+    Client.call('ak.wwise.core.undo.endGroup', end_args)
+
+
+# 撤销操作
+def undo():
+    execute_args = {
+        'command': 'Undo'
+    }
+    Client.call('ak.wwise.ui.commands.execute', execute_args)
+
+
+# 重做操作
+def redo():
+    execute_args = {
+        'command': 'Redo'
+    }
+    Client.call('ak.wwise.ui.commands.execute', execute_args)
+
+
 # 获取选中的对象列表
-def get_selected_objects(client):
+def get_selected_objects():
     get_args = {
         'options': {
             'return': ['id', 'name', 'type', 'path']
         }
     }
-    result = client.call('ak.wwise.ui.getSelectedObjects', get_args)
+    result = Client.call('ak.wwise.ui.getSelectedObjects', get_args)
     return result['objects'] if result is not None else []
 
 
 # 获取一个对象递归上层的所有母对象
-def get_parent_objects(client, obj, include_ancestors: bool):
-    query_args = {
+def get_parent_objects(obj, include_ancestors: bool):
+    get_args = {
         'from': {
             'id': [obj['id']]
         },
@@ -22,13 +54,13 @@ def get_parent_objects(client, obj, include_ancestors: bool):
             'return': ['id', 'name', 'type', 'path']
         }
     }
-    result = client.call('ak.wwise.core.object.get', query_args)
+    result = Client.call('ak.wwise.core.object.get', get_args)
     return result['return'] if result is not None else []
 
 
 # 获取一个对象递归下层的所有子对象
-def get_children_objects(client, obj, include_descendants: bool):
-    query_args = {
+def get_children_objects(obj, include_descendants: bool):
+    get_args = {
         'from': {
             'id': [obj['id']]
         },
@@ -39,13 +71,13 @@ def get_children_objects(client, obj, include_descendants: bool):
             'return': ['id', 'name', 'type', 'path']
         }
     }
-    result = client.call('ak.wwise.core.object.get', query_args)
+    result = Client.call('ak.wwise.core.object.get', get_args)
     return result['return'] if result is not None else []
 
 
-# 检测路径是否已有对象
-def object_exists_at_path(client, path: str):
-    query_args = {
+# 从路径获取对象
+def get_object_from_path(path: str):
+    get_args = {
         'from': {
             'path': [path]
         },
@@ -53,14 +85,14 @@ def object_exists_at_path(client, path: str):
             'return': ['id', 'name', 'type', 'path']
         }
     }
-    result = client.call('ak.wwise.core.object.get', query_args)
-    return result is not None
+    obj = Client.call('ak.wwise.core.object.get', get_args)
+    return obj['return'][0] if obj else {}
 
 
 # 在指定路径下创建一个新的对象
-def create_object(client, name: str, obj_type: str, parent_path: str, replace_if_exist: bool):
+def create_object(name: str, obj_type: str, parent_obj, replace_if_exist: bool):
     create_args = {
-        'parent': parent_path,
+        'parent': parent_obj['id'],
         'type': obj_type,
         'name': name,
         'onNameConflict': 'replace' if replace_if_exist else 'rename'
@@ -68,21 +100,21 @@ def create_object(client, name: str, obj_type: str, parent_path: str, replace_if
     options = {
         'return': ['id', 'name', 'type', 'path']
     }
-    return client.call('ak.wwise.core.object.create', create_args, options)
+    return Client.call('ak.wwise.core.object.create', create_args, options)
 
 
 # 移动对象到新的路径
-def move_object(client, obj, new_parent):
+def move_object(obj, new_parent):
     move_args = {
         'object': obj['id'],
         'parent': new_parent['id'],
         'onNameConflict': 'replace'
     }
-    return client.call('ak.wwise.core.object.move', move_args)
+    Client.call('ak.wwise.core.object.move', move_args)
 
 
 # 执行Wwise操作
-def execute_ui_command(client, objects, command: str):
+def execute_ui_command(objects, command: str):
     if len(objects) == 0:
         return
     obj_ids = [obj['id'] for obj in objects]
@@ -90,40 +122,40 @@ def execute_ui_command(client, objects, command: str):
         'command': command,
         'objects': obj_ids
     }
-    client.call('ak.wwise.ui.commands.execute', execute_args)
+    Client.call('ak.wwise.ui.commands.execute', execute_args)
 
 
 # 在Wwise里选中对象
-def open_item_in_wwise_by_path(client, path):
+def open_item_in_wwise_by_path(path):
     select_args = {
         'command': 'FindInProjectExplorerSyncGroup1',
         'objects': [path]
     }
-    client.call('ak.wwise.ui.commands.execute', select_args)
+    Client.call('ak.wwise.ui.commands.execute', select_args)
 
 
 # 给一个对象重命名
-def rename_object(client, obj, new_name: str):
+def rename_object(obj, new_name: str):
     rename_args = {
         'object': obj['id'],
         'value': new_name
     }
-    client.call('ak.wwise.core.object.setName', rename_args)
+    Client.call('ak.wwise.core.object.setName', rename_args)
 
 
 # 设置对象的属性
-def set_object_property(client, obj, property_name: str, value):
+def set_object_property(obj, property_name: str, value):
     set_args = {
         'object': obj['id'],
         'property': property_name,
         'value': value
     }
-    client.call('ak.wwise.core.object.setProperty', set_args)
+    Client.call('ak.wwise.core.object.setProperty', set_args)
 
 
 # 删除一个对象
-def delete_object(client, obj):
+def delete_object(obj):
     delete_args = {
         'object': obj['id'],
     }
-    client.call('ak.wwise.core.object.delete', delete_args)
+    Client.call('ak.wwise.core.object.delete', delete_args)

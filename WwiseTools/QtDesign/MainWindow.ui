@@ -11,7 +11,7 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>WwiseTools</string>
+   <string>WwiseTools - made by 647</string>
   </property>
   <widget class="QWidget" name="centralwidget">
    <layout class="QVBoxLayout" name="verticalLayout">
@@ -74,6 +74,20 @@
        <widget class="QPushButton" name="btnClearObjects">
         <property name="text">
          <string>Clear List</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QPushButton" name="btnMultiEditor">
+        <property name="text">
+         <string>Show in Multi Editor</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QPushButton" name="btnBatchRename">
+        <property name="text">
+         <string>Batch Rename</string>
         </property>
        </widget>
       </item>
@@ -225,16 +239,17 @@
     </property>
     <widget class="QMenu" name="menuRename">
      <property name="title">
-      <string>Rename</string>
+      <string>Naming Convention</string>
      </property>
      <addaction name="actChangeToTitleCase"/>
      <addaction name="actChangeToLowerCase"/>
      <addaction name="actChangeToUpperCase"/>
     </widget>
+    <addaction name="actUndo"/>
+    <addaction name="actRedo"/>
     <addaction name="actDeleteObjects"/>
     <addaction name="menuRename"/>
-    <addaction name="actMultiEditor"/>
-    <addaction name="actBatchRenamer"/>
+    <addaction name="actMoveToSelection"/>
    </widget>
    <widget class="QMenu" name="mnuWorkUnit">
     <property name="title">
@@ -296,7 +311,7 @@
   </action>
   <action name="actDeleteObjects">
    <property name="text">
-    <string>Delete</string>
+    <string>Delete in Wwise</string>
    </property>
   </action>
   <action name="actCalculateBankSize">
@@ -357,6 +372,21 @@
   <action name="actConvertToWorkUnit">
    <property name="text">
     <string>Convert to Work Unit</string>
+   </property>
+  </action>
+  <action name="actMoveToSelection">
+   <property name="text">
+    <string>Move to Selection</string>
+   </property>
+  </action>
+  <action name="actUndo">
+   <property name="text">
+    <string>Undo</string>
+   </property>
+  </action>
+  <action name="actRedo">
+   <property name="text">
+    <string>Redo</string>
    </property>
   </action>
  </widget>

@@ -37,5 +37,5 @@ class Ui_ProgressBar(object):
 
     def retranslateUi(self, ProgressBar):
         _translate = QtCore.QCoreApplication.translate
-        ProgressBar.setWindowTitle(_translate("ProgressBar", "处理中，请耐心等待"))
-        self.lblCurrentWorking.setText(_translate("ProgressBar", "正在处理："))
+        ProgressBar.setWindowTitle(_translate("ProgressBar", "Processing Commands"))
+        self.lblCurrentWorking.setText(_translate("ProgressBar", "Current Working on"))

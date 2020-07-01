@@ -24,10 +24,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         super().__init__()
         self.setupUi(self)
         self.setup_triggers()
-        self.client = None
         self.activeObjects = []
         self.statusbar.showMessage('Wwise not Connected...')
-        self.cbbDescendantType.addItems(['All', 'Action', 'ActorMixer', 'AudioFileSource', 'BlendContainer', 'Folder',
+        self.cbbDescendantType.addItems(['All', 'Action', 'ActorMixer', 'AudioFileSource', 'BlendContainer', 'Event', 'Folder',
                                          'MusicPlaylistContainer', 'MusicSegment', 'MusicSwitchContainer', 'MusicTrack',
                                          'RandomSequenceContainer', 'Sound', 'SwitchContainer', 'WorkUnit'])
         self.tblActiveObjects.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeToContents)
@@ -39,15 +38,18 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.btnGetSelectedObjects.clicked.connect(self.get_selected_objects)
         self.btnRemoveSelection.clicked.connect(self.remove_table_selection)
         self.btnClearObjects.clicked.connect(self.clear_object_list)
+        self.btnMultiEditor.clicked.connect(self.open_in_multi_editor)
+        self.btnBatchRename.clicked.connect(self.open_in_batch_rename)
 
         self.btnFindParent.clicked.connect(self.find_parent)
         self.btnFindChildren.clicked.connect(self.find_children)
         self.btnFilterByType.clicked.connect(self.filter_by_type)
         self.btnFilterByName.clicked.connect(self.filter_by_name)
 
+        self.actUndo.triggered.connect(lambda: WaapiTools.undo())
+        self.actRedo.triggered.connect(lambda: WaapiTools.redo())
         self.actDeleteObjects.triggered.connect(self.delete_all_objects)
-        self.actMultiEditor.triggered.connect(self.open_in_multi_editor)
-        self.actBatchRenamer.triggered.connect(self.open_in_batch_rename)
+        self.actMoveToSelection.triggered.connect(self.move_to_selection)
         self.actChangeToLowerCase.triggered.connect(lambda: self.apply_naming_convention(0))
         self.actChangeToTitleCase.triggered.connect(lambda: self.apply_naming_convention(1))
         self.actChangeToUpperCase.triggered.connect(lambda: self.apply_naming_convention(2))
@@ -63,17 +65,25 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     def connect_to_wwise(self):
         url = 'ws://127.0.0.1:' + str(self.spbWaapiPort.value()) + '/waapi'
         try:
-            self.client = WaapiClient(url=url)
+            WaapiTools.Client = WaapiClient(url=url)
+            WaapiTools.Client.subscribe('ak.wwise.core.project.postClosed', self.on_wwise_closed)
             self.statusbar.showMessage('Wwise Connected Successfully!')
             self.btnWaapiConnect.setEnabled(False)
         except CannotConnectToWaapiException:
             self.statusbar.showMessage('Cannot Connect to Wwise...')
 
+    # Wwise关闭时的回调
+    def on_wwise_closed(self):
+        self.statusbar.showMessage('Wwise not Connected...')
+        self.btnWaapiConnect.setEnabled(True)
+        WaapiTools.Client = None
+
     # 获取Wwise中选中的对象
     def get_selected_objects(self):
-        if self.client:
-            self.activeObjects = WaapiTools.get_selected_objects(self.client)
-            self.update_object_list()
+        if WaapiTools.Client is None:
+            return
+        self.activeObjects = WaapiTools.get_selected_objects()
+        self.update_object_list()
 
     # 删去表格中选中的对象
     def remove_table_selection(self):
@@ -97,102 +107,121 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
     # 查找和筛选操作
     def find_parent(self):
-        if self.client:
-            if self.cbxKeepSelf.isChecked():
-                all_parents = self.activeObjects
-            else:
-                all_parents = []
-            for obj in self.activeObjects:
-                for parent in WaapiTools.get_parent_objects(self.client, obj, self.cbxRecursiveFind.isChecked()):
-                    all_parents.append(parent)
-            self.activeObjects = all_parents
-            self.update_object_list()
+        if WaapiTools.Client is None:
+            return
+        if self.cbxKeepSelf.isChecked():
+            all_parents = self.activeObjects
+        else:
+            all_parents = []
+        for obj in self.activeObjects:
+            for parent in WaapiTools.get_parent_objects(obj, self.cbxRecursiveFind.isChecked()):
+                all_parents.append(parent)
+        self.activeObjects = all_parents
+        self.update_object_list()
 
     def find_children(self):
-        if self.client:
-            if self.cbxKeepSelf.isChecked():
-                all_children = self.activeObjects
-            else:
-                all_children = []
-            for obj in self.activeObjects:
-                for child in WaapiTools.get_children_objects(self.client, obj, self.cbxRecursiveFind.isChecked()):
-                    all_children.append(child)
-            self.activeObjects = all_children
-            self.update_object_list()
+        if WaapiTools.Client is None:
+            return
+        if self.cbxKeepSelf.isChecked():
+            all_children = self.activeObjects
+        else:
+            all_children = []
+        for obj in self.activeObjects:
+            for child in WaapiTools.get_children_objects(obj, self.cbxRecursiveFind.isChecked()):
+                all_children.append(child)
+        self.activeObjects = all_children
+        self.update_object_list()
 
     def filter_by_name(self):
-        if self.client:
-            self.activeObjects = ScriptingTools.filter_objects_by_name(self.activeObjects, self.iptSelectionFilter.text(), self.cbxCaseSensitive.isChecked())
-            self.update_object_list()
+        self.activeObjects = ScriptingTools.filter_objects_by_name(self.activeObjects, self.iptSelectionFilter.text(), self.cbxCaseSensitive.isChecked())
+        self.update_object_list()
 
     def filter_by_type(self):
-        if self.client:
-            self.activeObjects = ScriptingTools.filter_objects_by_type(self.activeObjects, self.cbbDescendantType.currentText())
-            self.update_object_list()
+        self.activeObjects = ScriptingTools.filter_objects_by_type(self.activeObjects, self.cbbDescendantType.currentText())
+        self.update_object_list()
 
     def show_object_in_wwise(self, item: QTableWidgetItem):
+        if WaapiTools.Client is None:
+            return
         if item.column() != 2:
             item = self.tblActiveObjects.item(item.row(), 2)
-        if self.client:
-            WaapiTools.open_item_in_wwise_by_path(self.client, item.text())
+            WaapiTools.open_item_in_wwise_by_path(item.text())
 
     # 通用操作
     def delete_all_objects(self):
-        if self.client:
-            processor = BatchProcessor(self.activeObjects, lambda obj: WaapiTools.delete_object(self.client, obj))
-            processor.start()
-            self.clear_object_list()
+        if WaapiTools.Client is None:
+            return
+        processor = BatchProcessor(self.activeObjects, lambda obj: WaapiTools.delete_object(obj))
+        processor.start()
+        self.clear_object_list()
 
     def apply_naming_convention(self, naming_rule: int):
-        if self.client:
-            if naming_rule == 0:
-                processor = BatchProcessor(self.activeObjects, lambda obj: rename_to_lower_case(self.client, obj))
-            elif naming_rule == 1:
-                processor = BatchProcessor(self.activeObjects, lambda obj: rename_to_title_case(self.client, obj))
-            else:
-                processor = BatchProcessor(self.activeObjects, lambda obj: rename_to_upper_case(self.client, obj))
+        if WaapiTools.Client is None:
+            return
+        if naming_rule == 0:
+            processor = BatchProcessor(self.activeObjects, lambda obj: rename_to_lower_case(obj))
+        elif naming_rule == 1:
+            processor = BatchProcessor(self.activeObjects, lambda obj: rename_to_title_case(obj))
+        else:
+            processor = BatchProcessor(self.activeObjects, lambda obj: rename_to_upper_case(obj))
+        processor.start()
+
+    def move_to_selection(self):
+        if WaapiTools.Client is None:
+            return
+        selection = WaapiTools.get_selected_objects()
+        if len(selection) > 0:
+            processor = BatchProcessor(self.activeObjects, lambda obj: WaapiTools.move_object(obj, selection[0]))
             processor.start()
 
     def open_in_multi_editor(self):
-        if self.client:
-            WaapiTools.execute_ui_command(self.client, self.activeObjects, 'ShowMultiEditor')
+        if WaapiTools.Client is None:
+            return
+        WaapiTools.execute_ui_command(self.activeObjects, 'ShowMultiEditor')
 
     def open_in_batch_rename(self):
-        if self.client:
-            WaapiTools.execute_ui_command(self.client, self.activeObjects, 'ShowBatchRename')
+        if WaapiTools.Client is None:
+            return
+        WaapiTools.execute_ui_command(self.activeObjects, 'ShowBatchRename')
 
     # 音频文件操作
     def apply_source_edits(self):
-        if self.client:
-            processor = BatchProcessor(self.activeObjects, lambda obj: apply_source_edit(self.client, obj))
-            processor.start()
+        if WaapiTools.Client is None:
+            return
+        processor = BatchProcessor(self.activeObjects, lambda obj: apply_source_edit(obj))
+        processor.start()
 
     def reset_source_editor(self):
-        if self.client:
-            processor = BatchProcessor(self.activeObjects, lambda obj: reset_source_editor(self.client, obj))
-            processor.start()
+        if WaapiTools.Client is None:
+            return
+        processor = BatchProcessor(self.activeObjects, lambda obj: reset_source_editor(obj))
+        processor.start()
 
     # LogicContainer操作
     def assign_switch_mappings(self):
-        if self.client:
-            processor = BatchProcessor(self.activeObjects, lambda obj: assign_switch_mappings(self.client, obj))
-            processor.start()
+        if WaapiTools.Client is None:
+            return
+        processor = BatchProcessor(self.activeObjects, lambda obj: assign_switch_mappings(obj))
+        processor.start()
 
     # SoundBank操作
     def create_sound_bank(self):
-        if self.client:
-            processor = BatchProcessor(self.activeObjects, lambda obj: create_sound_bank(self.client, obj))
-            processor.start()
+        if WaapiTools.Client is None:
+            return
+        processor = BatchProcessor(self.activeObjects, lambda obj: create_sound_bank(obj))
+        processor.start()
 
     def calculate_bank_total_size(self):
-        if self.client:
-            get_bank_size(self.client, self.activeObjects)
+        if WaapiTools.Client is None:
+            return
+        get_bank_size(self.activeObjects)
 
     # WorkUnit操作
     def convert_to_work_unit(self):
-        if self.client:
-            processor = BatchProcessor(self.activeObjects, lambda obj: convert_to_work_unit(self.client, obj))
-            processor.start()
+        if WaapiTools.Client is None:
+            return
+        processor = BatchProcessor(self.activeObjects, lambda obj: convert_to_work_unit(obj))
+        processor.start()
 
 
 sys.excepthook = traceback.print_exception

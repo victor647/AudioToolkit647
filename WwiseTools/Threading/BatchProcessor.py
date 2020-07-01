@@ -1,5 +1,6 @@
 from PyQt5.QtCore import pyqtSignal, QThread
 from Threading.ProgressBar import ProgressBar
+from ObjectTools import WaapiTools
 
 
 # 处理线程
@@ -21,9 +22,11 @@ class BatchProcessor(QThread):
         self.__processor = processor
 
     def run(self):
+        WaapiTools.begin_undo_group()
         index = 0
         for obj in self.__objects:
             index += 1
             self.progressBarCallback.emit(index, obj['name'])
             self.__processor(obj)
         self.finishedCallback.emit()
+        WaapiTools.end_undo_group()

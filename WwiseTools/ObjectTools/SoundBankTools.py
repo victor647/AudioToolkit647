@@ -1,11 +1,12 @@
 import win32api, os
-from ObjectTools import WaapiTools, ScriptingTools, WorkUnitTools
+from ObjectTools import WaapiTools, ScriptingTools
 
 
 # 为每个选中的对象创建一个SoundBank
-def create_sound_bank(client, obj):
+def create_sound_bank(obj):
     # 创建同名bank
-    new_bank = WaapiTools.create_object(client, obj['name'], 'SoundBank', '\\SoundBanks\\Default Work Unit', False)
+    work_unit = WaapiTools.get_object_from_path('\\SoundBanks\\Default Work Unit')
+    new_bank = WaapiTools.create_object(obj['name'], 'SoundBank', work_unit, False)
     # 为bank添加内容
     set_args = {
         'soundbank': new_bank['id'],
@@ -17,11 +18,11 @@ def create_sound_bank(client, obj):
             }
         ]
     }
-    client.call('ak.wwise.core.soundbank.setInclusions', set_args)
+    WaapiTools.Client.call('ak.wwise.core.soundbank.setInclusions', set_args)
 
 
 # 获取选中的Bank的大小
-def get_bank_size(client, objects):
+def get_bank_size(objects):
     banks = ScriptingTools.filter_objects_by_type(objects, 'SoundBank')
     total_wav_size = total_wem_size = generated_file_count = total_file_count = 0
     unused_files = ''
@@ -29,7 +30,7 @@ def get_bank_size(client, objects):
         get_args = {
             'soundbank': obj['id']
         }
-        result = client.call('ak.wwise.core.soundbank.getInclusions', get_args)
+        result = WaapiTools.Client.call('ak.wwise.core.soundbank.getInclusions', get_args)
         for inclusion in result['inclusions']:
             if 'media' in inclusion['filter']:
                 get_args = {
@@ -48,7 +49,7 @@ def get_bank_size(client, objects):
                         }
                     ]
                 }
-                result = client.call('ak.wwise.core.object.get', get_args)
+                result = WaapiTools.Client.call('ak.wwise.core.object.get', get_args)
                 for audio_source in result['return']:
                     language = audio_source['audioSource:language']['name']
                     if language == 'SFX' or language == 'Chinese':
