@@ -257,9 +257,16 @@
     </property>
     <addaction name="actConvertToWorkUnit"/>
    </widget>
+   <widget class="QMenu" name="menuEvent">
+    <property name="title">
+     <string>Event</string>
+    </property>
+    <addaction name="actCreatePlayEvent"/>
+   </widget>
    <addaction name="mnuCommon"/>
    <addaction name="mnuAudioSource"/>
    <addaction name="mnuLogicContainers"/>
+   <addaction name="menuEvent"/>
    <addaction name="mnuSoundBank"/>
    <addaction name="mnuWorkUnit"/>
   </widget>
@@ -387,6 +394,11 @@
   <action name="actRedo">
    <property name="text">
     <string>Redo</string>
+   </property>
+  </action>
+  <action name="actCreatePlayEvent">
+   <property name="text">
+    <string>Create Play Event</string>
    </property>
   </action>
  </widget>

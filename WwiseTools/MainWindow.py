@@ -6,6 +6,7 @@ from QtDesign.MainWindow_ui import Ui_MainWindow
 from ObjectTools.CommonTools import *
 from ObjectTools.AudioSourceTools import *
 from ObjectTools.LogicContainerTools import *
+from ObjectTools.EventTools import *
 from ObjectTools.SoundBankTools import *
 from ObjectTools.WorkUnitTools import *
 from Threading.BatchProcessor import BatchProcessor
@@ -57,6 +58,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.actApplyEditsToOriginal.triggered.connect(self.apply_source_edits)
         self.actResetSourceEdits.triggered.connect(self.reset_source_editor)
         self.actAssignSwitchMappings.triggered.connect(self.assign_switch_mappings)
+        self.actCreatePlayEvent.triggered.connect(self.create_play_event)
         self.actCalculateBankSize.triggered.connect(self.calculate_bank_total_size)
         self.actCreateSoundBank.triggered.connect(self.create_sound_bank)
         self.actConvertToWorkUnit.triggered.connect(self.convert_to_work_unit)
@@ -202,6 +204,13 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         if WaapiTools.Client is None:
             return
         processor = BatchProcessor(self.activeObjects, lambda obj: assign_switch_mappings(obj))
+        processor.start()
+
+    # Event操作
+    def create_play_event(self):
+        if WaapiTools.Client is None:
+            return
+        processor = BatchProcessor(self.activeObjects, lambda obj: create_play_event(obj))
         processor.start()
 
     # SoundBank操作

@@ -1,4 +1,4 @@
-from ObjectTools import WaapiTools, ScriptingTools
+from ObjectTools import WaapiTools
 
 
 # 将选取的每一个对象转换成单独的WorkUnit
