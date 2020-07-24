@@ -57,6 +57,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         self.actApplyEditsToOriginal.triggered.connect(self.apply_source_edits)
         self.actResetSourceEdits.triggered.connect(self.reset_source_editor)
+        self.actReplaceSourceFiles.triggered.connect(self.replace_source_files)
         self.actAssignSwitchMappings.triggered.connect(self.assign_switch_mappings)
         self.actCreatePlayEvent.triggered.connect(self.create_play_event)
         self.actCalculateBankSize.triggered.connect(self.calculate_bank_total_size)
@@ -198,6 +199,13 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             return
         processor = BatchProcessor(self.activeObjects, lambda obj: reset_source_editor(obj))
         processor.start()
+
+    def replace_source_files(self):
+        if WaapiTools.Client is None:
+            return
+        replace_window = ReplaceSourceFile(self.activeObjects)
+        replace_window.show()
+        replace_window.exec_()
 
     # LogicContainer操作
     def assign_switch_mappings(self):

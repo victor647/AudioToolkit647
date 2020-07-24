@@ -1,5 +1,37 @@
 ﻿from Libraries.SSWave import SWaveObject
 from ObjectTools import WaapiTools
+from QtDesign.ReplaceSourceFile_ui import Ui_ReplaceSourceFile
+from PyQt5.QtWidgets import QDialog
+
+
+# 重命名替换音频源文件
+class ReplaceSourceFile(QDialog, Ui_ReplaceSourceFile):
+
+    def __init__(self, sound_objects):
+        super().__init__()
+        self.setupUi(self)
+        self.soundObjects = sound_objects
+        self.setup_triggers()
+
+    def setup_triggers(self):
+        self.btnDoReplace.clicked.connect(self.replace_source_files)
+
+    def replace_source_files(self):
+        old_name = self.iptFindName.text()
+        new_name = self.iptReplaceName.text()
+        for obj in self.soundObjects:
+            if obj['type'] != 'Sound':
+                continue
+            original_path = WaapiTools.get_original_wave_path(obj)
+            new_wave_path = original_path.replace(old_name, new_name)
+            # 获取当前Sound下面所有的AudioSource并删除
+            audio_sources = WaapiTools.get_children_objects(obj, False)
+            for audio_source in audio_sources:
+                WaapiTools.delete_object(audio_source)
+            # 重命名声音文件
+            new_sound_name = obj['name'].replace(old_name, new_name)
+            WaapiTools.rename_object(obj, new_sound_name)
+            WaapiTools.import_audio_file(new_wave_path, obj, new_sound_name)
 
 
 # 将Source Editor里编辑的信息写入源文件中

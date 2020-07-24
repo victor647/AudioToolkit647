@@ -219,6 +219,7 @@
     </property>
     <addaction name="actApplyEditsToOriginal"/>
     <addaction name="actResetSourceEdits"/>
+    <addaction name="actReplaceSourceFiles"/>
    </widget>
    <widget class="QMenu" name="mnuLogicContainers">
     <property name="title">
@@ -399,6 +400,11 @@
   <action name="actCreatePlayEvent">
    <property name="text">
     <string>Create Play Event</string>
+   </property>
+  </action>
+  <action name="actReplaceSourceFiles">
+   <property name="text">
+    <string>Replace Source Files</string>
    </property>
   </action>
  </widget>

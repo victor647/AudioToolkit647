@@ -89,6 +89,20 @@ def get_object_from_path(path: str):
     return obj['return'][0] if obj else {}
 
 
+# 获取音频源文件路径
+def get_original_wave_path(obj):
+    get_args = {
+        'from': {
+            'id': [obj['id']]
+        },
+        'options': {
+            'return': ['sound:originalWavFilePath']
+        }
+    }
+    obj = Client.call('ak.wwise.core.object.get', get_args)
+    return obj['return'][0]['sound:originalWavFilePath'] if obj else ''
+
+
 # 在指定路径下创建一个新的对象
 def create_object(name: str, obj_type: str, parent_obj, replace_if_exist: bool):
     create_args = {
@@ -111,6 +125,24 @@ def move_object(obj, new_parent):
         'onNameConflict': 'replace'
     }
     Client.call('ak.wwise.core.object.move', move_args)
+
+
+# 导入音频文件
+def import_audio_file(wave_path, parent_obj, new_sound_name):
+    import_args = {
+        'importOperation': 'createNew',
+        'default': {
+            'importLanguage': 'SFX'
+        },
+        'imports': [
+            {
+                'audioFile': wave_path,
+                'importLocation': parent_obj['id'],
+                'objectPath': '<Sound>' + new_sound_name
+            },
+        ]
+    }
+    Client.call('ak.wwise.core.audio.import', import_args)
 
 
 # 执行Wwise操作
