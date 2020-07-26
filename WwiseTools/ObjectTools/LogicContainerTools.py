@@ -36,4 +36,15 @@ def assign_switch_mappings(obj):
                 WaapiTools.Client.call('ak.wwise.core.switchContainer.addAssignment', assign_args)
 
 
+# 删除Switch Container下面所有的分配
+def remove_all_switch_assignments(obj):
+    if obj['type'] != 'SwitchContainer' and obj['type'] != 'MusicSwitchContainer':
+        return
+    get_args = {
+        'id': obj['id']
+    }
+    results = WaapiTools.Client.call('ak.wwise.core.switchContainer.getAssignments', get_args)['return']
+    for assignment in results:
+        WaapiTools.Client.call('ak.wwise.core.switchContainer.removeAssignment', assignment)
+
 

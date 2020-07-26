@@ -225,7 +225,14 @@
     <property name="title">
      <string>Containers</string>
     </property>
-    <addaction name="actAssignSwitchMappings"/>
+    <widget class="QMenu" name="menuSwitch_Container">
+     <property name="title">
+      <string>Switch Container</string>
+     </property>
+     <addaction name="actAssignSwitchMappings"/>
+     <addaction name="actRemoveAllSwitchAssignments"/>
+    </widget>
+    <addaction name="menuSwitch_Container"/>
    </widget>
    <widget class="QMenu" name="mnuSoundBank">
     <property name="title">
@@ -246,17 +253,23 @@
      <addaction name="actChangeToLowerCase"/>
      <addaction name="actChangeToUpperCase"/>
     </widget>
+    <widget class="QMenu" name="mnuConvertToType">
+     <property name="title">
+      <string>Convert to Type</string>
+     </property>
+     <addaction name="actConvertToWorkUnit"/>
+     <addaction name="actConvertToVirtualFolder"/>
+     <addaction name="actConvertToActorMixer"/>
+     <addaction name="actConvertToBlendContainer"/>
+     <addaction name="actConvertToRandomSequenceContainer"/>
+     <addaction name="actConvertToSwitchContainer"/>
+    </widget>
     <addaction name="actUndo"/>
     <addaction name="actRedo"/>
+    <addaction name="mnuConvertToType"/>
+    <addaction name="actMoveToSelection"/>
     <addaction name="actDeleteObjects"/>
     <addaction name="menuRename"/>
-    <addaction name="actMoveToSelection"/>
-   </widget>
-   <widget class="QMenu" name="mnuWorkUnit">
-    <property name="title">
-     <string>WorkUnit</string>
-    </property>
-    <addaction name="actConvertToWorkUnit"/>
    </widget>
    <widget class="QMenu" name="menuEvent">
     <property name="title">
@@ -269,7 +282,6 @@
    <addaction name="mnuLogicContainers"/>
    <addaction name="menuEvent"/>
    <addaction name="mnuSoundBank"/>
-   <addaction name="mnuWorkUnit"/>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
   <action name="actionEnable">
@@ -377,11 +389,6 @@
     <string>Batch Rename</string>
    </property>
   </action>
-  <action name="actConvertToWorkUnit">
-   <property name="text">
-    <string>Convert to Work Unit</string>
-   </property>
-  </action>
   <action name="actMoveToSelection">
    <property name="text">
     <string>Move to Selection</string>
@@ -405,6 +412,41 @@
   <action name="actReplaceSourceFiles">
    <property name="text">
     <string>Replace Source Files</string>
+   </property>
+  </action>
+  <action name="actRemoveAllSwitchAssignments">
+   <property name="text">
+    <string>Remove All Assignments</string>
+   </property>
+  </action>
+  <action name="actConvertToWorkUnit">
+   <property name="text">
+    <string>Work Unit</string>
+   </property>
+  </action>
+  <action name="actConvertToVirtualFolder">
+   <property name="text">
+    <string>Virtual Folder</string>
+   </property>
+  </action>
+  <action name="actConvertToSwitchContainer">
+   <property name="text">
+    <string>Switch Container</string>
+   </property>
+  </action>
+  <action name="actConvertToRandomSequenceContainer">
+   <property name="text">
+    <string>Random/Sequence Container</string>
+   </property>
+  </action>
+  <action name="actConvertToBlendContainer">
+   <property name="text">
+    <string>Blend Container</string>
+   </property>
+  </action>
+  <action name="actConvertToActorMixer">
+   <property name="text">
+    <string>Actor Mixer</string>
    </property>
   </action>
  </widget>

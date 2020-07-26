@@ -8,7 +8,6 @@ from ObjectTools.AudioSourceTools import *
 from ObjectTools.LogicContainerTools import *
 from ObjectTools.EventTools import *
 from ObjectTools.SoundBankTools import *
-from ObjectTools.WorkUnitTools import *
 from Threading.BatchProcessor import BatchProcessor
 from ObjectTools import ScriptingTools, WaapiTools
 
@@ -31,6 +30,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                                          'MusicPlaylistContainer', 'MusicSegment', 'MusicSwitchContainer', 'MusicTrack',
                                          'RandomSequenceContainer', 'Sound', 'SwitchContainer', 'WorkUnit'])
         self.tblActiveObjects.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeToContents)
+        # 初始化默认尝试连接wwise
+        self.connect_to_wwise()
 
     def setup_triggers(self):
         self.tblActiveObjects.itemDoubleClicked.connect(self.show_object_in_wwise)
@@ -41,6 +42,13 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.btnClearObjects.clicked.connect(self.clear_object_list)
         self.btnMultiEditor.clicked.connect(self.open_in_multi_editor)
         self.btnBatchRename.clicked.connect(self.open_in_batch_rename)
+
+        self.actConvertToWorkUnit.triggered.connect(lambda: self.convert_to_type('WorkUnit'))
+        self.actConvertToActorMixer.triggered.connect(lambda: self.convert_to_type('ActorMixer'))
+        self.actConvertToVirtualFolder.triggered.connect(lambda: self.convert_to_type('Folder'))
+        self.actConvertToBlendContainer.triggered.connect(lambda: self.convert_to_type('BlendContainer'))
+        self.actConvertToRandomSequenceContainer.triggered.connect(lambda: self.convert_to_type('RandomSequenceContainer'))
+        self.actConvertToSwitchContainer.triggered.connect(lambda: self.convert_to_type('SwitchContainer'))
 
         self.btnFindParent.clicked.connect(self.find_parent)
         self.btnFindChildren.clicked.connect(self.find_children)
@@ -59,10 +67,10 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.actResetSourceEdits.triggered.connect(self.reset_source_editor)
         self.actReplaceSourceFiles.triggered.connect(self.replace_source_files)
         self.actAssignSwitchMappings.triggered.connect(self.assign_switch_mappings)
+        self.actRemoveAllSwitchAssignments.triggered.connect(self.remove_all_switch_mappings)
         self.actCreatePlayEvent.triggered.connect(self.create_play_event)
         self.actCalculateBankSize.triggered.connect(self.calculate_bank_total_size)
         self.actCreateSoundBank.triggered.connect(self.create_sound_bank)
-        self.actConvertToWorkUnit.triggered.connect(self.convert_to_work_unit)
 
     # 通过指定的端口连接到Wwise
     def connect_to_wwise(self):
@@ -151,6 +159,12 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             WaapiTools.open_item_in_wwise_by_path(item.text())
 
     # 通用操作
+    def convert_to_type(self, target_type: str):
+        if WaapiTools.Client is None:
+            return
+        processor = BatchProcessor(self.activeObjects, lambda obj: WaapiTools.convert_to_type(obj, target_type))
+        processor.start()
+
     def delete_all_objects(self):
         if WaapiTools.Client is None:
             return
@@ -214,6 +228,12 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         processor = BatchProcessor(self.activeObjects, lambda obj: assign_switch_mappings(obj))
         processor.start()
 
+    def remove_all_switch_mappings(self):
+        if WaapiTools.Client is None:
+            return
+        processor = BatchProcessor(self.activeObjects, lambda obj: remove_all_switch_assignments(obj))
+        processor.start()
+
     # Event操作
     def create_play_event(self):
         if WaapiTools.Client is None:
@@ -232,13 +252,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         if WaapiTools.Client is None:
             return
         get_bank_size(self.activeObjects)
-
-    # WorkUnit操作
-    def convert_to_work_unit(self):
-        if WaapiTools.Client is None:
-            return
-        processor = BatchProcessor(self.activeObjects, lambda obj: convert_to_work_unit(obj))
-        processor.start()
 
 
 sys.excepthook = traceback.print_exception

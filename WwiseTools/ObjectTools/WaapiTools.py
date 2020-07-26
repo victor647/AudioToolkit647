@@ -127,6 +127,24 @@ def move_object(obj, new_parent):
     Client.call('ak.wwise.core.object.move', move_args)
 
 
+# 将对象转换类型
+def convert_to_type(obj, target_type: str):
+    # 先在父级创建一个不同名的新对象
+    parent = get_parent_objects(obj, False)[0]
+    original_name = obj['name']
+    temp_object = create_object(original_name + '_Temp', target_type, parent, False)
+    # 创建失败，返回
+    if temp_object is None:
+        return
+    # 将所有子对象移至新对象上
+    for child in get_children_objects(obj, False):
+        move_object(child, temp_object)
+    # 删除原对象
+    delete_object(obj)
+    # 将新对象重命名成原对象名
+    rename_object(temp_object, original_name)
+
+
 # 导入音频文件
 def import_audio_file(wave_path, parent_obj, new_sound_name):
     import_args = {
