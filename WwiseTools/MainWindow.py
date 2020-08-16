@@ -55,8 +55,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.btnFilterByType.clicked.connect(self.filter_by_type)
         self.btnFilterByName.clicked.connect(self.filter_by_name)
 
-        self.actUndo.triggered.connect(lambda: WaapiTools.undo())
-        self.actRedo.triggered.connect(lambda: WaapiTools.redo())
+        self.actUndo.triggered.connect(WaapiTools.undo)
+        self.actRedo.triggered.connect(WaapiTools.redo)
         self.actDeleteObjects.triggered.connect(self.delete_all_objects)
         self.actMoveToSelection.triggered.connect(self.move_to_selection)
         self.actChangeToLowerCase.triggered.connect(lambda: self.apply_naming_convention(0))
@@ -71,6 +71,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.actCreatePlayEvent.triggered.connect(self.create_play_event)
         self.actCalculateBankSize.triggered.connect(self.calculate_bank_total_size)
         self.actCreateSoundBank.triggered.connect(self.create_sound_bank)
+        self.actAddToSelectedBank.triggered.connect(self.add_to_selected_bank)
         self.actBankAssignmentMatrix.triggered.connect(self.bank_assignment_matrix)
 
     # 通过指定的端口连接到Wwise
@@ -169,7 +170,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     def delete_all_objects(self):
         if WaapiTools.Client is None:
             return
-        processor = BatchProcessor(self.activeObjects, lambda obj: WaapiTools.delete_object(obj))
+        processor = BatchProcessor(self.activeObjects, WaapiTools.delete_object)
         processor.start()
         self.clear_object_list()
 
@@ -177,11 +178,11 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         if WaapiTools.Client is None:
             return
         if naming_rule == 0:
-            processor = BatchProcessor(self.activeObjects, lambda obj: rename_to_lower_case(obj))
+            processor = BatchProcessor(self.activeObjects, rename_to_lower_case)
         elif naming_rule == 1:
-            processor = BatchProcessor(self.activeObjects, lambda obj: rename_to_title_case(obj))
+            processor = BatchProcessor(self.activeObjects, rename_to_title_case)
         else:
-            processor = BatchProcessor(self.activeObjects, lambda obj: rename_to_upper_case(obj))
+            processor = BatchProcessor(self.activeObjects, rename_to_upper_case)
         processor.start()
 
     def move_to_selection(self):
@@ -206,13 +207,13 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     def apply_source_edits(self):
         if WaapiTools.Client is None:
             return
-        processor = BatchProcessor(self.activeObjects, lambda obj: apply_source_edit(obj))
+        processor = BatchProcessor(self.activeObjects, apply_source_edit)
         processor.start()
 
     def reset_source_editor(self):
         if WaapiTools.Client is None:
             return
-        processor = BatchProcessor(self.activeObjects, lambda obj: reset_source_editor(obj))
+        processor = BatchProcessor(self.activeObjects, reset_source_editor)
         processor.start()
 
     def replace_source_files(self):
@@ -226,33 +227,38 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     def assign_switch_mappings(self):
         if WaapiTools.Client is None:
             return
-        processor = BatchProcessor(self.activeObjects, lambda obj: assign_switch_mappings(obj))
+        processor = BatchProcessor(self.activeObjects, assign_switch_mappings)
         processor.start()
 
     def remove_all_switch_mappings(self):
         if WaapiTools.Client is None:
             return
-        processor = BatchProcessor(self.activeObjects, lambda obj: remove_all_switch_assignments(obj))
+        processor = BatchProcessor(self.activeObjects, remove_all_switch_assignments)
         processor.start()
 
     # Event操作
     def create_play_event(self):
         if WaapiTools.Client is None:
             return
-        processor = BatchProcessor(self.activeObjects, lambda obj: create_play_event(obj))
+        processor = BatchProcessor(self.activeObjects, create_play_event)
         processor.start()
 
     # SoundBank操作
     def create_sound_bank(self):
         if WaapiTools.Client is None:
             return
-        processor = BatchProcessor(self.activeObjects, lambda obj: create_sound_bank_with_object_inclusion(obj))
+        processor = BatchProcessor(self.activeObjects, create_sound_bank_with_object_inclusion)
         processor.start()
 
     def calculate_bank_total_size(self):
         if WaapiTools.Client is None:
             return
         get_bank_size(self.activeObjects)
+
+    def add_to_selected_bank(self):
+        if WaapiTools.Client is None:
+            return
+        add_media_to_selected_bank(self.activeObjects)
 
     def bank_assignment_matrix(self):
         if WaapiTools.Client is None:

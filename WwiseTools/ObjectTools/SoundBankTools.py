@@ -2,6 +2,7 @@ import win32api, os
 from ObjectTools import WaapiTools, ScriptingTools
 from QtDesign.BankAssignmentMatrix_ui import Ui_BankAssignmentMatrix
 from PyQt5.QtWidgets import QDialog
+from Threading.BatchProcessor import BatchProcessor
 import itertools
 
 
@@ -84,6 +85,34 @@ def get_bank_size(objects):
     win32api.MessageBox(0, message, 'Query Completed!')
 
 
+# 把所有对象添加到选中的bank中（只含media）
+def add_media_to_selected_bank(objects):
+    banks = WaapiTools.get_selected_objects()
+    if len(banks) == 0 or banks[0]['type'] != 'SoundBank':
+        return
+
+    bank = banks[0]
+    inclusions = []
+    for obj in objects:
+        # 只添加Sound
+        if obj['type'] != 'Sound':
+            continue
+
+        inclusion = {
+            'object': obj['id'],
+            'filter': ['media']
+        }
+        inclusions.append(inclusion)
+
+    set_args = {
+        'soundbank': bank['id'],
+        'operation': 'add',
+        'inclusions': inclusions
+    }
+    WaapiTools.Client.call('ak.wwise.core.soundbank.setInclusions', set_args)
+
+
+# 资源和Bank矩阵分配
 class BankAssignmentMatrix(QDialog, Ui_BankAssignmentMatrix):
 
     def __init__(self):
@@ -134,37 +163,36 @@ class BankAssignmentMatrix(QDialog, Ui_BankAssignmentMatrix):
         sounds_to_assign = []
         selected_objects = WaapiTools.get_selected_objects()
         for selected_obj in selected_objects:
-            for obj in WaapiTools.get_children_objects(selected_obj, True):
-                if obj['type'] == 'Sound':
-                    sounds_to_assign.append(obj)
+            for descendant in WaapiTools.get_children_objects(selected_obj, True):
+                if descendant['type'] == 'Sound':
+                    sounds_to_assign.append(descendant)
 
         self.get_permutations()
-        # 处理剩下的对象
-        for obj in sounds_to_assign:
-            # 只添加Sound
-            if obj['type'] != 'Sound':
-                continue
-            # 在每一种排列组合中搜索
-            for permutation in self.permutations:
-                match = True
-                for item in permutation:
-                    if item not in obj['name']:
-                        match = False
-                        break
-                # 找到符合名称的Bank
-                if match:
-                    bank_name = self.get_bank_name(permutation)
-                    bank = WaapiTools.get_object_from_name_and_type(bank_name, 'SoundBank')
-                    if bank:
-                        set_args = {
-                            'soundbank': bank['id'],
-                            'operation': 'add',
-                            'inclusions':
+        processor = BatchProcessor(sounds_to_assign, self.assign_media)
+        processor.start()
+
+    def assign_media(self, obj):
+        # 在每一种排列组合中搜索
+        for permutation in self.permutations:
+            match = True
+            for item in permutation:
+                if item not in obj['name']:
+                    match = False
+                    break
+            # 找到符合名称的Bank
+            if match:
+                bank_name = self.get_bank_name(permutation)
+                bank = WaapiTools.get_object_from_name_and_type(bank_name, 'SoundBank')
+                if bank:
+                    set_args = {
+                        'soundbank': bank['id'],
+                        'operation': 'add',
+                        'inclusions':
                             [
                                 {
                                     'object': obj['id'],
                                     'filter': ['media']
                                 }
                             ]
-                        }
-                        WaapiTools.Client.call('ak.wwise.core.soundbank.setInclusions', set_args)
+                    }
+                    WaapiTools.Client.call('ak.wwise.core.soundbank.setInclusions', set_args)

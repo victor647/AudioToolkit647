@@ -240,6 +240,7 @@
     </property>
     <addaction name="actCalculateBankSize"/>
     <addaction name="actCreateSoundBank"/>
+    <addaction name="actAddToSelectedBank"/>
     <addaction name="actBankAssignmentMatrix"/>
    </widget>
    <widget class="QMenu" name="mnuCommon">
@@ -453,6 +454,11 @@
   <action name="actBankAssignmentMatrix">
    <property name="text">
     <string>Assignment Matrix</string>
+   </property>
+  </action>
+  <action name="actAddToSelectedBank">
+   <property name="text">
+    <string>Add to Selected Bank</string>
    </property>
   </action>
  </widget>
