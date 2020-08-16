@@ -46,5 +46,3 @@ def remove_all_switch_assignments(obj):
     results = WaapiTools.Client.call('ak.wwise.core.switchContainer.getAssignments', get_args)['return']
     for assignment in results:
         WaapiTools.Client.call('ak.wwise.core.switchContainer.removeAssignment', assignment)
-
-

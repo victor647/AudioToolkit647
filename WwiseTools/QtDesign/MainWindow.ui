@@ -240,6 +240,7 @@
     </property>
     <addaction name="actCalculateBankSize"/>
     <addaction name="actCreateSoundBank"/>
+    <addaction name="actBankAssignmentMatrix"/>
    </widget>
    <widget class="QMenu" name="mnuCommon">
     <property name="title">
@@ -336,12 +337,12 @@
   </action>
   <action name="actCalculateBankSize">
    <property name="text">
-    <string>Calculate Size</string>
+    <string>Calculate Media Size</string>
    </property>
   </action>
   <action name="actCreateSoundBank">
    <property name="text">
-    <string>Create Per Object</string>
+    <string>Create Bank Per Object</string>
    </property>
   </action>
   <action name="actionPlay">
@@ -447,6 +448,11 @@
   <action name="actConvertToActorMixer">
    <property name="text">
     <string>Actor Mixer</string>
+   </property>
+  </action>
+  <action name="actBankAssignmentMatrix">
+   <property name="text">
+    <string>Assignment Matrix</string>
    </property>
   </action>
  </widget>

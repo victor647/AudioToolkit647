@@ -89,6 +89,28 @@ def get_object_from_path(path: str):
     return obj['return'][0] if obj else {}
 
 
+# 从名称和类型获取对象
+def get_object_from_name_and_type(obj_name: str, obj_type: str):
+    get_args = {
+        'from': {
+            'search': [obj_name]
+        },
+        'transform': [
+            {
+                'where': [
+                    'type:isIn',
+                    [obj_type]
+                ]
+            }
+        ],
+        'options': {
+            'return': ['id', 'name', 'type', 'path']
+        }
+    }
+    obj = Client.call('ak.wwise.core.object.get', get_args)
+    return obj['return'][0] if obj else {}
+
+
 # 获取音频源文件路径
 def get_original_wave_path(obj):
     get_args = {
@@ -104,12 +126,12 @@ def get_original_wave_path(obj):
 
 
 # 在指定路径下创建一个新的对象
-def create_object(name: str, obj_type: str, parent_obj, replace_if_exist: bool):
+def create_object(name: str, obj_type: str, parent_obj, on_name_conflict: str):
     create_args = {
         'parent': parent_obj['id'],
         'type': obj_type,
         'name': name,
-        'onNameConflict': 'replace' if replace_if_exist else 'rename'
+        'onNameConflict': on_name_conflict
     }
     options = {
         'return': ['id', 'name', 'type', 'path']
@@ -132,7 +154,7 @@ def convert_to_type(obj, target_type: str):
     # 先在父级创建一个不同名的新对象
     parent = get_parent_objects(obj, False)[0]
     original_name = obj['name']
-    temp_object = create_object(original_name + '_Temp', target_type, parent, False)
+    temp_object = create_object(original_name + '_Temp', target_type, parent, 'rename')
     # 创建失败，返回
     if temp_object is None:
         return

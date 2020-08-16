@@ -4,7 +4,7 @@ from ObjectTools import WaapiTools
 # 为每个选中的对象创建一个播放事件
 def create_play_event(obj):
     work_unit = WaapiTools.get_object_from_path('\\Events\\Default Work Unit')
-    new_event = WaapiTools.create_object(obj['name'], 'Event', work_unit, False)
+    new_event = WaapiTools.create_object(obj['name'], 'Event', work_unit, 'rename')
     create_event_action(new_event, obj, 1)
 
 

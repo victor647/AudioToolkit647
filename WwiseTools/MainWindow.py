@@ -71,6 +71,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.actCreatePlayEvent.triggered.connect(self.create_play_event)
         self.actCalculateBankSize.triggered.connect(self.calculate_bank_total_size)
         self.actCreateSoundBank.triggered.connect(self.create_sound_bank)
+        self.actBankAssignmentMatrix.triggered.connect(self.bank_assignment_matrix)
 
     # 通过指定的端口连接到Wwise
     def connect_to_wwise(self):
@@ -245,13 +246,20 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     def create_sound_bank(self):
         if WaapiTools.Client is None:
             return
-        processor = BatchProcessor(self.activeObjects, lambda obj: create_sound_bank(obj))
+        processor = BatchProcessor(self.activeObjects, lambda obj: create_sound_bank_with_object_inclusion(obj))
         processor.start()
 
     def calculate_bank_total_size(self):
         if WaapiTools.Client is None:
             return
         get_bank_size(self.activeObjects)
+
+    def bank_assignment_matrix(self):
+        if WaapiTools.Client is None:
+            return
+        matrix_window = BankAssignmentMatrix()
+        matrix_window.show()
+        matrix_window.exec_()
 
 
 sys.excepthook = traceback.print_exception
