@@ -2,6 +2,7 @@
 from ObjectTools import WaapiTools
 from QtDesign.ReplaceSourceFile_ui import Ui_ReplaceSourceFile
 from PyQt5.QtWidgets import QDialog
+import os
 
 
 # 重命名替换音频源文件
@@ -24,14 +25,18 @@ class ReplaceSourceFile(QDialog, Ui_ReplaceSourceFile):
                 continue
             original_path = WaapiTools.get_original_wave_path(obj)
             new_wave_path = original_path.replace(old_name, new_name)
-            # 获取当前Sound下面所有的AudioSource并删除
-            audio_sources = WaapiTools.get_children_objects(obj, False)
-            for audio_source in audio_sources:
-                WaapiTools.delete_object(audio_source)
+            delete_audio_sources(obj)
             # 重命名声音文件
             new_sound_name = obj['name'].replace(old_name, new_name)
             WaapiTools.rename_object(obj, new_sound_name)
             WaapiTools.import_audio_file(new_wave_path, obj, new_sound_name)
+
+
+# 获取当前Sound下面所有的AudioSource并删除
+def delete_audio_sources(obj):
+    audio_sources = WaapiTools.get_children_objects(obj, False)
+    for audio_source in audio_sources:
+        WaapiTools.delete_object(audio_source)
 
 
 # 将Source Editor里编辑的信息写入源文件中
@@ -90,5 +95,21 @@ def change_source(sound_object_id, original_wav_path):
             wave_file.audioFadeIn(original_wav_path, -120.0, 0, round(fade_in_duration, 2))
         if fade_out_duration > 0:
             wave_file.audioFadeOut(original_wav_path, -120.0, song_length, fade_out_duration)
+
+
+# 将原始资源文件名字改为Wwise中资源名字
+def rename_original_to_wwise(obj):
+    if obj['type'] != 'Sound':
+        return
+
+    original_wave_path = WaapiTools.get_original_wave_path(obj)
+    original_wave_name = os.path.basename(original_wave_path)
+    new_wave_path = original_wave_path.replace(original_wave_name, obj['name'] + '.wav')
+    # 重命名源文件
+    os.rename(original_wave_path, new_wave_path)
+    # 删除旧资源
+    delete_audio_sources(obj)
+    # 导入新资源
+    WaapiTools.import_audio_file(new_wave_path, obj, obj['name'])
 
 

@@ -220,6 +220,7 @@
     <addaction name="actApplyEditsToOriginal"/>
     <addaction name="actResetSourceEdits"/>
     <addaction name="actReplaceSourceFiles"/>
+    <addaction name="actRenameOriginalToWwise"/>
    </widget>
    <widget class="QMenu" name="mnuLogicContainers">
     <property name="title">
@@ -459,6 +460,11 @@
   <action name="actAddToSelectedBank">
    <property name="text">
     <string>Add to Selected Bank</string>
+   </property>
+  </action>
+  <action name="actRenameOriginalToWwise">
+   <property name="text">
+    <string>Rename Original to Wwise</string>
    </property>
   </action>
  </widget>

@@ -66,6 +66,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.actApplyEditsToOriginal.triggered.connect(self.apply_source_edits)
         self.actResetSourceEdits.triggered.connect(self.reset_source_editor)
         self.actReplaceSourceFiles.triggered.connect(self.replace_source_files)
+        self.actRenameOriginalToWwise.triggered.connect(self.rename_original_to_wwise)
         self.actAssignSwitchMappings.triggered.connect(self.assign_switch_mappings)
         self.actRemoveAllSwitchAssignments.triggered.connect(self.remove_all_switch_mappings)
         self.actCreatePlayEvent.triggered.connect(self.create_play_event)
@@ -222,6 +223,12 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         replace_window = ReplaceSourceFile(self.activeObjects)
         replace_window.show()
         replace_window.exec_()
+
+    def rename_original_to_wwise(self):
+        if WaapiTools.Client is None:
+            return
+        processor = BatchProcessor(self.activeObjects, rename_original_to_wwise)
+        processor.start()
 
     # LogicContainer操作
     def assign_switch_mappings(self):
