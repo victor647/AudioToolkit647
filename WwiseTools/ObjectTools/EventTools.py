@@ -1,4 +1,4 @@
-from ObjectTools import WaapiTools
+from Libraries import WaapiTools
 
 
 # 为每个选中的对象创建一个播放事件

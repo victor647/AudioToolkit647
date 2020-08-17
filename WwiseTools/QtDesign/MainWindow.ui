@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1013</width>
+    <width>862</width>
     <height>464</height>
    </rect>
   </property>
@@ -64,20 +64,6 @@
        </widget>
       </item>
       <item>
-       <widget class="QPushButton" name="btnRemoveSelection">
-        <property name="text">
-         <string>Remove Table Selection</string>
-        </property>
-       </widget>
-      </item>
-      <item>
-       <widget class="QPushButton" name="btnClearObjects">
-        <property name="text">
-         <string>Clear List</string>
-        </property>
-       </widget>
-      </item>
-      <item>
        <widget class="QPushButton" name="btnMultiEditor">
         <property name="text">
          <string>Show in Multi Editor</string>
@@ -116,7 +102,7 @@
      </widget>
     </item>
     <item>
-     <layout class="QHBoxLayout" name="horizontalLayout_3">
+     <layout class="QHBoxLayout" name="horizontalLayout_2">
       <item>
        <widget class="QCheckBox" name="cbxKeepSelf">
         <property name="maximumSize">
@@ -161,12 +147,37 @@
        </widget>
       </item>
       <item>
+       <widget class="QPushButton" name="btnRemoveSelection">
+        <property name="text">
+         <string>Remove Table Selection</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QPushButton" name="btnClearObjects">
+        <property name="text">
+         <string>Clear Table</string>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </item>
+    <item>
+     <layout class="QHBoxLayout" name="horizontalLayout_3">
+      <item>
        <widget class="QComboBox" name="cbbDescendantType"/>
       </item>
       <item>
        <widget class="QPushButton" name="btnFilterByType">
         <property name="text">
          <string>Filter by Type</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QPushButton" name="btnExcludeByType">
+        <property name="text">
+         <string>Exclude by Type</string>
         </property>
        </widget>
       </item>
@@ -200,6 +211,13 @@
         </property>
        </widget>
       </item>
+      <item>
+       <widget class="QPushButton" name="btnExcludeByName">
+        <property name="text">
+         <string>Exclude by Name</string>
+        </property>
+       </widget>
+      </item>
      </layout>
     </item>
    </layout>
@@ -209,7 +227,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>1013</width>
+     <width>862</width>
      <height>23</height>
     </rect>
    </property>

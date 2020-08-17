@@ -1,6 +1,6 @@
 from PyQt5.QtCore import pyqtSignal, QThread
 from Threading.ProgressBar import ProgressBar
-from ObjectTools import WaapiTools
+from Libraries import WaapiTools
 
 
 # 处理线程

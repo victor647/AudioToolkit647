@@ -1,5 +1,5 @@
 ﻿from Libraries.SSWave import SWaveObject
-from ObjectTools import WaapiTools
+from Libraries import WaapiTools, ScriptingTools
 from QtDesign.ReplaceSourceFile_ui import Ui_ReplaceSourceFile
 from PyQt5.QtWidgets import QDialog
 import os
@@ -103,12 +103,22 @@ def rename_original_to_wwise(obj):
         return
 
     original_wave_path = WaapiTools.get_original_wave_path(obj)
-    original_wave_name = os.path.basename(original_wave_path)
-    new_wave_path = original_wave_path.replace(original_wave_name, obj['name'] + '.wav')
-    # 重命名源文件
-    os.rename(original_wave_path, new_wave_path)
-    # 删除旧资源
-    delete_audio_sources(obj)
+    new_wave_name = obj['name'] + '.wav'
+
+    if original_wave_path != '':
+        original_wave_name = os.path.basename(original_wave_path)
+        # 同名不用修改
+        if original_wave_name == new_wave_name:
+            return
+        new_wave_path = original_wave_path.replace(original_wave_name, new_wave_name)
+        # 重命名源文件
+        if not os.path.exists(new_wave_path):
+            os.rename(original_wave_path, new_wave_path)
+        # 删除旧资源
+        delete_audio_sources(obj)
+    # 找不到源文件，直接导入新的
+    else:
+        new_wave_path = ScriptingTools.get_originals_folder() + new_wave_name
     # 导入新资源
     WaapiTools.import_audio_file(new_wave_path, obj, obj['name'])
 

@@ -1,4 +1,4 @@
-from ObjectTools import WaapiTools
+from Libraries import WaapiTools
 
 
 def rename_to_lower_case(obj):

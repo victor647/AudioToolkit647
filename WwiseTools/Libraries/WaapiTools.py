@@ -1,6 +1,20 @@
 Client = None 
 
 
+# 获取项目工程路径
+def get_project_directory():
+    get_args = {
+        'from': {
+            'ofType': ['Project']
+        },
+        'options': {
+            'return': ['filePath']
+        }
+    }
+    result = Client.call('ak.wwise.core.object.get', get_args)
+    return result['return'][0]['filePath']
+
+
 # 开始记录操作
 def begin_undo_group():
     Client.call('ak.wwise.core.undo.beginGroup')

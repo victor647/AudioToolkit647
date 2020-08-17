@@ -9,7 +9,7 @@ from ObjectTools.LogicContainerTools import *
 from ObjectTools.EventTools import *
 from ObjectTools.SoundBankTools import *
 from Threading.BatchProcessor import BatchProcessor
-from ObjectTools import ScriptingTools, WaapiTools
+from Libraries import ScriptingTools, WaapiTools
 
 if hasattr(Qt, 'AA_EnableHighDpiScaling'):
     QApplication.setAttribute(Qt.AA_EnableHighDpiScaling, True)
@@ -29,6 +29,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.cbbDescendantType.addItems(['All', 'Action', 'ActorMixer', 'AudioFileSource', 'BlendContainer', 'Event', 'Folder',
                                          'MusicPlaylistContainer', 'MusicSegment', 'MusicSwitchContainer', 'MusicTrack',
                                          'RandomSequenceContainer', 'Sound', 'SwitchContainer', 'WorkUnit'])
+        self.cbbDescendantType.setCurrentText('Sound')
         self.tblActiveObjects.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeToContents)
         # 初始化默认尝试连接wwise
         self.connect_to_wwise()
@@ -53,7 +54,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.btnFindParent.clicked.connect(self.find_parent)
         self.btnFindChildren.clicked.connect(self.find_children)
         self.btnFilterByType.clicked.connect(self.filter_by_type)
+        self.btnExcludeByType.clicked.connect(self.exclude_by_type)
         self.btnFilterByName.clicked.connect(self.filter_by_name)
+        self.btnExcludeByName.clicked.connect(self.exclude_by_name)
 
         self.actUndo.triggered.connect(WaapiTools.undo)
         self.actRedo.triggered.connect(WaapiTools.redo)
@@ -81,7 +84,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         try:
             WaapiTools.Client = WaapiClient(url=url)
             WaapiTools.Client.subscribe('ak.wwise.core.project.postClosed', self.on_wwise_closed)
-            self.statusbar.showMessage('Wwise Connected Successfully!')
+            self.statusbar.showMessage('Wwise Connected to ' + WaapiTools.get_project_directory())
             self.btnWaapiConnect.setEnabled(False)
         except CannotConnectToWaapiException:
             self.statusbar.showMessage('Cannot Connect to Wwise...')
@@ -150,8 +153,16 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.activeObjects = ScriptingTools.filter_objects_by_name(self.activeObjects, self.iptSelectionFilter.text(), self.cbxCaseSensitive.isChecked())
         self.update_object_list()
 
+    def exclude_by_name(self):
+        self.activeObjects = ScriptingTools.exclude_objects_by_name(self.activeObjects, self.iptSelectionFilter.text(), self.cbxCaseSensitive.isChecked())
+        self.update_object_list()
+
     def filter_by_type(self):
         self.activeObjects = ScriptingTools.filter_objects_by_type(self.activeObjects, self.cbbDescendantType.currentText())
+        self.update_object_list()
+
+    def exclude_by_type(self):
+        self.activeObjects = ScriptingTools.exclude_objects_by_type(self.activeObjects, self.cbbDescendantType.currentText())
         self.update_object_list()
 
     def show_object_in_wwise(self, item: QTableWidgetItem):

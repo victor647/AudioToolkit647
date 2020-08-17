@@ -1,5 +1,5 @@
 import win32api, os
-from ObjectTools import WaapiTools, ScriptingTools
+from Libraries import ScriptingTools, WaapiTools
 from QtDesign.BankAssignmentMatrix_ui import Ui_BankAssignmentMatrix
 from PyQt5.QtWidgets import QDialog
 from Threading.BatchProcessor import BatchProcessor
