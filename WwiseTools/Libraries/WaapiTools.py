@@ -139,6 +139,20 @@ def get_original_wave_path(obj):
     return obj['return'][0]['sound:originalWavFilePath'] if obj else ''
 
 
+# 获取音频源文件语言
+def get_sound_language(obj):
+    get_args = {
+        'from': {
+            'id': [obj['id']]
+        },
+        'options': {
+            'return': ['audioSource:language']
+        }
+    }
+    obj = Client.call('ak.wwise.core.object.get', get_args)
+    return obj['return'][0]['audioSource:language'] if obj else ''
+
+
 # 在指定路径下创建一个新的对象
 def create_object(name: str, obj_type: str, parent_obj, on_name_conflict: str):
     create_args = {

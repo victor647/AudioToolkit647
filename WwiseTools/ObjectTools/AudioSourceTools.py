@@ -118,8 +118,18 @@ def rename_original_to_wwise(obj):
         delete_audio_sources(obj)
     # 找不到源文件，直接导入新的
     else:
-        new_wave_path = ScriptingTools.get_originals_folder() + new_wave_name
+        new_wave_path = os.path.join(ScriptingTools.get_originals_folder(), WaapiTools.get_sound_language(obj), new_wave_name)
     # 导入新资源
     WaapiTools.import_audio_file(new_wave_path, obj, obj['name'])
 
 
+# 清除工程中多余的akd文件
+def delete_unused_akd_files():
+    originals_folder = ScriptingTools.get_originals_folder()
+    for root, dirs, files in os.walk(originals_folder):
+        for file in files:
+            if file.endswith(".akd"):
+                full_path = os.path.join(root, file)
+                wave_path = full_path.replace('.akd', '.wav')
+                if not os.path.exists(wave_path):
+                    os.remove(full_path)

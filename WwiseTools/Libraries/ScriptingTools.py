@@ -61,7 +61,7 @@ def exclude_objects_by_name(objects: list, filter_name: str, case_sensitive: boo
 def get_originals_folder():
     project_path = WaapiTools.get_project_directory()
     project_dir = trim_path_from_right(project_path)
-    return project_dir + '\\Originals\\SFX\\'
+    return project_dir + '\\Originals\\'
 
 
 # 从右侧截取路径

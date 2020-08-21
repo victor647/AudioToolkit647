@@ -112,6 +112,18 @@ def add_media_to_selected_bank(objects):
     WaapiTools.Client.call('ak.wwise.core.soundbank.setInclusions', set_args)
 
 
+# 清除Bank中所有内容
+def clear_bank_inclusions(obj):
+    if obj['type'] != 'SoundBank':
+        return
+    set_args = {
+        'soundbank': obj['id'],
+        'operation': 'replace',
+        'inclusions': []
+    }
+    WaapiTools.Client.call('ak.wwise.core.soundbank.setInclusions', set_args)
+
+
 # 资源和Bank矩阵分配
 class BankAssignmentMatrix(QDialog, Ui_BankAssignmentMatrix):
 

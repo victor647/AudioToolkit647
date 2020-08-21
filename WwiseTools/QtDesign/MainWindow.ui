@@ -239,6 +239,7 @@
     <addaction name="actResetSourceEdits"/>
     <addaction name="actReplaceSourceFiles"/>
     <addaction name="actRenameOriginalToWwise"/>
+    <addaction name="actDeleteUnusedAKDFiles"/>
    </widget>
    <widget class="QMenu" name="mnuLogicContainers">
     <property name="title">
@@ -257,9 +258,10 @@
     <property name="title">
      <string>SoundBank</string>
     </property>
-    <addaction name="actCalculateBankSize"/>
-    <addaction name="actCreateSoundBank"/>
     <addaction name="actAddToSelectedBank"/>
+    <addaction name="actCreateSoundBank"/>
+    <addaction name="actClearInclusions"/>
+    <addaction name="actCalculateBankSize"/>
     <addaction name="actBankAssignmentMatrix"/>
    </widget>
    <widget class="QMenu" name="mnuCommon">
@@ -483,6 +485,16 @@
   <action name="actRenameOriginalToWwise">
    <property name="text">
     <string>Rename Original to Wwise</string>
+   </property>
+  </action>
+  <action name="actDeleteUnusedAKDFiles">
+   <property name="text">
+    <string>Delete Unused AKD files</string>
+   </property>
+  </action>
+  <action name="actClearInclusions">
+   <property name="text">
+    <string>Clear Inclusions</string>
    </property>
   </action>
  </widget>
