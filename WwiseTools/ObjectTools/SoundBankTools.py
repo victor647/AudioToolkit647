@@ -7,15 +7,15 @@ import itertools
 
 
 # 为每个选中的对象创建一个SoundBank
-def create_sound_bank_with_object_inclusion(obj):
-    # 创建同名bank
-    new_bank = create_sound_bank_by_name(obj['name'])
-    if new_bank is None:
-        return
+def create_or_add_to_bank(obj):
+    # 寻找或创建同名bank
+    bank = WaapiTools.get_object_from_name_and_type(obj['name'], 'SoundBank')
+    if bank is None:
+        bank = create_sound_bank_by_name(obj['name'])
 
     # 为bank添加内容
     set_args = {
-        'soundbank': new_bank['id'],
+        'soundbank': bank['id'],
         'operation': 'add',
         'inclusions': [
             {
@@ -120,6 +120,26 @@ def clear_bank_inclusions(obj):
         'soundbank': obj['id'],
         'operation': 'replace',
         'inclusions': []
+    }
+    WaapiTools.Client.call('ak.wwise.core.soundbank.setInclusions', set_args)
+
+
+# 将SoundBank的包含内容设成只有资源
+def set_inclusion_to_media_only(obj):
+    if obj['type'] != 'SoundBank':
+        return
+    get_args = {
+        'soundbank': obj['id']
+    }
+    # 获取bank的内容并改为只有media
+    inclusions = WaapiTools.Client.call('ak.wwise.core.soundbank.getInclusions', get_args)['inclusions']
+    for inclusion in inclusions:
+        inclusion['filter'] = ['media']
+    # 设置新的内容
+    set_args = {
+        'soundbank': obj['id'],
+        'operation': 'replace',
+        'inclusions': inclusions
     }
     WaapiTools.Client.call('ak.wwise.core.soundbank.setInclusions', set_args)
 

@@ -1,6 +1,17 @@
 from Libraries import WaapiTools
 
 
+# 打破Container并将内容移出
+def break_container(obj):
+    children = WaapiTools.get_children_objects(obj, False)
+    parent = WaapiTools.get_parent_objects(obj, False)
+    if len(parent) == 0:
+        return
+    for child in children:
+        WaapiTools.move_object(child, parent[0])
+    WaapiTools.delete_object(obj)
+
+
 # 根据名称为Switch Container的下级自动分配
 def assign_switch_mappings(obj):
     if obj['type'] != 'SwitchContainer' and obj['type'] != 'MusicSwitchContainer':

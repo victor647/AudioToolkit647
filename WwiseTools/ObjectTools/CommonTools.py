@@ -17,3 +17,4 @@ def rename_to_upper_case(obj):
     new_name = obj['name'].upper()
     if new_name != obj['name']:
         WaapiTools.rename_object(obj, new_name)
+

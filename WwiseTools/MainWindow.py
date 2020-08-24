@@ -72,13 +72,16 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.actRenameOriginalToWwise.triggered.connect(self.rename_original_to_wwise)
         self.actDeleteUnusedAKDFiles.triggered.connect(delete_unused_akd_files)
 
+        self.actBreakContainer.triggered.connect(self.break_container)
         self.actAssignSwitchMappings.triggered.connect(self.assign_switch_mappings)
         self.actRemoveAllSwitchAssignments.triggered.connect(self.remove_all_switch_mappings)
         self.actCreatePlayEvent.triggered.connect(self.create_play_event)
+
         self.actCalculateBankSize.triggered.connect(self.calculate_bank_total_size)
-        self.actCreateSoundBank.triggered.connect(self.create_sound_bank)
+        self.actCreateOrAddToBank.triggered.connect(self.create_or_add_to_bank)
         self.actAddToSelectedBank.triggered.connect(self.add_to_selected_bank)
         self.actClearInclusions.triggered.connect(self.clear_bank_inclusions)
+        self.actSetInclusionToMediaOnly.triggered.connect(self.set_inclusions_to_media_only)
         self.actBankAssignmentMatrix.triggered.connect(self.bank_assignment_matrix)
 
     # 通过指定的端口连接到Wwise
@@ -208,6 +211,12 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             processor = BatchProcessor(self.activeObjects, lambda obj: WaapiTools.move_object(obj, selection[0]))
             processor.start()
 
+    def break_container(self):
+        if WaapiTools.Client is None:
+            return
+        processor = BatchProcessor(self.activeObjects, break_container)
+        processor.start()
+
     def open_in_multi_editor(self):
         if WaapiTools.Client is None:
             return
@@ -265,10 +274,10 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         processor.start()
 
     # SoundBank操作
-    def create_sound_bank(self):
+    def create_or_add_to_bank(self):
         if WaapiTools.Client is None:
             return
-        processor = BatchProcessor(self.activeObjects, create_sound_bank_with_object_inclusion)
+        processor = BatchProcessor(self.activeObjects, create_or_add_to_bank)
         processor.start()
 
     def calculate_bank_total_size(self):
@@ -285,6 +294,12 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         if WaapiTools.Client is None:
             return
         processor = BatchProcessor(self.activeObjects, clear_bank_inclusions)
+        processor.start()
+
+    def set_inclusions_to_media_only(self):
+        if WaapiTools.Client is None:
+            return
+        processor = BatchProcessor(self.activeObjects, set_inclusion_to_media_only)
         processor.start()
 
     def bank_assignment_matrix(self):

@@ -122,7 +122,9 @@ def get_object_from_name_and_type(obj_name: str, obj_type: str):
         }
     }
     obj = Client.call('ak.wwise.core.object.get', get_args)
-    return obj['return'][0] if obj else {}
+    if obj is None or len(obj['return']) == 0:
+        return None
+    return obj['return'][0]
 
 
 # 获取音频源文件路径
