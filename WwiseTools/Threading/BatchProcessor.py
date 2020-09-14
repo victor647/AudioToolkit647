@@ -22,6 +22,8 @@ class BatchProcessor(QThread):
         self.__processor = processor
 
     def run(self):
+        if WaapiTools.Client is None:
+            return
         WaapiTools.begin_undo_group()
         index = 0
         for obj in self.__objects:

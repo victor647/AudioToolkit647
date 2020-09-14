@@ -94,9 +94,6 @@ def add_media_to_selected_bank(objects):
     bank = banks[0]
     inclusions = []
     for obj in objects:
-        # 只添加Sound
-        if obj['type'] != 'Sound':
-            continue
 
         inclusion = {
             'object': obj['id'],
@@ -124,8 +121,8 @@ def clear_bank_inclusions(obj):
     WaapiTools.Client.call('ak.wwise.core.soundbank.setInclusions', set_args)
 
 
-# 将SoundBank的包含内容设成只有资源
-def set_inclusion_to_media_only(obj):
+# 设置SoundBank的包含内容
+def set_inclusion_type(obj, inclusion: list):
     if obj['type'] != 'SoundBank':
         return
     get_args = {
@@ -176,9 +173,11 @@ class BankAssignmentMatrix(QDialog, Ui_BankAssignmentMatrix):
     # 根据矩阵内容创建Bank
     def create_banks_by_matrix(self):
         self.get_permutations()
+        WaapiTools.begin_undo_group()
         for permutation in self.permutations:
             bank_name = self.get_bank_name(permutation)
             create_sound_bank_by_name(bank_name)
+        WaapiTools.end_undo_group()
 
     # 通过关键字组合获得Bank名称
     @staticmethod
@@ -191,19 +190,26 @@ class BankAssignmentMatrix(QDialog, Ui_BankAssignmentMatrix):
 
     # 把所有对象添加到选中的bank中（只含media）
     def assign_media_to_banks(self):
-        # 获取选中对象下的所有子对象
-        sounds_to_assign = []
-        selected_objects = WaapiTools.get_selected_objects()
-        for selected_obj in selected_objects:
-            for descendant in WaapiTools.get_children_objects(selected_obj, True):
-                if descendant['type'] == 'Sound':
-                    sounds_to_assign.append(descendant)
-
         self.get_permutations()
-        processor = BatchProcessor(sounds_to_assign, self.assign_media)
-        processor.start()
+        WaapiTools.begin_undo_group()
+        # 获取选中对象下的所有子对象
+        for selected_obj in WaapiTools.get_selected_objects():
+            self.iterate_through_children(selected_obj)
+        WaapiTools.end_undo_group()
 
-    def assign_media(self, obj):
+    # 遍历每个子对象
+    def iterate_through_children(self, obj):
+        children = WaapiTools.get_children_objects(obj, False)
+        for child in children:
+            # 找不到就继续往里层找，直到Sound这一级为止
+            if not self.find_matching_bank(child) and child['type'] != 'Sound':
+                self.iterate_through_children(child)
+
+    # 通过比对枚举找到对应的bank
+    def find_matching_bank(self, obj):
+        # 只包含单个音效的模式
+        if self.cbxSingleSoundOnly.isChecked() and obj['type'] != 'Sound':
+            return
         # 在每一种排列组合中搜索
         for permutation in self.permutations:
             match = True
@@ -228,3 +234,6 @@ class BankAssignmentMatrix(QDialog, Ui_BankAssignmentMatrix):
                             ]
                     }
                     WaapiTools.Client.call('ak.wwise.core.soundbank.setInclusions', set_args)
+                return True
+        # 每一个组合都不符合，在下级继续找
+        return False

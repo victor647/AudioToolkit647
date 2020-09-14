@@ -26,9 +26,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.setup_triggers()
         self.activeObjects = []
         self.statusbar.showMessage('Wwise not Connected...')
-        self.cbbDescendantType.addItems(['All', 'Action', 'ActorMixer', 'AudioFileSource', 'BlendContainer', 'Event', 'Folder',
-                                         'MusicPlaylistContainer', 'MusicSegment', 'MusicSwitchContainer', 'MusicTrack',
-                                         'RandomSequenceContainer', 'Sound', 'SwitchContainer', 'WorkUnit'])
+        self.cbbDescendantType.addItems(['All', 'Action', 'ActorMixer', 'AudioFileSource', 'AuxBus', 'BlendContainer', 'Bus', 'Event', 'Folder',
+                                         'GameParameter', 'MusicPlaylistContainer', 'MusicSegment', 'MusicSwitchContainer', 'MusicTrack',
+                                         'RandomSequenceContainer', 'Sound', 'SoundBank', 'State', 'Switch', 'SwitchContainer', 'WorkUnit'])
         self.cbbDescendantType.setCurrentText('Sound')
         self.tblActiveObjects.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeToContents)
         # 初始化默认尝试连接wwise
@@ -75,13 +75,16 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.actBreakContainer.triggered.connect(self.break_container)
         self.actAssignSwitchMappings.triggered.connect(self.assign_switch_mappings)
         self.actRemoveAllSwitchAssignments.triggered.connect(self.remove_all_switch_mappings)
+        self.actApplyVolumeEditDownstream.triggered.connect(self.apply_volume_edit_downstream)
         self.actCreatePlayEvent.triggered.connect(self.create_play_event)
 
         self.actCalculateBankSize.triggered.connect(self.calculate_bank_total_size)
         self.actCreateOrAddToBank.triggered.connect(self.create_or_add_to_bank)
         self.actAddToSelectedBank.triggered.connect(self.add_to_selected_bank)
         self.actClearInclusions.triggered.connect(self.clear_bank_inclusions)
-        self.actSetInclusionToMediaOnly.triggered.connect(self.set_inclusions_to_media_only)
+        self.actIncludeMediaOnly.triggered.connect(lambda: self.set_bank_inclusion_type(['media']))
+        self.actIncludeEventsAndStructures.triggered.connect(lambda: self.set_bank_inclusion_type(['events', 'structures']))
+        self.actIncludeAll.triggered.connect(lambda: self.set_bank_inclusion_type(['events', 'structures', 'media']))
         self.actBankAssignmentMatrix.triggered.connect(self.bank_assignment_matrix)
 
     # 通过指定的端口连接到Wwise
@@ -180,21 +183,15 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
     # 通用操作
     def convert_to_type(self, target_type: str):
-        if WaapiTools.Client is None:
-            return
         processor = BatchProcessor(self.activeObjects, lambda obj: WaapiTools.convert_to_type(obj, target_type))
         processor.start()
 
     def delete_all_objects(self):
-        if WaapiTools.Client is None:
-            return
         processor = BatchProcessor(self.activeObjects, WaapiTools.delete_object)
         processor.start()
         self.clear_object_list()
 
     def apply_naming_convention(self, naming_rule: int):
-        if WaapiTools.Client is None:
-            return
         if naming_rule == 0:
             processor = BatchProcessor(self.activeObjects, rename_to_lower_case)
         elif naming_rule == 1:
@@ -212,8 +209,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             processor.start()
 
     def break_container(self):
-        if WaapiTools.Client is None:
-            return
         processor = BatchProcessor(self.activeObjects, break_container)
         processor.start()
 
@@ -229,14 +224,10 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
     # 音频文件操作
     def apply_source_edits(self):
-        if WaapiTools.Client is None:
-            return
         processor = BatchProcessor(self.activeObjects, apply_source_edit)
         processor.start()
 
     def reset_source_editor(self):
-        if WaapiTools.Client is None:
-            return
         processor = BatchProcessor(self.activeObjects, reset_source_editor)
         processor.start()
 
@@ -255,28 +246,24 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
     # LogicContainer操作
     def assign_switch_mappings(self):
-        if WaapiTools.Client is None:
-            return
         processor = BatchProcessor(self.activeObjects, assign_switch_mappings)
         processor.start()
 
     def remove_all_switch_mappings(self):
-        if WaapiTools.Client is None:
-            return
         processor = BatchProcessor(self.activeObjects, remove_all_switch_assignments)
+        processor.start()
+
+    def apply_volume_edit_downstream(self):
+        processor = BatchProcessor(self.activeObjects, apply_volume_edit_downstream)
         processor.start()
 
     # Event操作
     def create_play_event(self):
-        if WaapiTools.Client is None:
-            return
         processor = BatchProcessor(self.activeObjects, create_play_event)
         processor.start()
 
     # SoundBank操作
     def create_or_add_to_bank(self):
-        if WaapiTools.Client is None:
-            return
         processor = BatchProcessor(self.activeObjects, create_or_add_to_bank)
         processor.start()
 
@@ -291,15 +278,11 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         add_media_to_selected_bank(self.activeObjects)
 
     def clear_bank_inclusions(self):
-        if WaapiTools.Client is None:
-            return
         processor = BatchProcessor(self.activeObjects, clear_bank_inclusions)
         processor.start()
 
-    def set_inclusions_to_media_only(self):
-        if WaapiTools.Client is None:
-            return
-        processor = BatchProcessor(self.activeObjects, set_inclusion_to_media_only)
+    def set_bank_inclusion_type(self, inclusion_type: list):
+        processor = BatchProcessor(self.activeObjects, lambda obj: set_inclusion_type(obj, inclusion_type))
         processor.start()
 
     def bank_assignment_matrix(self):

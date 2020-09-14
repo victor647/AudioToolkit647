@@ -61,6 +61,9 @@ class Ui_BankAssignmentMatrix(object):
         self.btnAssignMedia = QtWidgets.QPushButton(BankAssignmentMatrix)
         self.btnAssignMedia.setObjectName("btnAssignMedia")
         self.horizontalLayout_2.addWidget(self.btnAssignMedia)
+        self.cbxSingleSoundOnly = QtWidgets.QCheckBox(BankAssignmentMatrix)
+        self.cbxSingleSoundOnly.setObjectName("cbxSingleSoundOnly")
+        self.horizontalLayout_2.addWidget(self.cbxSingleSoundOnly)
         self.verticalLayout.addLayout(self.horizontalLayout_2)
 
         self.retranslateUi(BankAssignmentMatrix)
@@ -91,3 +94,4 @@ class Ui_BankAssignmentMatrix(object):
         item.setText(_translate("BankAssignmentMatrix", "3"))
         self.btnCreateBanks.setText(_translate("BankAssignmentMatrix", "Create Banks"))
         self.btnAssignMedia.setText(_translate("BankAssignmentMatrix", "Assign Media"))
+        self.cbxSingleSoundOnly.setText(_translate("BankAssignmentMatrix", "Single Sound Only"))

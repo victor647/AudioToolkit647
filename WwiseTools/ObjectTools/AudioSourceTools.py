@@ -104,6 +104,13 @@ def rename_original_to_wwise(obj):
 
     original_wave_path = WaapiTools.get_original_wave_path(obj)
     new_wave_name = obj['name'] + '.wav'
+    language = WaapiTools.get_sound_language(obj)
+    # 当前不包含源文件，直接根据名称导入
+    if language == '':
+        if 'SFX' in original_wave_path:
+            language = 'SFX'
+        else:
+            language = WaapiTools.get_default_language()
 
     if original_wave_path != '':
         original_wave_name = os.path.basename(original_wave_path)
@@ -118,9 +125,11 @@ def rename_original_to_wwise(obj):
         delete_audio_sources(obj)
     # 找不到源文件，直接导入新的
     else:
-        new_wave_path = os.path.join(ScriptingTools.get_originals_folder(), WaapiTools.get_sound_language(obj), new_wave_name)
+        if language != 'SFX':
+            language = os.path.join('Voice', language)
+        new_wave_path = os.path.join(ScriptingTools.get_originals_folder(), language, new_wave_name)
     # 导入新资源
-    WaapiTools.import_audio_file(new_wave_path, obj, obj['name'])
+    WaapiTools.import_audio_file(new_wave_path, obj, obj['name'], language)
 
 
 # 清除工程中多余的akd文件

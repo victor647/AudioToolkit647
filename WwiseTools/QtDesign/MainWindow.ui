@@ -254,17 +254,26 @@
     </widget>
     <addaction name="actBreakContainer"/>
     <addaction name="mnuSwitchContainer"/>
+    <addaction name="actApplyVolumeEditDownstream"/>
    </widget>
    <widget class="QMenu" name="mnuSoundBank">
     <property name="title">
      <string>SoundBank</string>
     </property>
+    <widget class="QMenu" name="mnuSetInclusionTo">
+     <property name="title">
+      <string>Set Inclusion to</string>
+     </property>
+     <addaction name="actIncludeMediaOnly"/>
+     <addaction name="actIncludeEventsAndStructures"/>
+     <addaction name="actIncludeAll"/>
+    </widget>
     <addaction name="actAddToSelectedBank"/>
     <addaction name="actBankAssignmentMatrix"/>
     <addaction name="actCreateOrAddToBank"/>
     <addaction name="actClearInclusions"/>
-    <addaction name="actSetInclusionToMediaOnly"/>
     <addaction name="actCalculateBankSize"/>
+    <addaction name="mnuSetInclusionTo"/>
    </widget>
    <widget class="QMenu" name="mnuCommon">
     <property name="title">
@@ -512,6 +521,26 @@
   <action name="actSetInclusionToMediaOnly">
    <property name="text">
     <string>Set Inclusion to Media Only</string>
+   </property>
+  </action>
+  <action name="actIncludeMediaOnly">
+   <property name="text">
+    <string>Media Only</string>
+   </property>
+  </action>
+  <action name="actIncludeEventsAndStructures">
+   <property name="text">
+    <string>Events &amp; Structures</string>
+   </property>
+  </action>
+  <action name="actIncludeAll">
+   <property name="text">
+    <string>All</string>
+   </property>
+  </action>
+  <action name="actApplyVolumeEditDownstream">
+   <property name="text">
+    <string>Apply Volume Edit Downstream</string>
    </property>
   </action>
  </widget>

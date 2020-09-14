@@ -15,6 +15,20 @@ def get_project_directory():
     return result['return'][0]['filePath']
 
 
+# 获取项目默认语言
+def get_default_language():
+    get_args = {
+        'from': {
+            'ofType': ['Project']
+        },
+        'options': {
+            'return': ['@DefaultLanguage']
+        }
+    }
+    result = Client.call('ak.wwise.core.object.get', get_args)
+    return result['return'][0]['@DefaultLanguage']
+
+
 # 开始记录操作
 def begin_undo_group():
     Client.call('ak.wwise.core.undo.beginGroup')
@@ -99,8 +113,8 @@ def get_object_from_path(path: str):
             'return': ['id', 'name', 'type', 'path']
         }
     }
-    obj = Client.call('ak.wwise.core.object.get', get_args)
-    return obj['return'][0] if obj else {}
+    return_obj = Client.call('ak.wwise.core.object.get', get_args)['return'][0]
+    return return_obj
 
 
 # 从名称和类型获取对象
@@ -121,10 +135,10 @@ def get_object_from_name_and_type(obj_name: str, obj_type: str):
             'return': ['id', 'name', 'type', 'path']
         }
     }
-    obj = Client.call('ak.wwise.core.object.get', get_args)
-    if obj is None or len(obj['return']) == 0:
+    return_obj = Client.call('ak.wwise.core.object.get', get_args)
+    if return_obj is None or len(return_obj['return']) == 0:
         return None
-    return obj['return'][0]
+    return return_obj['return'][0]
 
 
 # 获取音频源文件路径
@@ -137,8 +151,8 @@ def get_original_wave_path(obj):
             'return': ['sound:originalWavFilePath']
         }
     }
-    obj = Client.call('ak.wwise.core.object.get', get_args)
-    return obj['return'][0]['sound:originalWavFilePath'] if obj else ''
+    return_obj = Client.call('ak.wwise.core.object.get', get_args)['return'][0]
+    return return_obj['sound:originalWavFilePath'] if return_obj else ''
 
 
 # 获取音频源文件语言
@@ -151,8 +165,8 @@ def get_sound_language(obj):
             'return': ['audioSource:language']
         }
     }
-    obj = Client.call('ak.wwise.core.object.get', get_args)
-    return obj['return'][0]['audioSource:language'] if obj else ''
+    return_obj = Client.call('ak.wwise.core.object.get', get_args)['return'][0]
+    return return_obj['audioSource:language'] if return_obj else ''
 
 
 # 在指定路径下创建一个新的对象
@@ -198,11 +212,11 @@ def convert_to_type(obj, target_type: str):
 
 
 # 导入音频文件
-def import_audio_file(wave_path, parent_obj, new_sound_name):
+def import_audio_file(wave_path, parent_obj, new_sound_name, language='SFX'):
     import_args = {
         'importOperation': 'createNew',
         'default': {
-            'importLanguage': 'SFX'
+            'importLanguage': language
         },
         'imports': [
             {
@@ -243,6 +257,20 @@ def rename_object(obj, new_name: str):
         'value': new_name
     }
     Client.call('ak.wwise.core.object.setName', rename_args)
+
+
+# 获取对象的属性
+def get_object_property(obj, property_name: str):
+    get_args = {
+        'from': {
+            'id': [obj['id']]
+        },
+        'options': {
+            'return': [property_name]
+        }
+    }
+    result = Client.call('ak.wwise.core.object.get', get_args)
+    return result['return'][0][property_name]
 
 
 # 设置对象的属性

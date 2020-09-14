@@ -106,6 +106,13 @@
        </property>
       </widget>
      </item>
+     <item>
+      <widget class="QCheckBox" name="cbxSingleSoundOnly">
+       <property name="text">
+        <string>Single Sound Only</string>
+       </property>
+      </widget>
+     </item>
     </layout>
    </item>
   </layout>

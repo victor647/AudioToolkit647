@@ -57,3 +57,14 @@ def remove_all_switch_assignments(obj):
     results = WaapiTools.Client.call('ak.wwise.core.switchContainer.getAssignments', get_args)['return']
     for assignment in results:
         WaapiTools.Client.call('ak.wwise.core.switchContainer.removeAssignment', assignment)
+
+
+# 将音量设置应用到下一层
+def apply_volume_edit_downstream(obj):
+    volume_bias = WaapiTools.get_object_property(obj, '@Volume')
+    WaapiTools.set_object_property(obj, 'Volume', 0)
+    children = WaapiTools.get_children_objects(obj, False)
+    for child in children:
+        volume_base = WaapiTools.get_object_property(child, '@Volume')
+        WaapiTools.set_object_property(child, 'Volume', volume_base + volume_bias)
+
