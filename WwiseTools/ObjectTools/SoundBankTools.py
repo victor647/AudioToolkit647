@@ -214,7 +214,7 @@ class BankAssignmentMatrix(QDialog, Ui_BankAssignmentMatrix):
         for permutation in self.permutations:
             match = True
             for item in permutation:
-                if item not in obj['name']:
+                if item not in obj['path']:
                     match = False
                     break
             # 找到符合名称的Bank
