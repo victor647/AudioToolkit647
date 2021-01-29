@@ -75,7 +75,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.actBreakContainer.triggered.connect(self.break_container)
         self.actAssignSwitchMappings.triggered.connect(self.assign_switch_mappings)
         self.actRemoveAllSwitchAssignments.triggered.connect(self.remove_all_switch_mappings)
-        self.actApplyVolumeEditDownstream.triggered.connect(self.apply_volume_edit_downstream)
+        self.actApplyFaderEditsDownstream.triggered.connect(self.apply_fader_edits_downstream)
         self.actCreatePlayEvent.triggered.connect(self.create_play_event)
 
         self.actCalculateBankSize.triggered.connect(self.calculate_bank_total_size)
@@ -253,8 +253,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         processor = BatchProcessor(self.activeObjects, remove_all_switch_assignments)
         processor.start()
 
-    def apply_volume_edit_downstream(self):
-        processor = BatchProcessor(self.activeObjects, apply_volume_edit_downstream)
+    def apply_fader_edits_downstream(self):
+        processor = BatchProcessor(self.activeObjects, apply_fader_edits_downstream)
         processor.start()
 
     # Event操作

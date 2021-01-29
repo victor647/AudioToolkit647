@@ -1,8 +1,7 @@
 import win32api, os
 from Libraries import ScriptingTools, WaapiTools
 from QtDesign.BankAssignmentMatrix_ui import Ui_BankAssignmentMatrix
-from PyQt5.QtWidgets import QDialog
-from Threading.BatchProcessor import BatchProcessor
+from PyQt5.QtWidgets import QDialog, QTableWidgetItem
 import itertools
 
 
@@ -151,12 +150,27 @@ class BankAssignmentMatrix(QDialog, Ui_BankAssignmentMatrix):
         self.setup_triggers()
 
     def setup_triggers(self):
+        self.btnGetChildren.clicked.connect(self.get_children_from_selection)
         self.btnAddRow.clicked.connect(lambda: self.tblMatrix.setRowCount(self.tblMatrix.rowCount() + 1))
         self.btnRemoveRow.clicked.connect(lambda: self.tblMatrix.setRowCount(self.tblMatrix.rowCount() - 1))
         self.btnAddColumn.clicked.connect(lambda: self.tblMatrix.setColumnCount(self.tblMatrix.columnCount() + 1))
         self.btnRemoveColumn.clicked.connect(lambda: self.tblMatrix.setColumnCount(self.tblMatrix.columnCount() - 1))
         self.btnCreateBanks.clicked.connect(self.create_banks_by_matrix)
         self.btnAssignMedia.clicked.connect(self.assign_media_to_banks)
+
+    # 从选中的对象的子对象填充列表
+    def get_children_from_selection(self):
+        selected_objects = WaapiTools.get_selected_objects()
+        if len(selected_objects) == 0:
+            return
+
+        children = WaapiTools.get_children_objects(selected_objects[0], False)
+        row = 0
+        for child in children:
+            if row >= self.tblMatrix.rowCount():
+                self.tblMatrix.setRowCount(row + 1)
+            self.tblMatrix.setItem(row, 0, QTableWidgetItem(child['name']))
+            row += 1
 
     # 获取所有Bank名称排列组合
     def get_permutations(self):

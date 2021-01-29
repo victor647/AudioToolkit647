@@ -14,11 +14,14 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 class Ui_BankAssignmentMatrix(object):
     def setupUi(self, BankAssignmentMatrix):
         BankAssignmentMatrix.setObjectName("BankAssignmentMatrix")
-        BankAssignmentMatrix.resize(392, 292)
+        BankAssignmentMatrix.resize(476, 292)
         self.verticalLayout = QtWidgets.QVBoxLayout(BankAssignmentMatrix)
         self.verticalLayout.setObjectName("verticalLayout")
         self.horizontalLayout = QtWidgets.QHBoxLayout()
         self.horizontalLayout.setObjectName("horizontalLayout")
+        self.btnGetChildren = QtWidgets.QPushButton(BankAssignmentMatrix)
+        self.btnGetChildren.setObjectName("btnGetChildren")
+        self.horizontalLayout.addWidget(self.btnGetChildren)
         self.btnAddRow = QtWidgets.QPushButton(BankAssignmentMatrix)
         self.btnAddRow.setObjectName("btnAddRow")
         self.horizontalLayout.addWidget(self.btnAddRow)
@@ -72,6 +75,7 @@ class Ui_BankAssignmentMatrix(object):
     def retranslateUi(self, BankAssignmentMatrix):
         _translate = QtCore.QCoreApplication.translate
         BankAssignmentMatrix.setWindowTitle(_translate("BankAssignmentMatrix", "Bank Assignment Matrix"))
+        self.btnGetChildren.setText(_translate("BankAssignmentMatrix", "Get Children"))
         self.btnAddRow.setText(_translate("BankAssignmentMatrix", "Add Row"))
         self.btnRemoveRow.setText(_translate("BankAssignmentMatrix", "Remove Row"))
         self.btnAddColumn.setText(_translate("BankAssignmentMatrix", "Add Column"))

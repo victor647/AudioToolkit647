@@ -254,7 +254,7 @@
     </widget>
     <addaction name="actBreakContainer"/>
     <addaction name="mnuSwitchContainer"/>
-    <addaction name="actApplyVolumeEditDownstream"/>
+    <addaction name="actApplyFaderEditsDownstream"/>
    </widget>
    <widget class="QMenu" name="mnuSoundBank">
     <property name="title">
@@ -538,9 +538,9 @@
     <string>All</string>
    </property>
   </action>
-  <action name="actApplyVolumeEditDownstream">
+  <action name="actApplyFaderEditsDownstream">
    <property name="text">
-    <string>Apply Volume Edit Downstream</string>
+    <string>Apply Fader Edits Downstream</string>
    </property>
   </action>
  </widget>
