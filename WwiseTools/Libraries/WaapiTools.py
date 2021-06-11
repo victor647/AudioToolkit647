@@ -1,4 +1,5 @@
-Client = None 
+from Libraries import LogTool
+Client = None
 
 
 # 获取项目工程路径
@@ -88,19 +89,46 @@ def get_parent_objects(obj, include_ancestors: bool):
 
 # 获取一个对象递归下层的所有子对象
 def get_children_objects(obj, include_descendants: bool):
+    result_obj = []
+    index = 0
+    interval = 500
+    while True:
+        get_args = {
+            'from': {
+                'id': [obj['id']]
+            },
+            'transform': [
+                {'select': ['descendants' if include_descendants else 'children']},
+                {'range': [index * interval, interval]}
+            ],
+            'options': {
+                'return': ['id', 'name', 'type', 'path']
+            }
+        }
+        cur_range_result = Client.call('ak.wwise.core.object.get', get_args)
+        if cur_range_result is not None and len(cur_range_result['return']):
+            result_obj += cur_range_result['return']
+            index += 1
+        else:
+            break
+
+    return result_obj
+
+
+# 通过guid获取对象完整信息
+def get_full_info_from_obj_id(obj_id):
     get_args = {
         'from': {
-            'id': [obj['id']]
+            'id': [obj_id]
         },
-        'transform': [
-            {'select': ['descendants' if include_descendants else 'children']},
-        ],
         'options': {
             'return': ['id', 'name', 'type', 'path']
         }
     }
-    result = Client.call('ak.wwise.core.object.get', get_args)
-    return result['return'] if result is not None else []
+    return_obj = Client.call('ak.wwise.core.object.get', get_args)
+    if return_obj is None or len(return_obj['return']) == 0:
+        return None
+    return return_obj['return'][0]
 
 
 # 从路径获取对象
@@ -113,12 +141,14 @@ def get_object_from_path(path: str):
             'return': ['id', 'name', 'type', 'path']
         }
     }
-    return_obj = Client.call('ak.wwise.core.object.get', get_args)['return'][0]
-    return return_obj
+    return_obj = Client.call('ak.wwise.core.object.get', get_args)
+    if return_obj is None or len(return_obj['return']) == 0:
+        return None
+    return return_obj['return'][0]
 
 
 # 从名称和类型获取对象
-def get_object_from_name_and_type(obj_name: str, obj_type: str):
+def find_object_by_name(obj_name: str, obj_type: str):
     get_args = {
         'from': {
             'search': [obj_name]
@@ -151,8 +181,10 @@ def get_original_wave_path(obj):
             'return': ['sound:originalWavFilePath']
         }
     }
-    return_obj = Client.call('ak.wwise.core.object.get', get_args)['return'][0]
-    return return_obj['sound:originalWavFilePath'] if return_obj else ''
+    return_obj = Client.call('ak.wwise.core.object.get', get_args)
+    if return_obj is None or len(return_obj['return']) == 0:
+        return ''
+    return return_obj['return'][0]['sound:originalWavFilePath']
 
 
 # 获取音频源文件语言
@@ -165,8 +197,10 @@ def get_sound_language(obj):
             'return': ['audioSource:language']
         }
     }
-    return_obj = Client.call('ak.wwise.core.object.get', get_args)['return'][0]
-    return return_obj['audioSource:language'] if return_obj else ''
+    return_obj = Client.call('ak.wwise.core.object.get', get_args)
+    if return_obj is None or len(return_obj['return']) == 0:
+        return ''
+    return return_obj['return'][0]['audioSource:language']
 
 
 # 在指定路径下创建一个新的对象
@@ -191,6 +225,22 @@ def move_object(obj, new_parent):
         'onNameConflict': 'replace'
     }
     Client.call('ak.wwise.core.object.move', move_args)
+
+
+# 复制对象到某个对象下面
+def copy_object(obj, parent):
+    copy_args = {
+        'object': obj['id'],
+        'parent': parent['id'],
+        'onNameConflict': 'rename'
+    }
+    options = {
+        'return': ['id', 'name', 'type', 'path']
+    }
+    result = Client.call('ak.wwise.core.object.copy', copy_args, options)
+    if result is None:
+        LogTool.safe_log('[Copy Failed] Obj:' + obj['name'] + ' to Parent:' + parent['name'], 'error')
+    return result
 
 
 # 将对象转换类型
@@ -248,6 +298,11 @@ def open_item_in_wwise_by_path(path):
         'objects': [path]
     }
     Client.call('ak.wwise.ui.commands.execute', select_args)
+    select_args = {
+        'command': 'Inspect',
+        'objects': [path]
+    }
+    Client.call('ak.wwise.ui.commands.execute', select_args)
 
 
 # 给一个对象重命名
@@ -281,6 +336,16 @@ def set_object_property(obj, property_name: str, value):
         'value': value
     }
     Client.call('ak.wwise.core.object.setProperty', set_args)
+
+
+# 设置对象的引用
+def set_object_reference(obj, reference_type_name: str, value):
+    set_args = {
+        'object': obj['id'],
+        'reference': reference_type_name,
+        'value': value['id']
+    }
+    Client.call('ak.wwise.core.object.setReference', set_args)
 
 
 # 删除一个对象

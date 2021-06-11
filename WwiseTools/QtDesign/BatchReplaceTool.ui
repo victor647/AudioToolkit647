@@ -1,17 +1,17 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>ReplaceSourceFile</class>
- <widget class="QDialog" name="ReplaceSourceFile">
+ <class>BatchReplaceTool</class>
+ <widget class="QDialog" name="BatchReplaceTool">
   <property name="geometry">
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>198</width>
-    <height>97</height>
+    <width>251</width>
+    <height>143</height>
    </rect>
   </property>
   <property name="windowTitle">
-   <string>ReplaceSourceFile</string>
+   <string>BatchReplaceTool</string>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
    <item>
@@ -51,6 +51,33 @@
      </item>
      <item>
       <widget class="QLineEdit" name="iptReplaceName"/>
+     </item>
+    </layout>
+   </item>
+   <item>
+    <layout class="QHBoxLayout" name="horizontalLayout_3">
+     <item>
+      <widget class="QLabel" name="lblObjectType">
+       <property name="minimumSize">
+        <size>
+         <width>75</width>
+         <height>0</height>
+        </size>
+       </property>
+       <property name="text">
+        <string>Object Type</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QComboBox" name="cbxObjectType">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
+      </widget>
      </item>
     </layout>
    </item>

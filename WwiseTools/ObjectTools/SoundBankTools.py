@@ -5,10 +5,31 @@ from PyQt5.QtWidgets import QDialog, QTableWidgetItem
 import itertools
 
 
+# 获取bank中的内容
+def get_bank_inclusions(bank_obj):
+    get_args = {
+        'soundbank': bank_obj['id']
+    }
+    result = WaapiTools.Client.call('ak.wwise.core.soundbank.getInclusions', get_args)
+    return result['inclusions']
+
+
+# 清除Bank中所有内容
+def clear_bank_inclusions(bank_obj):
+    if bank_obj['type'] != 'SoundBank':
+        return
+    set_args = {
+        'soundbank': bank_obj['id'],
+        'operation': 'replace',
+        'inclusions': []
+    }
+    WaapiTools.Client.call('ak.wwise.core.soundbank.setInclusions', set_args)
+
+
 # 为每个选中的对象创建一个SoundBank
 def create_or_add_to_bank(obj):
     # 寻找或创建同名bank
-    bank = WaapiTools.get_object_from_name_and_type(obj['name'], 'SoundBank')
+    bank = WaapiTools.find_object_by_name(obj['name'], 'SoundBank')
     if bank is None:
         bank = create_sound_bank_by_name(obj['name'])
 
@@ -39,11 +60,7 @@ def get_bank_size(objects):
     total_wav_size = total_wem_size = generated_file_count = total_file_count = 0
     unused_files = ''
     for obj in banks:
-        get_args = {
-            'soundbank': obj['id']
-        }
-        result = WaapiTools.Client.call('ak.wwise.core.soundbank.getInclusions', get_args)
-        for inclusion in result['inclusions']:
+        for inclusion in get_bank_inclusions(obj):
             if 'media' in inclusion['filter']:
                 get_args = {
                     'from': {
@@ -84,53 +101,45 @@ def get_bank_size(objects):
     win32api.MessageBox(0, message, 'Query Completed!')
 
 
-# 把所有对象添加到选中的bank中（只含media）
-def add_media_to_selected_bank(objects):
-    banks = WaapiTools.get_selected_objects()
-    if len(banks) == 0 or banks[0]['type'] != 'SoundBank':
-        return
-
-    bank = banks[0]
+# 把一批对象添加到的bank中，使用统一的inclusion
+def add_objects_to_bank(bank_obj, objects: list, inclusion_type: list):
     inclusions = []
     for obj in objects:
-
         inclusion = {
             'object': obj['id'],
-            'filter': ['media']
+            'filter': inclusion_type
         }
         inclusions.append(inclusion)
 
     set_args = {
-        'soundbank': bank['id'],
+        'soundbank': bank_obj['id'],
         'operation': 'add',
         'inclusions': inclusions
     }
     WaapiTools.Client.call('ak.wwise.core.soundbank.setInclusions', set_args)
 
 
-# 清除Bank中所有内容
-def clear_bank_inclusions(obj):
-    if obj['type'] != 'SoundBank':
-        return
+# 把一批对象添加到的bank中，每个对象使用单独的inclusion
+def add_objects_to_bank_with_individual_inclusion(bank_obj, objects):
     set_args = {
-        'soundbank': obj['id'],
-        'operation': 'replace',
-        'inclusions': []
+        'soundbank': bank_obj['id'],
+        'operation': 'add',
+        'inclusions': objects
     }
     WaapiTools.Client.call('ak.wwise.core.soundbank.setInclusions', set_args)
 
 
 # 设置SoundBank的包含内容
-def set_inclusion_type(obj, inclusion: list):
+def set_inclusion_type(obj, inclusion_type: list):
     if obj['type'] != 'SoundBank':
         return
     get_args = {
         'soundbank': obj['id']
     }
-    # 获取bank的内容并改为只有media
+    # 获取bank的内容并更改inclusion类别
     inclusions = WaapiTools.Client.call('ak.wwise.core.soundbank.getInclusions', get_args)['inclusions']
     for inclusion in inclusions:
-        inclusion['filter'] = ['media']
+        inclusion['filter'] = inclusion_type
     # 设置新的内容
     set_args = {
         'soundbank': obj['id'],
@@ -234,7 +243,7 @@ class BankAssignmentMatrix(QDialog, Ui_BankAssignmentMatrix):
             # 找到符合名称的Bank
             if match:
                 bank_name = self.get_bank_name(permutation)
-                bank = WaapiTools.get_object_from_name_and_type(bank_name, 'SoundBank')
+                bank = WaapiTools.find_object_by_name(bank_name, 'SoundBank')
                 if bank:
                     set_args = {
                         'soundbank': bank['id'],

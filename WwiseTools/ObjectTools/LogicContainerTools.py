@@ -4,16 +4,14 @@ from Libraries import WaapiTools
 # 打破Container并将内容移出
 def break_container(obj):
     children = WaapiTools.get_children_objects(obj, False)
-    parent = WaapiTools.get_parent_objects(obj, False)
-    if len(parent) == 0:
-        return
+    parent = WaapiTools.get_parent_objects(obj, False)[0]
     for child in children:
-        WaapiTools.move_object(child, parent[0])
+        WaapiTools.move_object(child, parent)
     WaapiTools.delete_object(obj)
 
 
 # 根据名称为Switch Container的下级自动分配
-def assign_switch_mappings(obj):
+def auto_assign_switch_mappings(obj):
     if obj['type'] != 'SwitchContainer' and obj['type'] != 'MusicSwitchContainer':
         return
 
@@ -38,13 +36,20 @@ def assign_switch_mappings(obj):
     switch_container_children = WaapiTools.get_children_objects(obj, False)
     for child in switch_container_children:
         for switch_obj in switch_objects:
-            # 若子对象名称中含有Switch名称，则自动分配
-            if switch_obj['name'] in child['name']:
-                assign_args = {
-                    'child': child['id'],
-                    'stateOrSwitch': switch_obj['id']
-                }
-                WaapiTools.Client.call('ak.wwise.core.switchContainer.addAssignment', assign_args)
+            # 两者名字任一包括即符合
+            switch_name = switch_obj['name']
+            child_name = child['name']
+            if switch_name in child_name or child_name in switch_name:
+                assign_switch_mapping(child, switch_obj)
+
+
+# 分配SwitchContainer的内容
+def assign_switch_mapping(child_obj, switch_obj):
+    assign_args = {
+        'child': child_obj['id'],
+        'stateOrSwitch': switch_obj['id']
+    }
+    WaapiTools.Client.call('ak.wwise.core.switchContainer.addAssignment', assign_args)
 
 
 # 删除Switch Container下面所有的分配
@@ -83,3 +88,50 @@ def apply_fader_edits_downstream(obj):
         if child['type'] != 'Sound':
             apply_fader_edits_downstream(child)
 
+
+# 将一个对象根据1P2P3P拆分成子对象
+def split_by_net_role(obj):
+    # Actor Mixer和Virtual Folder无法被放在SwitchContainer下面
+    if obj['type'] == 'ActorMixer' or obj['type'] == 'Folder':
+        return
+    original_name = obj['name']
+    # 拆分结构并重组到SwitchContainer下面
+    old_parent = WaapiTools.get_parent_objects(obj, False)[0]
+    new_parent = WaapiTools.create_object(original_name + '_Temp', 'SwitchContainer', old_parent, 'rename')
+    WaapiTools.move_object(obj, new_parent)
+    obj_2p = WaapiTools.copy_object(obj, new_parent)
+    obj_3p = WaapiTools.copy_object(obj, new_parent)
+    WaapiTools.rename_object(obj, original_name + '_1P')
+    WaapiTools.rename_object(obj_2p, original_name + '_2P')
+    WaapiTools.rename_object(obj_3p, original_name + '_3P')
+    WaapiTools.rename_object(new_parent, original_name)
+    # 分配bus
+    original_bus = WaapiTools.get_object_property(obj, '@OutputBus')
+    original_bus_name = original_bus['name']
+    bus_1p = WaapiTools.find_object_by_name(original_bus_name + '_1P', 'Bus')
+    if bus_1p is None:
+        bus_1p = WaapiTools.create_object(original_bus_name + '_1P', 'Bus', original_bus, 'replace')
+    bus_2p = WaapiTools.find_object_by_name(original_bus_name + '_2P', 'Bus')
+    if bus_2p is None:
+        bus_2p = WaapiTools.create_object(original_bus_name + '_2P', 'Bus', original_bus, 'replace')
+    bus_3p = WaapiTools.find_object_by_name(original_bus_name + '_3P', 'Bus')
+    if bus_3p is None:
+        bus_3p = WaapiTools.create_object(original_bus_name + '_3P', 'Bus', original_bus, 'replace')
+    WaapiTools.set_object_property(obj, 'OverrideOutput', True)
+    WaapiTools.set_object_reference(obj, 'OutputBus', bus_1p)
+    WaapiTools.set_object_property(obj_2p, 'OverrideOutput', True)
+    WaapiTools.set_object_reference(obj_2p, 'OutputBus', bus_2p)
+    WaapiTools.set_object_property(obj_3p, 'OverrideOutput', True)
+    WaapiTools.set_object_reference(obj_3p, 'OutputBus', bus_3p)
+    net_role_switch_group = WaapiTools.find_object_by_name('Net_Role', 'SwitchGroup')
+    if net_role_switch_group is None:
+        return
+    WaapiTools.set_object_reference(new_parent, 'SwitchGroupOrStateGroup', net_role_switch_group)
+    for switch_obj in WaapiTools.get_children_objects(net_role_switch_group, False):
+        if '1P' in switch_obj['name']:
+            assign_switch_mapping(obj, switch_obj)
+            WaapiTools.set_object_reference(new_parent, 'DefaultSwitchOrState', switch_obj)
+        if '2P' in switch_obj['name']:
+            assign_switch_mapping(obj_2p, switch_obj)
+        if '3P' in switch_obj['name']:
+            assign_switch_mapping(obj_3p, switch_obj)

@@ -6,12 +6,12 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>862</width>
-    <height>464</height>
+    <width>861</width>
+    <height>578</height>
    </rect>
   </property>
   <property name="windowTitle">
-   <string>WwiseTools - made by 647</string>
+   <string>WaapiTools - MoreFunAudioTeam</string>
   </property>
   <widget class="QWidget" name="centralwidget">
    <layout class="QVBoxLayout" name="verticalLayout">
@@ -163,35 +163,148 @@
      </layout>
     </item>
     <item>
-     <layout class="QHBoxLayout" name="horizontalLayout_3">
-      <item>
-       <widget class="QComboBox" name="cbbDescendantType"/>
-      </item>
-      <item>
-       <widget class="QPushButton" name="btnFilterByType">
-        <property name="text">
-         <string>Filter by Type</string>
-        </property>
-       </widget>
-      </item>
-      <item>
-       <widget class="QPushButton" name="btnExcludeByType">
-        <property name="text">
-         <string>Exclude by Type</string>
-        </property>
-       </widget>
-      </item>
-      <item>
-       <widget class="QLineEdit" name="iptSelectionFilter">
+     <layout class="QGridLayout" name="gridLayout">
+      <item row="0" column="0">
+       <widget class="QComboBox" name="cbbDescendantType">
         <property name="sizePolicy">
-         <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+         <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
           <horstretch>0</horstretch>
           <verstretch>0</verstretch>
          </sizepolicy>
         </property>
        </widget>
       </item>
-      <item>
+      <item row="4" column="2">
+       <layout class="QGridLayout" name="gridLayout_9"/>
+      </item>
+      <item row="0" column="1">
+       <widget class="QLineEdit" name="iptSelectionFilter">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="minimumSize">
+         <size>
+          <width>200</width>
+          <height>0</height>
+         </size>
+        </property>
+       </widget>
+      </item>
+      <item row="4" column="3">
+       <layout class="QGridLayout" name="gridLayout_10"/>
+      </item>
+      <item row="1" column="1">
+       <widget class="QGroupBox" name="groupBox">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="minimumSize">
+         <size>
+          <width>250</width>
+          <height>20</height>
+         </size>
+        </property>
+        <property name="autoFillBackground">
+         <bool>false</bool>
+        </property>
+        <property name="title">
+         <string/>
+        </property>
+        <widget class="QRadioButton" name="radioBtn_group_key_name">
+         <property name="geometry">
+          <rect>
+           <x>0</x>
+           <y>0</y>
+           <width>61</width>
+           <height>19</height>
+          </rect>
+         </property>
+         <property name="focusPolicy">
+          <enum>Qt::NoFocus</enum>
+         </property>
+         <property name="text">
+          <string>Name</string>
+         </property>
+         <property name="checked">
+          <bool>true</bool>
+         </property>
+        </widget>
+        <widget class="QRadioButton" name="radioBtn_group_key_path">
+         <property name="geometry">
+          <rect>
+           <x>100</x>
+           <y>0</y>
+           <width>61</width>
+           <height>19</height>
+          </rect>
+         </property>
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+         <property name="text">
+          <string>Path</string>
+         </property>
+        </widget>
+       </widget>
+      </item>
+      <item row="2" column="1">
+       <widget class="QGroupBox" name="groupBox_2">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="minimumSize">
+         <size>
+          <width>250</width>
+          <height>20</height>
+         </size>
+        </property>
+        <property name="title">
+         <string/>
+        </property>
+        <widget class="QRadioButton" name="radioBtn_group_ope_include">
+         <property name="geometry">
+          <rect>
+           <x>0</x>
+           <y>0</y>
+           <width>81</width>
+           <height>19</height>
+          </rect>
+         </property>
+         <property name="text">
+          <string>Include</string>
+         </property>
+         <property name="checked">
+          <bool>true</bool>
+         </property>
+        </widget>
+        <widget class="QRadioButton" name="radioBtn_group_ope_exclude">
+         <property name="geometry">
+          <rect>
+           <x>100</x>
+           <y>0</y>
+           <width>91</width>
+           <height>19</height>
+          </rect>
+         </property>
+         <property name="text">
+          <string>Exclude</string>
+         </property>
+        </widget>
+       </widget>
+      </item>
+      <item row="0" column="2">
        <widget class="QCheckBox" name="cbxCaseSensitive">
         <property name="sizePolicy">
          <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
@@ -204,17 +317,42 @@
         </property>
        </widget>
       </item>
-      <item>
-       <widget class="QPushButton" name="btnFilterByName">
+      <item row="1" column="2">
+       <widget class="QCheckBox" name="cbxMatchWholeWord">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="sizeIncrement">
+         <size>
+          <width>0</width>
+          <height>0</height>
+         </size>
+        </property>
         <property name="text">
-         <string>Filter by Name</string>
+         <string>Match Whole Word</string>
         </property>
        </widget>
       </item>
-      <item>
-       <widget class="QPushButton" name="btnExcludeByName">
+      <item row="2" column="2">
+       <widget class="QCheckBox" name="cbxUseRegularExpression">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
         <property name="text">
-         <string>Exclude by Name</string>
+         <string>Use Regular Expression</string>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="3">
+       <widget class="QLabel" name="label">
+        <property name="text">
+         <string/>
         </property>
        </widget>
       </item>
@@ -227,7 +365,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>862</width>
+     <width>861</width>
      <height>23</height>
     </rect>
    </property>
@@ -237,9 +375,11 @@
     </property>
     <addaction name="actApplyEditsToOriginal"/>
     <addaction name="actResetSourceEdits"/>
-    <addaction name="actReplaceSourceFiles"/>
     <addaction name="actRenameOriginalToWwise"/>
     <addaction name="actDeleteUnusedAKDFiles"/>
+    <addaction name="separator"/>
+    <addaction name="actWwiseSilenceAdd"/>
+    <addaction name="actWwiseSilenceRemove"/>
    </widget>
    <widget class="QMenu" name="mnuLogicContainers">
     <property name="title">
@@ -255,6 +395,7 @@
     <addaction name="actBreakContainer"/>
     <addaction name="mnuSwitchContainer"/>
     <addaction name="actApplyFaderEditsDownstream"/>
+    <addaction name="actSplitByNetRole"/>
    </widget>
    <widget class="QMenu" name="mnuSoundBank">
     <property name="title">
@@ -301,9 +442,17 @@
     <addaction name="actUndo"/>
     <addaction name="actRedo"/>
     <addaction name="mnuConvertToType"/>
-    <addaction name="actMoveToSelection"/>
+    <addaction name="actSelectDisabled"/>
     <addaction name="actDeleteObjects"/>
     <addaction name="menuRename"/>
+    <addaction name="separator"/>
+    <addaction name="actMoveListToSelection"/>
+    <addaction name="actCopySelectionToList"/>
+    <addaction name="separator"/>
+    <addaction name="actImportFromFile"/>
+    <addaction name="actExportToFile"/>
+    <addaction name="separator"/>
+    <addaction name="actBatchReplaceTool"/>
    </widget>
    <widget class="QMenu" name="menuEvent">
     <property name="title">
@@ -423,9 +572,9 @@
     <string>Batch Rename</string>
    </property>
   </action>
-  <action name="actMoveToSelection">
+  <action name="actMoveListToSelection">
    <property name="text">
-    <string>Move to Selection</string>
+    <string>Move List to Selection</string>
    </property>
   </action>
   <action name="actUndo">
@@ -541,6 +690,51 @@
   <action name="actApplyFaderEditsDownstream">
    <property name="text">
     <string>Apply Fader Edits Downstream</string>
+   </property>
+  </action>
+  <action name="actSplitByNetRole">
+   <property name="text">
+    <string>Split by Net Role</string>
+   </property>
+  </action>
+  <action name="actSelectDisabled">
+   <property name="text">
+    <string>Select Disabled</string>
+   </property>
+  </action>
+  <action name="actImportFromFile">
+   <property name="text">
+    <string>Import from File</string>
+   </property>
+  </action>
+  <action name="actExportToFile">
+   <property name="text">
+    <string>Export to File</string>
+   </property>
+  </action>
+  <action name="actCopySelectionToList">
+   <property name="text">
+    <string>Copy Selection to List</string>
+   </property>
+  </action>
+  <action name="actWwiseSilenceAdd">
+   <property name="text">
+    <string>Wwise Silence Add</string>
+   </property>
+  </action>
+  <action name="actWwiseSilenceRemove">
+   <property name="text">
+    <string>Wwise Silence Remove</string>
+   </property>
+  </action>
+  <action name="actReplaceEventNames">
+   <property name="text">
+    <string>Replace Event Names</string>
+   </property>
+  </action>
+  <action name="actBatchReplaceTool">
+   <property name="text">
+    <string>Batch Replace Tool</string>
    </property>
   </action>
  </widget>
