@@ -95,10 +95,10 @@ def get_bank_size(objects):
                             unused_files += '  ' + os.path.basename(wav_path) + '\n'
     total_wav_size = round(total_wav_size / 1024, 2)
     total_wem_size = round(total_wem_size / 1024, 2)
-    message = f'Original Wav: {total_file_count} files, {total_wav_size}MB\nConverted Wem: {generated_file_count} files, {total_wem_size}MB'
+    message = f'原始Wav文件: {total_file_count} 个文件, {total_wav_size}MB\n压缩后的Wem: {generated_file_count}个文件, {total_wem_size}MB'
     if unused_files != '':
-        message += f'\nFiles or not used or haven\'t been generated:\n{unused_files}'
-    win32api.MessageBox(0, message, 'Query Completed!')
+        message += f'\n未使用或未生成到Bank中的文件:\n{unused_files}'
+    win32api.MessageBox(0, message, '统计完毕!')
 
 
 # 把一批对象添加到的bank中，使用统一的inclusion
@@ -152,14 +152,15 @@ def set_inclusion_type(obj, inclusion_type: list):
 # 资源和Bank矩阵分配
 class BankAssignmentMatrix(QDialog, Ui_BankAssignmentMatrix):
 
-    def __init__(self):
+    def __init__(self, main_window):
         super().__init__()
         self.setupUi(self)
         self.permutations = []
         self.setup_triggers()
+        self.__mainWindow = main_window
 
     def setup_triggers(self):
-        self.btnGetChildren.clicked.connect(self.get_children_from_selection)
+        self.btnFillWithChildren.clicked.connect(self.get_children_from_selection)
         self.btnAddRow.clicked.connect(lambda: self.tblMatrix.setRowCount(self.tblMatrix.rowCount() + 1))
         self.btnRemoveRow.clicked.connect(lambda: self.tblMatrix.setRowCount(self.tblMatrix.rowCount() - 1))
         self.btnAddColumn.clicked.connect(lambda: self.tblMatrix.setColumnCount(self.tblMatrix.columnCount() + 1))
@@ -188,9 +189,10 @@ class BankAssignmentMatrix(QDialog, Ui_BankAssignmentMatrix):
             row_list = []
             for row in range(self.tblMatrix.rowCount()):
                 item = self.tblMatrix.item(row, column)
-                if item is not None:
+                if item and item.text() != '':
                     row_list.append(item.text())
-            all_lists.append(row_list)
+            if len(row_list) > 0:
+                all_lists.append(row_list)
         self.permutations = list(itertools.product(*all_lists))
 
     # 根据矩阵内容创建Bank
@@ -215,9 +217,8 @@ class BankAssignmentMatrix(QDialog, Ui_BankAssignmentMatrix):
     def assign_media_to_banks(self):
         self.get_permutations()
         WaapiTools.begin_undo_group()
-        # 获取选中对象下的所有子对象
-        for selected_obj in WaapiTools.get_selected_objects():
-            self.iterate_through_children(selected_obj)
+        for obj in self.__mainWindow.activeObjects:
+            self.iterate_through_children(obj)
         WaapiTools.end_undo_group()
 
     # 遍历每个子对象
@@ -230,9 +231,6 @@ class BankAssignmentMatrix(QDialog, Ui_BankAssignmentMatrix):
 
     # 通过比对枚举找到对应的bank
     def find_matching_bank(self, obj):
-        # 只包含单个音效的模式
-        if self.cbxSingleSoundOnly.isChecked() and obj['type'] != 'Sound':
-            return
         # 在每一种排列组合中搜索
         for permutation in self.permutations:
             match = True
@@ -244,7 +242,8 @@ class BankAssignmentMatrix(QDialog, Ui_BankAssignmentMatrix):
             if match:
                 bank_name = self.get_bank_name(permutation)
                 bank = WaapiTools.find_object_by_name(bank_name, 'SoundBank')
-                if bank:
+                # Wwise搜索会包含所有带有关键词的，需要精确搜索
+                if bank and bank['name'] == bank_name:
                     set_args = {
                         'soundbank': bank['id'],
                         'operation': 'add',

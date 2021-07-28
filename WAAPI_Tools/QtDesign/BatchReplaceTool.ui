@@ -11,7 +11,7 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>BatchReplaceTool</string>
+   <string>模板复制替换工具</string>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
    <item>
@@ -25,7 +25,7 @@
         </size>
        </property>
        <property name="text">
-        <string>Find Text</string>
+        <string>查找字段</string>
        </property>
       </widget>
      </item>
@@ -45,7 +45,7 @@
         </size>
        </property>
        <property name="text">
-        <string>Replace With</string>
+        <string>替换成</string>
        </property>
       </widget>
      </item>
@@ -65,7 +65,7 @@
         </size>
        </property>
        <property name="text">
-        <string>Object Type</string>
+        <string>替换对象类型</string>
        </property>
       </widget>
      </item>
@@ -84,7 +84,7 @@
    <item>
     <widget class="QPushButton" name="btnDoReplace">
      <property name="text">
-      <string>Execute</string>
+      <string>进行查找替换</string>
      </property>
     </widget>
    </item>

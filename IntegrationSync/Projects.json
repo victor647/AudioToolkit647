@@ -1,0 +1,52 @@
+{
+	"Projects": 
+	[		
+		{
+			"Name": "MorefunAudioLab",
+			"Path": "P:\\WwiseUnreal\\MoreFunAudioLab",
+			"Version": "2019.2.9",
+	    	"Platforms": 
+	    	[
+	        	"Android",
+	        	"iOS",
+	        	"Windows",
+	        	"Mac",
+	        	"Linux"        
+	        ]
+	    },  
+		{
+			"Name": "UA_Mobile",
+			"Path": "U:\\UA_Mobile\\R6Game",
+			"Version": "2019.2.9",
+	    	"Platforms": 
+	    	[
+	        	"Android",
+	        	"iOS",
+	        	"Windows",
+	        	"Linux"        
+	        ]
+	    },   	    
+		{
+			"Name": "UA_PC",
+			"Path": "U:\\UA_PC\\R6Game",
+			"Version": "2019.2.9",
+	    	"Platforms": 
+	    	[	        		        	
+	        	"Windows",
+	        	"Mac",
+	        	"Linux"        
+	        ]
+	    },
+	    {
+			"Name": "NRC",
+			"Path": "T:\\NRC_Code_Proj\\Project",
+			"Version": "2019.2.11",
+	    	"Platforms": 
+	    	[
+	        	"Android",
+	        	"iOS",
+	        	"Windows"	        	     
+	        ]
+	    }
+	]   
+}

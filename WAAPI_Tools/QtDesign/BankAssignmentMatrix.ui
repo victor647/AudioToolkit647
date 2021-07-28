@@ -11,43 +11,36 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>Bank Assignment Matrix</string>
+   <string>SoundBank自动分配工具</string>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
    <item>
     <layout class="QHBoxLayout" name="horizontalLayout">
      <item>
-      <widget class="QPushButton" name="btnGetChildren">
-       <property name="text">
-        <string>Get Children</string>
-       </property>
-      </widget>
-     </item>
-     <item>
       <widget class="QPushButton" name="btnAddRow">
        <property name="text">
-        <string>Add Row</string>
+        <string>添加行</string>
        </property>
       </widget>
      </item>
      <item>
       <widget class="QPushButton" name="btnRemoveRow">
        <property name="text">
-        <string>Remove Row</string>
+        <string>删除行</string>
        </property>
       </widget>
      </item>
      <item>
       <widget class="QPushButton" name="btnAddColumn">
        <property name="text">
-        <string>Add Column</string>
+        <string>添加列</string>
        </property>
       </widget>
      </item>
      <item>
       <widget class="QPushButton" name="btnRemoveColumn">
        <property name="text">
-        <string>Remove Column</string>
+        <string>删除列</string>
        </property>
       </widget>
      </item>
@@ -100,23 +93,23 @@
    <item>
     <layout class="QHBoxLayout" name="horizontalLayout_2">
      <item>
+      <widget class="QPushButton" name="btnFillWithChildren">
+       <property name="text">
+        <string>使用选取对象填充行</string>
+       </property>
+      </widget>
+     </item>
+     <item>
       <widget class="QPushButton" name="btnCreateBanks">
        <property name="text">
-        <string>Create Banks</string>
+        <string>创建新的SoundBank</string>
        </property>
       </widget>
      </item>
      <item>
       <widget class="QPushButton" name="btnAssignMedia">
        <property name="text">
-        <string>Assign Media</string>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="QCheckBox" name="cbxSingleSoundOnly">
-       <property name="text">
-        <string>Single Sound Only</string>
+        <string>分配到已有SoundBank</string>
        </property>
       </widget>
      </item>

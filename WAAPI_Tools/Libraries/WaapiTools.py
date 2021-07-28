@@ -168,7 +168,11 @@ def find_object_by_name(obj_name: str, obj_type: str):
     return_obj = Client.call('ak.wwise.core.object.get', get_args)
     if return_obj is None or len(return_obj['return']) == 0:
         return None
-    return return_obj['return'][0]
+    # Exact match only
+    for obj in return_obj['return']:
+        if obj['name'] == obj_name:
+            return obj
+    return None
 
 
 # 获取音频源文件路径
@@ -184,7 +188,8 @@ def get_original_wave_path(obj):
     return_obj = Client.call('ak.wwise.core.object.get', get_args)
     if return_obj is None or len(return_obj['return']) == 0:
         return ''
-    return return_obj['return'][0]['sound:originalWavFilePath']
+    return_obj = return_obj['return'][0]
+    return return_obj['sound:originalWavFilePath'] if 'sound:originalWavFilePath' in return_obj else ''
 
 
 # 获取音频源文件语言
@@ -200,7 +205,8 @@ def get_sound_language(obj):
     return_obj = Client.call('ak.wwise.core.object.get', get_args)
     if return_obj is None or len(return_obj['return']) == 0:
         return ''
-    return return_obj['return'][0]['audioSource:language']
+    return_obj = return_obj['return'][0]
+    return return_obj['audioSource:language'] if 'audioSource:language' in return_obj else ''
 
 
 # 在指定路径下创建一个新的对象

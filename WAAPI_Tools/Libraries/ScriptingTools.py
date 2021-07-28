@@ -10,7 +10,7 @@ def filter_objects(objects: list, filter_input: str,
     objects_filtered = []
     for obj in objects:
         objKey = obj['name'] if filter_by_name else obj['path']
-        if (filter_type != 'All') and obj['type'] != filter_type:
+        if (filter_type != '全部类型') and obj['type'] != filter_type:
             continue
         match = False
         # 查找*和?

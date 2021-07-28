@@ -10,12 +10,12 @@ class BatchReplaceTool(QDialog, Ui_BatchReplaceTool):
     __oldName = ''
     __newName = ''
 
-    def __init__(self, objects):
+    def __init__(self, main_window):
         super().__init__()
         self.setupUi(self)
-        self.__objects = objects
         self.cbxObjectType.addItems(['AudioSource', 'Event', 'SoundBank'])
         self.setup_triggers()
+        self.__mainWindow = main_window
 
     def setup_triggers(self):
         self.btnDoReplace.clicked.connect(self.start_replacing)
@@ -25,7 +25,7 @@ class BatchReplaceTool(QDialog, Ui_BatchReplaceTool):
         self.__oldName = self.iptFindName.text()
         self.__newName = self.iptReplaceName.text()
         WaapiTools.begin_undo_group()
-        for obj in self.__objects:
+        for obj in self.__mainWindow.activeObjects:
             self.iterate_child_objects(obj)
         WaapiTools.end_undo_group()
 
@@ -43,6 +43,9 @@ class BatchReplaceTool(QDialog, Ui_BatchReplaceTool):
         else:
             if self.__oldName in obj['name']:
                 new_object_name = obj['name'].replace(self.__oldName, self.__newName)
+                # 音效不需要去除_01的后缀，事件和Bank需要
+                if self.cbxObjectType.currentText() != 'AudioSource':
+                    new_object_name = new_object_name.replace('_01', '')
                 WaapiTools.rename_object(obj, new_object_name)
             for child in WaapiTools.get_children_objects(obj, False):
                 self.iterate_child_objects(child)

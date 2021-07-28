@@ -28,7 +28,7 @@ class BatchProcessor(QThread):
         index = 0
         for obj in self.__objects:
             index += 1
-            self.progressBarCallback.emit(index, obj['name'])
+            self.progressBarCallback.emit(index, obj.name if hasattr(obj, 'name') else obj['name'])
             self.__processor(obj)
         self.finishedCallback.emit()
         WaapiTools.end_undo_group()

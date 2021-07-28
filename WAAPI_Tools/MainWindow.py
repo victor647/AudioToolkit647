@@ -1,8 +1,8 @@
-import sys, traceback
+import sys
+import traceback
 from waapi import WaapiClient, CannotConnectToWaapiException
+from PyQt5.QtWidgets import QApplication, QMainWindow
 from PyQt5.QtCore import Qt
-from PyQt5.QtWidgets import QApplication, QMainWindow, QHeaderView
-
 from QtDesign.MainWindow_ui import Ui_MainWindow
 from ObjectTools.CommonTools import *
 from ObjectTools.AudioSourceTools import *
@@ -29,12 +29,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.setup_triggers()
         self.cacheObjects = []  # 通过Get Seletion、Find Children等操作获得的obj列表
         self.activeObjects = []  # cacheObjects经过filter过滤后的obj列表
-        self.statusbar.showMessage('Wwise not Connected...')
-        self.cbbDescendantType.addItems(
-            ['All', 'Action', 'ActorMixer', 'AudioFileSource', 'AuxBus', 'BlendContainer', 'Bus', 'Event', 'Folder',
-             'GameParameter', 'MusicPlaylistContainer', 'MusicSegment', 'MusicSwitchContainer', 'MusicTrack',
-             'RandomSequenceContainer', 'Sound', 'SoundBank', 'State', 'Switch', 'SwitchContainer', 'WorkUnit'])
-        self.cbbDescendantType.setCurrentText('Sound')
+        self.batchProcessor = None
+        self.statusbar.showMessage('Wwise无法连接...')
         self.tblActiveObjects.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeToContents)
         # 初始化默认尝试连接wwise
         self.connect_to_wwise()
@@ -64,15 +60,19 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         self.actUndo.triggered.connect(WaapiTools.undo)
         self.actRedo.triggered.connect(WaapiTools.redo)
-        self.actSelectDisabled.triggered.connect(self.select_disabled_objects)
+        self.actSetIncluded.triggered.connect(lambda: self.set_inclusion(True))
+        self.actSetExcluded.triggered.connect(lambda: self.set_inclusion(False))
+        self.actFilterIncluded.triggered.connect(lambda: self.filter_by_inclusion(True))
+        self.actFilterExcluded.triggered.connect(lambda: self.filter_by_inclusion(False))
         self.actDeleteObjects.triggered.connect(self.delete_all_objects)
+
         self.actMoveListToSelection.triggered.connect(self.move_active_objects_to_selection)
         self.actCopySelectionToList.triggered.connect(self.copy_selection_to_active_objects)
         self.actChangeToLowerCase.triggered.connect(lambda: self.apply_naming_convention(0))
         self.actChangeToTitleCase.triggered.connect(lambda: self.apply_naming_convention(1))
         self.actChangeToUpperCase.triggered.connect(lambda: self.apply_naming_convention(2))
-        self.actWwiseSilenceAdd.triggered.connect(self.create_wwise_silence)
-        self.actWwiseSilenceRemove.triggered.connect(self.remove_wwise_silence)
+        # self.actWwiseSilenceAdd.triggered.connect(self.create_wwise_silence)
+        # self.actWwiseSilenceRemove.triggered.connect(self.remove_wwise_silence)
 
         self.actImportFromFile.triggered.connect(self.import_from_file)
         self.actExportToFile.triggered.connect(self.export_to_file)
@@ -81,6 +81,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         self.actApplyEditsToOriginal.triggered.connect(self.apply_source_edits)
         self.actResetSourceEdits.triggered.connect(self.reset_source_editor)
+        self.actTrimTailSilence.triggered.connect(self.trim_tail_silence)
         self.actRenameOriginalToWwise.triggered.connect(self.rename_original_to_wwise)
         self.actDeleteUnusedAKDFiles.triggered.connect(delete_unused_akd_files)
 
@@ -139,14 +140,14 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         try:
             WaapiTools.Client = WaapiClient(url=url)
             WaapiTools.Client.subscribe('ak.wwise.core.project.postClosed', self.on_wwise_closed)
-            self.statusbar.showMessage('Wwise Connected to ' + WaapiTools.get_project_directory())
+            self.statusbar.showMessage('Wwise已连接到' + WaapiTools.get_project_directory())
             self.btnWaapiConnect.setEnabled(False)
         except CannotConnectToWaapiException:
-            self.statusbar.showMessage('Cannot Connect to Wwise...')
+            self.statusbar.showMessage('无法连接到Wwise工程...')
 
     # Wwise关闭时的回调
     def on_wwise_closed(self):
-        self.statusbar.showMessage('Wwise not Connected...')
+        self.statusbar.showMessage('Wwise未连接...')
         self.btnWaapiConnect.setEnabled(True)
         WaapiTools.Client = None
 
@@ -243,27 +244,31 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
     # 通用操作
     def convert_to_type(self, target_type: str):
-        processor = BatchProcessor(self.activeObjects, lambda obj: WaapiTools.convert_to_type(obj, target_type))
-        processor.start()
+        self.batchProcessor = BatchProcessor(self.activeObjects, lambda obj: WaapiTools.convert_to_type(obj, target_type))
+        self.batchProcessor.start()
 
-    def select_disabled_objects(self):
-        self.cacheObjects = ScriptingTools.filter_objects_by_inclusion(self.activeObjects, False)
+    def set_inclusion(self, included: bool):
+        self.batchProcessor = BatchProcessor(self.activeObjects, lambda obj: WaapiTools.set_object_property(obj, 'Inclusion', True if included else False))
+        self.batchProcessor.start()
+
+    def filter_by_inclusion(self, included: bool):
+        self.cacheObjects = ScriptingTools.filter_objects_by_inclusion(self.activeObjects, True if included else False)
         self.reset_filter()
         self.filter_and_show_list()
 
     def delete_all_objects(self):
-        processor = BatchProcessor(self.activeObjects, WaapiTools.delete_object)
-        processor.start()
+        self.batchProcessor = BatchProcessor(self.activeObjects, WaapiTools.delete_object)
+        self.batchProcessor.start()
         self.clear_object_list()
 
     def apply_naming_convention(self, naming_rule: int):
         if naming_rule == 0:
-            processor = BatchProcessor(self.activeObjects, rename_to_lower_case)
+            self.batchProcessor = BatchProcessor(self.activeObjects, rename_to_lower_case)
         elif naming_rule == 1:
-            processor = BatchProcessor(self.activeObjects, rename_to_title_case)
+            self.batchProcessor = BatchProcessor(self.activeObjects, rename_to_title_case)
         else:
-            processor = BatchProcessor(self.activeObjects, rename_to_upper_case)
-        processor.start()
+            self.batchProcessor = BatchProcessor(self.activeObjects, rename_to_upper_case)
+        self.batchProcessor.start()
 
     def create_wwise_silence(self):
         WwiseSilenceTool.WwiseSilenceInstance.Add()
@@ -311,20 +316,20 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             return
         selection = WaapiTools.get_selected_objects()
         if len(selection) > 0:
-            processor = BatchProcessor(self.activeObjects, lambda obj: WaapiTools.move_object(obj, selection[0]))
-            processor.start()
+            self.batchProcessor = BatchProcessor(self.activeObjects, lambda obj: WaapiTools.move_object(obj, selection[0]))
+            self.batchProcessor.start()
 
     def copy_selection_to_active_objects(self):
         if WaapiTools.Client is None:
             return
         selection = WaapiTools.get_selected_objects()
         if len(selection) > 0:
-            processor = BatchProcessor(self.activeObjects, lambda obj: WaapiTools.copy_object(selection[0], obj))
-            processor.start()
+            self.batchProcessor = BatchProcessor(self.activeObjects, lambda obj: WaapiTools.copy_object(selection[0], obj))
+            self.batchProcessor.start()
 
     def break_container(self):
-        processor = BatchProcessor(self.activeObjects, break_container)
-        processor.start()
+        self.batchProcessor = BatchProcessor(self.activeObjects, break_container)
+        self.batchProcessor.start()
 
     def open_in_multi_editor(self):
         if WaapiTools.Client is None:
@@ -338,52 +343,57 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
     # 音频文件操作
     def apply_source_edits(self):
-        processor = BatchProcessor(self.activeObjects, apply_source_edit)
-        processor.start()
+        self.batchProcessor = BatchProcessor(self.activeObjects, apply_source_edit)
+        self.batchProcessor.start()
 
     def reset_source_editor(self):
-        processor = BatchProcessor(self.activeObjects, reset_source_editor)
-        processor.start()
+        self.batchProcessor = BatchProcessor(self.activeObjects, reset_source_editor)
+        self.batchProcessor.start()
+
+    def trim_tail_silence(self):
+        trim_window = AudioTailTrimmer(self.activeObjects)
+        trim_window.show()
+        trim_window.exec_()
 
     def batch_replace_tool(self):
         if WaapiTools.Client is None:
             return
-        replace_window = BatchReplaceTool(self.activeObjects)
+        replace_window = BatchReplaceTool(self)
         replace_window.show()
         replace_window.exec_()
 
     def rename_original_to_wwise(self):
         if WaapiTools.Client is None:
             return
-        processor = BatchProcessor(self.activeObjects, rename_original_to_wwise)
-        processor.start()
+        self.batchProcessor = BatchProcessor(self.activeObjects, rename_original_to_wwise)
+        self.batchProcessor.start()
 
     # LogicContainer操作
     def assign_switch_mappings(self):
-        processor = BatchProcessor(self.activeObjects, auto_assign_switch_mappings)
-        processor.start()
+        self.batchProcessor = BatchProcessor(self.activeObjects, auto_assign_switch_mappings)
+        self.batchProcessor.start()
 
     def remove_all_switch_mappings(self):
-        processor = BatchProcessor(self.activeObjects, remove_all_switch_assignments)
-        processor.start()
+        self.batchProcessor = BatchProcessor(self.activeObjects, remove_all_switch_assignments)
+        self.batchProcessor.start()
 
     def apply_fader_edits_downstream(self):
-        processor = BatchProcessor(self.activeObjects, apply_fader_edits_downstream)
-        processor.start()
+        self.batchProcessor = BatchProcessor(self.activeObjects, apply_fader_edits_downstream)
+        self.batchProcessor.start()
 
     def split_by_net_role(self):
-        processor = BatchProcessor(self.activeObjects, split_by_net_role)
-        processor.start()
+        self.batchProcessor = BatchProcessor(self.activeObjects, split_by_net_role)
+        self.batchProcessor.start()
 
     # Event操作
     def create_play_event(self):
-        processor = BatchProcessor(self.activeObjects, create_play_event)
-        processor.start()
+        self.batchProcessor = BatchProcessor(self.activeObjects, create_play_event)
+        self.batchProcessor.start()
 
     # SoundBank操作
     def create_or_add_to_bank(self):
-        processor = BatchProcessor(self.activeObjects, create_or_add_to_bank)
-        processor.start()
+        self.batchProcessor = BatchProcessor(self.activeObjects, create_or_add_to_bank)
+        self.batchProcessor.start()
 
     def calculate_bank_total_size(self):
         if WaapiTools.Client is None:
@@ -399,19 +409,22 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         add_objects_to_bank(banks[0], self.activeObjects, ['media'])
 
     def clear_bank_inclusions(self):
-        processor = BatchProcessor(self.activeObjects, clear_bank_inclusions)
-        processor.start()
+        self.batchProcessor = BatchProcessor(self.activeObjects, clear_bank_inclusions)
+        self.batchProcessor.start()
 
     def set_bank_inclusion_type(self, inclusion_type: list):
-        processor = BatchProcessor(self.activeObjects, lambda obj: set_inclusion_type(obj, inclusion_type))
-        processor.start()
+        self.batchProcessor = BatchProcessor(self.activeObjects, lambda obj: set_inclusion_type(obj, inclusion_type))
+        self.batchProcessor.start()
 
     def bank_assignment_matrix(self):
         if WaapiTools.Client is None:
             return
-        matrix_window = BankAssignmentMatrix()
+        matrix_window = BankAssignmentMatrix(self)
         matrix_window.show()
         matrix_window.exec_()
+
+    def closeEvent(self, close_event):
+        self.batchProcessor = None
 
 
 sys.excepthook = traceback.print_exception

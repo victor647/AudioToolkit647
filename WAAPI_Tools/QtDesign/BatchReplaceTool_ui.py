@@ -61,8 +61,8 @@ class Ui_BatchReplaceTool(object):
 
     def retranslateUi(self, BatchReplaceTool):
         _translate = QtCore.QCoreApplication.translate
-        BatchReplaceTool.setWindowTitle(_translate("BatchReplaceTool", "BatchReplaceTool"))
-        self.lblFindText.setText(_translate("BatchReplaceTool", "Find Text"))
-        self.lblReplaceText.setText(_translate("BatchReplaceTool", "Replace With"))
-        self.lblObjectType.setText(_translate("BatchReplaceTool", "Object Type"))
-        self.btnDoReplace.setText(_translate("BatchReplaceTool", "Execute"))
+        BatchReplaceTool.setWindowTitle(_translate("BatchReplaceTool", "模板复制替换工具"))
+        self.lblFindText.setText(_translate("BatchReplaceTool", "查找字段"))
+        self.lblReplaceText.setText(_translate("BatchReplaceTool", "替换成"))
+        self.lblObjectType.setText(_translate("BatchReplaceTool", "替换对象类型"))
+        self.btnDoReplace.setText(_translate("BatchReplaceTool", "进行查找替换"))

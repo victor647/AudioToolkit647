@@ -1,0 +1,164 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>MainWindow</class>
+ <widget class="QMainWindow" name="MainWindow">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>998</width>
+    <height>337</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Wwise集成同步工具 - 魔方音频组</string>
+  </property>
+  <widget class="QWidget" name="centralwidget">
+   <layout class="QVBoxLayout" name="verticalLayout">
+    <item>
+     <layout class="QHBoxLayout" name="horizontalLayout">
+      <item>
+       <widget class="QLabel" name="lblSourceProject">
+        <property name="text">
+         <string>源项目</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QComboBox" name="cbbSourceProject"/>
+      </item>
+      <item>
+       <widget class="QLabel" name="lblTargetProject">
+        <property name="text">
+         <string>目标项目</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QComboBox" name="cbbTargetProject"/>
+      </item>
+      <item>
+       <widget class="QPushButton" name="btnSearchForDifference">
+        <property name="text">
+         <string>比对代码差异</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QPushButton" name="btnMoveAllToTarget">
+        <property name="text">
+         <string>移动选中文件到新工程</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QCheckBox" name="cbxSelectAll">
+        <property name="text">
+         <string>全选</string>
+        </property>
+        <property name="checked">
+         <bool>true</bool>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QCheckBox" name="cbxNewerFiles">
+        <property name="text">
+         <string>更新</string>
+        </property>
+        <property name="checked">
+         <bool>true</bool>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QCheckBox" name="cbxLargerFiles">
+        <property name="text">
+         <string>更大</string>
+        </property>
+        <property name="checked">
+         <bool>true</bool>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QCheckBox" name="cbxNewFiles">
+        <property name="text">
+         <string>新增</string>
+        </property>
+        <property name="checked">
+         <bool>true</bool>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </item>
+    <item>
+     <widget class="QTableWidget" name="tblFileList">
+      <property name="editTriggers">
+       <set>QAbstractItemView::NoEditTriggers</set>
+      </property>
+      <property name="sortingEnabled">
+       <bool>true</bool>
+      </property>
+      <column>
+       <property name="text">
+        <string>选中</string>
+       </property>
+      </column>
+      <column>
+       <property name="text">
+        <string>文件名</string>
+       </property>
+      </column>
+      <column>
+       <property name="text">
+        <string>文件大小差异</string>
+       </property>
+      </column>
+      <column>
+       <property name="text">
+        <string>源文件修改日期</string>
+       </property>
+      </column>
+      <column>
+       <property name="text">
+        <string>目标文件修改日期</string>
+       </property>
+      </column>
+     </widget>
+    </item>
+   </layout>
+  </widget>
+  <widget class="QMenuBar" name="menubar">
+   <property name="geometry">
+    <rect>
+     <x>0</x>
+     <y>0</y>
+     <width>998</width>
+     <height>23</height>
+    </rect>
+   </property>
+  </widget>
+  <widget class="QStatusBar" name="statusbar"/>
+ </widget>
+ <resources/>
+ <connections/>
+ <slots>
+  <slot>create_bank_per_object()</slot>
+  <slot>calculate_bank_size()</slot>
+  <slot>connect_to_wwise()</slot>
+  <slot>apply_source_edits()</slot>
+  <slot>assign_switch_container()</slot>
+  <slot>filter_selection()</slot>
+  <slot>select_descendants_by_type()</slot>
+  <slot>apply_naming_convention()</slot>
+  <slot>get_selected_objects(string)</slot>
+  <slot>clear_object_list()</slot>
+  <slot>open_in_multi_editor()</slot>
+  <slot>delete_all_objects()</slot>
+  <slot>reset_source_editor()</slot>
+  <slot>enable_inclusion()</slot>
+  <slot>disable_inclusion()</slot>
+ </slots>
+</ui>
