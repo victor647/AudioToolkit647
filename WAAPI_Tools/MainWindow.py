@@ -10,6 +10,7 @@ from ObjectTools.LogicContainerTools import *
 from ObjectTools.EventTools import *
 from ObjectTools.SoundBankTools import *
 from ObjectTools.BatchReplaceTool import *
+from ObjectTools.TempTools import temp_tool
 from Threading.BatchProcessor import BatchProcessor
 from Libraries import ScriptingTools, WaapiTools, FileTools, LogTool, WwiseSilenceTool
 
@@ -84,6 +85,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.actTrimTailSilence.triggered.connect(self.trim_tail_silence)
         self.actRenameOriginalToWwise.triggered.connect(self.rename_original_to_wwise)
         self.actDeleteUnusedAKDFiles.triggered.connect(delete_unused_akd_files)
+        self.actLocalizeLanguages.triggered.connect(self.localize_languages)
 
         self.actBreakContainer.triggered.connect(self.break_container)
         self.actAssignSwitchMappings.triggered.connect(self.assign_switch_mappings)
@@ -100,6 +102,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.actIncludeEventsAndStructures.triggered.connect(lambda: self.set_bank_inclusion_type(['events', 'structures']))
         self.actIncludeAll.triggered.connect(lambda: self.set_bank_inclusion_type(['events', 'structures', 'media']))
         self.actBankAssignmentMatrix.triggered.connect(self.bank_assignment_matrix)
+
+        self.actTempTool.triggered.connect(lambda: temp_tool(self.activeObjects))
 
     def reset_filter(self):
         try:
@@ -366,6 +370,12 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         if WaapiTools.Client is None:
             return
         self.batchProcessor = BatchProcessor(self.activeObjects, rename_original_to_wwise)
+        self.batchProcessor.start()
+
+    def localize_languages(self):
+        if WaapiTools.Client is None:
+            return
+        self.batchProcessor = BatchProcessor(self.activeObjects, localize_languages)
         self.batchProcessor.start()
 
     # LogicContainer操作

@@ -52,13 +52,16 @@ class BatchReplaceTool(QDialog, Ui_BatchReplaceTool):
 
     # 对声音文件进行替换
     def replace_source_wave(self, sound_obj):
-        original_path = WaapiTools.get_original_wave_path(sound_obj)
-        new_wave_path = original_path.replace(self.__oldName, self.__newName)
-        AudioSourceTools.delete_audio_sources(sound_obj)
-        # 重命名声音文件
         new_sound_name = sound_obj['name'].replace(self.__oldName, self.__newName)
         WaapiTools.rename_object(sound_obj, new_sound_name)
-        WaapiTools.import_audio_file(new_wave_path, sound_obj, new_sound_name)
+
+        sources = WaapiTools.get_children_objects(sound_obj, False)
+        for source in sources:
+            original_path = WaapiTools.get_original_wave_path(source)
+            language = WaapiTools.get_sound_language(source)
+            new_wave_path = original_path.replace(self.__oldName, self.__newName)
+            WaapiTools.delete_object(source)
+            WaapiTools.import_audio_file(new_wave_path, sound_obj, new_sound_name, language)
 
     # 对事件名和内容进行替换
     def replace_event(self, event_obj):

@@ -5,7 +5,6 @@ import numpy
 import struct
 import collections
 from math import log
-import requests, json
 
 _ieee = False
 

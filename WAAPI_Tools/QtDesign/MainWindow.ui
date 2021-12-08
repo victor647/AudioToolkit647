@@ -11,7 +11,7 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>WAAPI工具集 - 魔方音频组</string>
+   <string>WAAPI工具集</string>
   </property>
   <widget class="QWidget" name="centralwidget">
    <layout class="QVBoxLayout" name="verticalLayout">
@@ -490,6 +490,7 @@
     <addaction name="separator"/>
     <addaction name="actRenameOriginalToWwise"/>
     <addaction name="actDeleteUnusedAKDFiles"/>
+    <addaction name="actLocalizeLanguages"/>
    </widget>
    <widget class="QMenu" name="mnuLogicContainers">
     <property name="title">
@@ -596,6 +597,12 @@
     <addaction name="mnuSetInclusion"/>
     <addaction name="actDeleteObjects"/>
    </widget>
+   <widget class="QMenu" name="menu">
+    <property name="title">
+     <string>其他</string>
+    </property>
+    <addaction name="actTempTool"/>
+   </widget>
    <addaction name="mnuFile"/>
    <addaction name="mnuEdit"/>
    <addaction name="mnuCommon"/>
@@ -603,6 +610,7 @@
    <addaction name="mnuLogicContainers"/>
    <addaction name="menuEvent"/>
    <addaction name="mnuSoundBank"/>
+   <addaction name="menu"/>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
   <action name="actionEnable">
@@ -893,6 +901,16 @@
   <action name="actFilterExcluded">
    <property name="text">
     <string>禁用</string>
+   </property>
+  </action>
+  <action name="actTempTool">
+   <property name="text">
+    <string>临时工具</string>
+   </property>
+  </action>
+  <action name="actLocalizeLanguages">
+   <property name="text">
+    <string>导入本地化语言</string>
    </property>
   </action>
  </widget>

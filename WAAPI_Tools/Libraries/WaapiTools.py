@@ -30,6 +30,20 @@ def get_default_language():
     return result['return'][0]['@DefaultLanguage']
 
 
+# 获取所有的语言
+def get_language_list():
+    args = {
+        'from': {
+            'ofType': ['Language']
+        }
+    }
+    options = {
+        'return': ['name']
+    }
+    result = Client.call('ak.wwise.core.object.get', args, options)
+    return result['return']
+
+
 # 开始记录操作
 def begin_undo_group():
     Client.call('ak.wwise.core.undo.beginGroup')
@@ -84,7 +98,10 @@ def get_parent_objects(obj, include_ancestors: bool):
         }
     }
     result = Client.call('ak.wwise.core.object.get', get_args)
-    return result['return'] if result is not None else []
+    parents = result['return'] if result is not None else []
+    if not include_ancestors and len(parents) > 0:
+        return parents[0]
+    return parents
 
 
 # 获取一个对象递归下层的所有子对象
@@ -206,7 +223,7 @@ def get_sound_language(obj):
     if return_obj is None or len(return_obj['return']) == 0:
         return ''
     return_obj = return_obj['return'][0]
-    return return_obj['audioSource:language'] if 'audioSource:language' in return_obj else ''
+    return return_obj['audioSource:language']['name'] if 'audioSource:language' in return_obj else ''
 
 
 # 在指定路径下创建一个新的对象
@@ -252,7 +269,7 @@ def copy_object(obj, parent):
 # 将对象转换类型
 def convert_to_type(obj, target_type: str):
     # 先在父级创建一个不同名的新对象
-    parent = get_parent_objects(obj, False)[0]
+    parent = get_parent_objects(obj, False)
     original_name = obj['name']
     temp_object = create_object(original_name + '_Temp', target_type, parent, 'rename')
     # 创建失败，返回
@@ -272,6 +289,7 @@ def import_audio_file(wave_path, parent_obj, new_sound_name, language='SFX'):
     import_args = {
         'importOperation': 'createNew',
         'default': {
+            'objectType': 'Sound',
             'importLanguage': language
         },
         'imports': [

@@ -4,7 +4,7 @@ from Libraries import WaapiTools
 # 打破Container并将内容移出
 def break_container(obj):
     children = WaapiTools.get_children_objects(obj, False)
-    parent = WaapiTools.get_parent_objects(obj, False)[0]
+    parent = WaapiTools.get_parent_objects(obj, False)
     for child in children:
         WaapiTools.move_object(child, parent)
     WaapiTools.delete_object(obj)
@@ -52,6 +52,15 @@ def assign_switch_mapping(child_obj, switch_obj):
     WaapiTools.Client.call('ak.wwise.core.switchContainer.addAssignment', assign_args)
 
 
+# 获取SwitchContainer的Mapping
+def get_switch_mapping(child_obj, switch_obj):
+    assign_args = {
+        'id': child_obj['id']
+    }
+    result = WaapiTools.Client.call('ak.wwise.core.switchContainer.getAssignments', assign_args)
+    return result if result is None else result['return']
+
+
 # 删除Switch Container下面所有的分配
 def remove_all_switch_assignments(obj):
     if obj['type'] != 'SwitchContainer' and obj['type'] != 'MusicSwitchContainer':
@@ -96,7 +105,7 @@ def split_by_net_role(obj):
         return
     original_name = obj['name']
     # 拆分结构并重组到SwitchContainer下面
-    old_parent = WaapiTools.get_parent_objects(obj, False)[0]
+    old_parent = WaapiTools.get_parent_objects(obj, False)
     new_parent = WaapiTools.create_object(original_name + '_Temp', 'SwitchContainer', old_parent, 'rename')
     WaapiTools.move_object(obj, new_parent)
     obj_2p = WaapiTools.copy_object(obj, new_parent)

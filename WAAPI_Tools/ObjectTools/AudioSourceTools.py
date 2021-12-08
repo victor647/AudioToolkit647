@@ -121,6 +121,29 @@ def delete_unused_akd_files():
                     os.remove(full_path)
 
 
+# 尝试导入当前所有语音资源的本地化文件
+def localize_languages(obj):
+    ScriptingTools.iterate_child_sound_objects(obj, localize_language)
+
+
+# 对单个音效导入本地化资源
+def localize_language(obj):
+    language_list = WaapiTools.get_language_list()
+    sources = WaapiTools.get_children_objects(obj, False)
+    existing_language = ''
+    existing_source = None
+    for source in sources:
+        existing_language = WaapiTools.get_sound_language(source)
+        existing_source = source
+        break
+
+    for language_obj in language_list:
+        language = language_obj['name']
+        if language != existing_language:
+            original_file_path = WaapiTools.get_original_wave_path(existing_source)
+            WaapiTools.import_audio_file(original_file_path.replace(existing_language, language), obj, obj['name'], language)
+
+
 # 裁剪音频文件尾巴的工具
 class AudioTailTrimmer(QDialog, Ui_AudioTailTrimmer):
 

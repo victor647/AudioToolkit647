@@ -147,3 +147,12 @@ def trans_to_regular_expression(input: str):
         except:
             print("trans_to_regular_expression error")
     return input
+
+
+# 遍历子对象
+def iterate_child_sound_objects(obj, action):
+    if obj['type'] == 'Sound':
+        action(obj)
+    else:
+        for child in WaapiTools.get_children_objects(obj, False):
+            iterate_child_sound_objects(child, action)
