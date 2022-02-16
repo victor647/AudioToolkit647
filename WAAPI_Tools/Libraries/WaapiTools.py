@@ -1,4 +1,5 @@
 from Libraries import LogTool
+from ObjectTools.LogicContainerTools import get_switch_mapping, assign_switch_mapping
 Client = None
 
 
@@ -271,17 +272,24 @@ def convert_to_type(obj, target_type: str):
     # 先在父级创建一个不同名的新对象
     parent = get_parent_objects(obj, False)
     original_name = obj['name']
-    temp_object = create_object(original_name + '_Temp', target_type, parent, 'rename')
+    new_obj = create_object(original_name + '_Temp', target_type, parent, 'rename')
     # 创建失败，返回
-    if temp_object is None:
+    if new_obj is None:
         return
     # 将所有子对象移至新对象上
     for child in get_children_objects(obj, False):
-        move_object(child, temp_object)
+        move_object(child, new_obj)
+    # 刷新SwitchContainer分配
+    if parent['type'] == 'SwitchContainer':
+        mappings = get_switch_mapping(parent)
+        for mapping in mappings:
+            if mapping['child'] == obj['id']:
+                assign_switch_mapping(new_obj, mapping['stateOrSwitch'])
     # 删除原对象
     delete_object(obj)
     # 将新对象重命名成原对象名
-    rename_object(temp_object, original_name)
+    rename_object(new_obj, original_name)
+
 
 
 # 导入音频文件

@@ -2,9 +2,9 @@ import sys
 import os
 from shutil import copyfile
 
-plugin_names = ['Guitar']
-source_dir = 'P:\\WwiseUnreal\\MoreFunAudioLab\\Plugins\\Wwise\\ThirdParty'
-destination_dir = 'U:\\R6Game\\Plugins\\Wwise\\ThirdParty'
+plugin_names = ['Auro', 'Resonance']
+source_dir = 'C:\\Users\\mwj\\Documents\\Unreal Projects\\MyProject\\Plugins\\Wwise\\ThirdParty'
+destination_dir = 'D:\\ssjj_next\\battle\\Plugins\\Wwise\\ThirdParty'
 
 
 if __name__ == '__main__':

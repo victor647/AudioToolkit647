@@ -4,15 +4,17 @@ import re
 from Libraries import WaapiTools
 
 
+# 根据条件筛选或筛除列表中对象
 def filter_objects(objects: list, filter_input: str,
                    case_sensitive: bool, match_whole_word: bool, use_regular_expression: bool,
                    filter_type: str, filter_by_name: bool, inclusion: bool):
     objects_filtered = []
     for obj in objects:
-        objKey = obj['name'] if filter_by_name else obj['path']
         if (filter_type != '全部类型') and obj['type'] != filter_type:
             continue
         match = False
+
+        objKey = obj['name'] if filter_by_name else obj['path']
         # 查找*和?
         if fnmatch.fnmatch(objKey, filter_input):
             match = True

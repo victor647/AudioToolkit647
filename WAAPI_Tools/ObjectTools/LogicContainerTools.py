@@ -10,6 +10,20 @@ def break_container(obj):
     WaapiTools.delete_object(obj)
 
 
+# 替换父级对象并分配Switch Container
+def replace_parent(obj):
+    parent = WaapiTools.get_parent_objects(obj, False)
+    grand_parent = WaapiTools.get_parent_objects(parent, False)
+    WaapiTools.move_object(obj, grand_parent)
+    if grand_parent['type'] == 'SwitchContainer':
+        mappings = get_switch_mapping(grand_parent)
+        for mapping in mappings:
+            if mapping['child'] == parent['id']:
+                assign_switch_mapping(obj, mapping['stateOrSwitch'])
+    WaapiTools.delete_object(parent)
+    WaapiTools.rename_object(obj, parent['name'])
+
+
 # 根据名称为Switch Container的下级自动分配
 def auto_assign_switch_mappings(obj):
     if obj['type'] != 'SwitchContainer' and obj['type'] != 'MusicSwitchContainer':
@@ -47,18 +61,47 @@ def auto_assign_switch_mappings(obj):
 def assign_switch_mapping(child_obj, switch_obj):
     assign_args = {
         'child': child_obj['id'],
-        'stateOrSwitch': switch_obj['id']
+        'stateOrSwitch': switch_obj if isinstance(switch_obj, str) else switch_obj['id']
     }
     WaapiTools.Client.call('ak.wwise.core.switchContainer.addAssignment', assign_args)
 
 
 # 获取SwitchContainer的Mapping
-def get_switch_mapping(child_obj, switch_obj):
+def get_switch_mapping(obj):
     assign_args = {
-        'id': child_obj['id']
+        'id': obj['id']
     }
-    result = WaapiTools.Client.call('ak.wwise.core.switchContainer.getAssignments', assign_args)
+    options = {
+        'return': ['id', 'name', 'type', 'path']
+    }
+    result = WaapiTools.Client.call('ak.wwise.core.switchContainer.getAssignments', assign_args, options)
     return result if result is None else result['return']
+
+
+def get_switch_container_child_context(obj):
+    get_args = {
+        'from': {
+            'id': [obj['id']]
+        },
+        'options': {
+            'return': ['switchContainerChild:context']
+        }
+    }
+    result = WaapiTools.Client.call('ak.wwise.core.object.get', get_args)
+    context = result['return'][0]['switchContainerChild:context']
+    print(context)
+    descendants = WaapiTools.get_children_objects(context, True)
+    print(descendants)
+    get_args = {
+        'from': {
+            'id': [context['id']]
+        },
+        'options': {
+            'return': ['@VoicePitch']
+        }
+    }
+    result = WaapiTools.Client.call('ak.wwise.core.object.get', get_args)
+    print(result)
 
 
 # 删除Switch Container下面所有的分配

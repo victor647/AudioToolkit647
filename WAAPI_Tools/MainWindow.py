@@ -41,6 +41,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         self.btnWaapiConnect.clicked.connect(self.connect_to_wwise)
         self.btnGetSelectedObjects.clicked.connect(self.get_selected_objects)
+        self.btnUpdateObjects.clicked.connect(self.update_list_objects)
         self.btnRemoveSelection.clicked.connect(self.remove_table_selection)
         self.btnClearObjects.clicked.connect(self.clear_object_list)
         self.btnMultiEditor.clicked.connect(self.open_in_multi_editor)
@@ -88,6 +89,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.actLocalizeLanguages.triggered.connect(self.localize_languages)
 
         self.actBreakContainer.triggered.connect(self.break_container)
+        self.actReplaceParent.triggered.connect(self.replace_parent)
         self.actAssignSwitchMappings.triggered.connect(self.assign_switch_mappings)
         self.actRemoveAllSwitchAssignments.triggered.connect(self.remove_all_switch_mappings)
         self.actSplitByNetRole.triggered.connect(self.split_by_net_role)
@@ -105,12 +107,13 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         self.actTempTool.triggered.connect(lambda: temp_tool(self.activeObjects))
 
+    # 重置筛选条件
     def reset_filter(self):
         try:
-            self.radioBtn_group_key_name.toggled.disconnect(self.filter_and_show_list)
-            self.radioBtn_group_key_path.toggled.disconnect(self.filter_and_show_list)
-            self.radioBtn_group_ope_include.toggled.disconnect(self.filter_and_show_list)
-            self.radioBtn_group_ope_exclude.toggled.disconnect(self.filter_and_show_list)
+            self.rbnFilterByName.toggled.disconnect(self.filter_and_show_list)
+            self.rbnFilterByPath.toggled.disconnect(self.filter_and_show_list)
+            self.rbnFilterByInclude.toggled.disconnect(self.filter_and_show_list)
+            self.rbnFilterByExclude.toggled.disconnect(self.filter_and_show_list)
             self.cbxUseRegularExpression.toggled.disconnect(self.filter_and_show_list)
             self.cbxMatchWholeWord.toggled.disconnect(self.filter_and_show_list)
             self.cbxCaseSensitive.toggled.disconnect(self.filter_and_show_list)
@@ -119,19 +122,18 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         except:
             print("filter toggle first disconnect fail")
 
-        self.radioBtn_group_key_name.setChecked(True)
-        self.radioBtn_group_ope_include.setChecked(True)
+        self.rbnFilterByName.setChecked(True)
+        self.rbnFilterByInclude.setChecked(True)
         self.cbxUseRegularExpression.setChecked(False)
         self.cbxMatchWholeWord.setChecked(False)
         self.cbxCaseSensitive.setChecked(False)
         self.cbbDescendantType.setCurrentIndex(0)
         self.iptSelectionFilter.setText("")
 
-
-        self.radioBtn_group_key_name.toggled.connect(self.filter_and_show_list)
-        self.radioBtn_group_key_path.toggled.connect(self.filter_and_show_list)
-        self.radioBtn_group_ope_include.toggled.connect(self.filter_and_show_list)
-        self.radioBtn_group_ope_exclude.toggled.connect(self.filter_and_show_list)
+        self.rbnFilterByName.toggled.connect(self.filter_and_show_list)
+        self.rbnFilterByPath.toggled.connect(self.filter_and_show_list)
+        self.rbnFilterByInclude.toggled.connect(self.filter_and_show_list)
+        self.rbnFilterByExclude.toggled.connect(self.filter_and_show_list)
         self.cbxUseRegularExpression.toggled.connect(self.filter_and_show_list)
         self.cbxMatchWholeWord.toggled.connect(self.filter_and_show_list)
         self.cbxCaseSensitive.toggled.connect(self.filter_and_show_list)
@@ -163,6 +165,12 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.reset_filter()
         self.filter_and_show_list()
 
+    # 根据filter刷新当前列表内容
+    def update_list_objects(self):
+        self.cacheObjects = self.activeObjects
+        self.reset_filter()
+        self.filter_and_show_list()
+
     # 删去表格中选中的对象
     def remove_table_selection(self):
         for item in self.tblActiveObjects.selectedItems():
@@ -175,6 +183,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.activeObjects = []
         self.tblActiveObjects.setRowCount(0)
 
+    # 实时筛选列表内容
     def filter_obj_list(self):
         self.activeObjects = ScriptingTools.filter_objects(self.cacheObjects,
                                                            self.iptSelectionFilter.text(),
@@ -182,8 +191,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                                                            self.cbxMatchWholeWord.isChecked(),
                                                            self.cbxUseRegularExpression.isChecked(),
                                                            self.cbbDescendantType.currentText(),
-                                                           self.radioBtn_group_key_name.isChecked(),
-                                                           self.radioBtn_group_ope_include.isChecked()
+                                                           self.rbnFilterByName.isChecked(),
+                                                           self.rbnFilterByInclude.isChecked()
                                                            )
 
     def show_obj_list(self):
@@ -195,11 +204,12 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.tblActiveObjects.setItem(row_count, 1, QTableWidgetItem(obj['type']))
             self.tblActiveObjects.setItem(row_count, 2, QTableWidgetItem(obj['path']))
 
+    # 在表中显示筛选过的对象
     def filter_and_show_list(self):
         self.filter_obj_list()
         self.show_obj_list()
 
-    # 查找和筛选操作
+    # 查找父级对象
     def find_parent(self):
         if WaapiTools.Client is None:
             return
@@ -214,6 +224,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.reset_filter()
         self.filter_and_show_list()
 
+    # 查找子级对象
     def find_children(self):
         if WaapiTools.Client is None:
             return
@@ -333,6 +344,10 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
     def break_container(self):
         self.batchProcessor = BatchProcessor(self.activeObjects, break_container)
+        self.batchProcessor.start()
+
+    def replace_parent(self):
+        self.batchProcessor = BatchProcessor(self.activeObjects, replace_parent)
         self.batchProcessor.start()
 
     def open_in_multi_editor(self):

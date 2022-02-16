@@ -147,6 +147,13 @@
        </widget>
       </item>
       <item>
+       <widget class="QPushButton" name="btnUpdateObjects">
+        <property name="text">
+         <string>更新列表内容</string>
+        </property>
+       </widget>
+      </item>
+      <item>
        <widget class="QPushButton" name="btnRemoveSelection">
         <property name="text">
          <string>删除列表选中</string>
@@ -327,7 +334,7 @@
         <property name="title">
          <string/>
         </property>
-        <widget class="QRadioButton" name="radioBtn_group_key_name">
+        <widget class="QRadioButton" name="rbnFilterByName">
          <property name="geometry">
           <rect>
            <x>0</x>
@@ -346,7 +353,7 @@
           <bool>true</bool>
          </property>
         </widget>
-        <widget class="QRadioButton" name="radioBtn_group_key_path">
+        <widget class="QRadioButton" name="rbnFilterByPath">
          <property name="geometry">
           <rect>
            <x>100</x>
@@ -384,7 +391,7 @@
         <property name="title">
          <string/>
         </property>
-        <widget class="QRadioButton" name="radioBtn_group_ope_include">
+        <widget class="QRadioButton" name="rbnFilterByInclude">
          <property name="geometry">
           <rect>
            <x>0</x>
@@ -400,7 +407,7 @@
           <bool>true</bool>
          </property>
         </widget>
-        <widget class="QRadioButton" name="radioBtn_group_ope_exclude">
+        <widget class="QRadioButton" name="rbnFilterByExclude">
          <property name="geometry">
           <rect>
            <x>100</x>
@@ -504,6 +511,7 @@
      <addaction name="actRemoveAllSwitchAssignments"/>
     </widget>
     <addaction name="actBreakContainer"/>
+    <addaction name="actReplaceParent"/>
     <addaction name="actApplyFaderEditsDownstream"/>
     <addaction name="mnuSwitchContainer"/>
     <addaction name="actSplitByNetRole"/>
@@ -911,6 +919,11 @@
   <action name="actLocalizeLanguages">
    <property name="text">
     <string>导入本地化语言</string>
+   </property>
+  </action>
+  <action name="actReplaceParent">
+   <property name="text">
+    <string>替换上层</string>
    </property>
   </action>
  </widget>
