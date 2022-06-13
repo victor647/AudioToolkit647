@@ -11,6 +11,7 @@ from ObjectTools.EventTools import *
 from ObjectTools.SoundBankTools import *
 from ObjectTools.BatchReplaceTool import *
 from ObjectTools.TempTools import temp_tool
+from ObjectTools.UnityResourceManager import UnityResourceManager
 from Threading.BatchProcessor import BatchProcessor
 from Libraries import ScriptingTools, WaapiTools, FileTools, LogTool, WwiseSilenceTool
 
@@ -106,6 +107,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.actBankAssignmentMatrix.triggered.connect(self.bank_assignment_matrix)
 
         self.actTempTool.triggered.connect(lambda: temp_tool(self.activeObjects))
+        self.actUnityResourceManager.triggered.connect(self.manage_unity_resources)
 
     # 重置筛选条件
     def reset_filter(self):
@@ -447,6 +449,12 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         matrix_window = BankAssignmentMatrix(self)
         matrix_window.show()
         matrix_window.exec_()
+
+    # 其他操作
+    def manage_unity_resources(self):
+        resource_manager = UnityResourceManager()
+        resource_manager.show()
+        resource_manager.exec_()
 
     def closeEvent(self, close_event):
         self.batchProcessor = None

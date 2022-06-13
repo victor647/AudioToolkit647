@@ -1,7 +1,6 @@
 from QtDesign.BatchReplaceTool_ui import Ui_BatchReplaceTool
 from PyQt5.QtWidgets import QDialog
 from Libraries import WaapiTools
-from ObjectTools import AudioSourceTools
 from ObjectTools import SoundBankTools
 
 
