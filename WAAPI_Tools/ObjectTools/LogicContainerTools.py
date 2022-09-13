@@ -151,30 +151,24 @@ def split_by_net_role(obj):
     old_parent = WaapiTools.get_parent_objects(obj, False)
     new_parent = WaapiTools.create_object(original_name + '_Temp', 'SwitchContainer', old_parent, 'rename')
     WaapiTools.move_object(obj, new_parent)
-    obj_2p = WaapiTools.copy_object(obj, new_parent)
-    obj_3p = WaapiTools.copy_object(obj, new_parent)
-    WaapiTools.rename_object(obj, original_name + '_1P')
-    WaapiTools.rename_object(obj_2p, original_name + '_2P')
-    WaapiTools.rename_object(obj_3p, original_name + '_3P')
+    obj_p3 = WaapiTools.copy_object(obj, new_parent)
+    WaapiTools.rename_object(obj, original_name + '_P1')
+    WaapiTools.rename_object(obj_p3, original_name + '_P3')
     WaapiTools.rename_object(new_parent, original_name)
     # 分配bus
     original_bus = WaapiTools.get_object_property(obj, '@OutputBus')
     original_bus_name = original_bus['name']
-    bus_1p = WaapiTools.find_object_by_name(original_bus_name + '_1P', 'Bus')
-    if bus_1p is None:
-        bus_1p = WaapiTools.create_object(original_bus_name + '_1P', 'Bus', original_bus, 'replace')
-    bus_2p = WaapiTools.find_object_by_name(original_bus_name + '_2P', 'Bus')
-    if bus_2p is None:
-        bus_2p = WaapiTools.create_object(original_bus_name + '_2P', 'Bus', original_bus, 'replace')
-    bus_3p = WaapiTools.find_object_by_name(original_bus_name + '_3P', 'Bus')
-    if bus_3p is None:
-        bus_3p = WaapiTools.create_object(original_bus_name + '_3P', 'Bus', original_bus, 'replace')
+    bus_p1 = WaapiTools.find_object_by_name(original_bus_name + '_P1', 'Bus')
+    if bus_p1 is None:
+        bus_p1 = WaapiTools.create_object(original_bus_name + '_P1', 'Bus', original_bus, 'replace')
+
+    bus_p3 = WaapiTools.find_object_by_name(original_bus_name + '_P3', 'Bus')
+    if bus_p3 is None:
+        bus_p3 = WaapiTools.create_object(original_bus_name + '_P3', 'Bus', original_bus, 'replace')
     WaapiTools.set_object_property(obj, 'OverrideOutput', True)
-    WaapiTools.set_object_reference(obj, 'OutputBus', bus_1p)
-    WaapiTools.set_object_property(obj_2p, 'OverrideOutput', True)
-    WaapiTools.set_object_reference(obj_2p, 'OutputBus', bus_2p)
-    WaapiTools.set_object_property(obj_3p, 'OverrideOutput', True)
-    WaapiTools.set_object_reference(obj_3p, 'OutputBus', bus_3p)
+    WaapiTools.set_object_reference(obj, 'OutputBus', bus_p1)
+    WaapiTools.set_object_property(obj_p3, 'OverrideOutput', True)
+    WaapiTools.set_object_reference(obj_p3, 'OutputBus', bus_p3)
     net_role_switch_group = WaapiTools.find_object_by_name('Net_Role', 'SwitchGroup')
     if net_role_switch_group is None:
         return
@@ -182,8 +176,6 @@ def split_by_net_role(obj):
     for switch_obj in WaapiTools.get_children_objects(net_role_switch_group, False):
         if '1P' in switch_obj['name']:
             assign_switch_mapping(obj, switch_obj)
-            WaapiTools.set_object_reference(new_parent, 'DefaultSwitchOrState', switch_obj)
-        if '2P' in switch_obj['name']:
-            assign_switch_mapping(obj_2p, switch_obj)
         if '3P' in switch_obj['name']:
-            assign_switch_mapping(obj_3p, switch_obj)
+            assign_switch_mapping(obj_p3, switch_obj)
+            WaapiTools.set_object_reference(new_parent, 'DefaultSwitchOrState', switch_obj)

@@ -291,6 +291,18 @@ def convert_to_type(obj, target_type: str):
     rename_object(new_obj, original_name)
 
 
+# 为对象创建父级
+def create_parent(obj, target_type: str):
+    # 先在父级创建一个不同名的新对象
+    old_parent = get_parent_objects(obj, False)
+    original_name = obj['name']
+    new_parent = create_object(original_name + '_Temp', target_type, old_parent, 'rename')
+    if new_parent is None:
+        return
+    move_object(obj, new_parent)
+    # 将新对象重命名成原对象名
+    rename_object(new_parent, original_name)
+
 
 # 导入音频文件
 def import_audio_file(wave_path, parent_obj, new_sound_name, language='SFX'):

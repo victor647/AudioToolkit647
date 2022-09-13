@@ -540,7 +540,7 @@
     <property name="title">
      <string>通用</string>
     </property>
-    <widget class="QMenu" name="menuRename">
+    <widget class="QMenu" name="mnuRename">
      <property name="title">
       <string>改变命名规则</string>
      </property>
@@ -552,15 +552,27 @@
      <property name="title">
       <string>改变类型为</string>
      </property>
-     <addaction name="actConvertToWorkUnit"/>
-     <addaction name="actConvertToVirtualFolder"/>
      <addaction name="actConvertToActorMixer"/>
      <addaction name="actConvertToBlendContainer"/>
      <addaction name="actConvertToRandomSequenceContainer"/>
      <addaction name="actConvertToSwitchContainer"/>
+     <addaction name="actConvertToVirtualFolder"/>
+     <addaction name="actConvertToWorkUnit"/>
+    </widget>
+    <widget class="QMenu" name="mnuCreateParent">
+     <property name="title">
+      <string>创建父级</string>
+     </property>
+     <addaction name="actCreateActorMixer"/>
+     <addaction name="actCreateBlendContainer"/>
+     <addaction name="actCreateRandomSequenceContainer"/>
+     <addaction name="actCreateSwitchContainer"/>
+     <addaction name="actCreateVirtualFolder"/>
+     <addaction name="actCreateWorkUnit"/>
     </widget>
     <addaction name="mnuConvertToType"/>
-    <addaction name="menuRename"/>
+    <addaction name="mnuRename"/>
+    <addaction name="mnuCreateParent"/>
     <addaction name="separator"/>
     <addaction name="actMoveListToSelection"/>
     <addaction name="actCopySelectionToList"/>
@@ -849,7 +861,7 @@
   </action>
   <action name="actSplitByNetRole">
    <property name="text">
-    <string>按照1P/2P/3P拆分</string>
+    <string>按照P1/P3拆分</string>
    </property>
   </action>
   <action name="actImportFromFile">
@@ -930,6 +942,36 @@
   <action name="actUnityResourceManager">
    <property name="text">
     <string>管理UnityResource文件</string>
+   </property>
+  </action>
+  <action name="actCreateSwitchContainer">
+   <property name="text">
+    <string>Switch Container</string>
+   </property>
+  </action>
+  <action name="actCreateVirtualFolder">
+   <property name="text">
+    <string>Virtual Folder</string>
+   </property>
+  </action>
+  <action name="actCreateActorMixer">
+   <property name="text">
+    <string>Actor Mixer</string>
+   </property>
+  </action>
+  <action name="actCreateWorkUnit">
+   <property name="text">
+    <string>Work Unit</string>
+   </property>
+  </action>
+  <action name="actCreateBlendContainer">
+   <property name="text">
+    <string>Blend Container</string>
+   </property>
+  </action>
+  <action name="actCreateRandomSequenceContainer">
+   <property name="text">
+    <string>Random/Sequence Container</string>
    </property>
   </action>
  </widget>

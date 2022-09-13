@@ -52,9 +52,15 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.actConvertToActorMixer.triggered.connect(lambda: self.convert_to_type('ActorMixer'))
         self.actConvertToVirtualFolder.triggered.connect(lambda: self.convert_to_type('Folder'))
         self.actConvertToBlendContainer.triggered.connect(lambda: self.convert_to_type('BlendContainer'))
-        self.actConvertToRandomSequenceContainer.triggered.connect(
-            lambda: self.convert_to_type('RandomSequenceContainer'))
+        self.actConvertToRandomSequenceContainer.triggered.connect(lambda: self.convert_to_type('RandomSequenceContainer'))
         self.actConvertToSwitchContainer.triggered.connect(lambda: self.convert_to_type('SwitchContainer'))
+
+        self.actCreateWorkUnit.triggered.connect(lambda: self.create_parent('WorkUnit'))
+        self.actCreateActorMixer.triggered.connect(lambda: self.create_parent('ActorMixer'))
+        self.actCreateVirtualFolder.triggered.connect(lambda: self.create_parent('Folder'))
+        self.actCreateBlendContainer.triggered.connect(lambda: self.create_parent('BlendContainer'))
+        self.actCreateRandomSequenceContainer.triggered.connect(lambda: self.create_parent('RandomSequenceContainer'))
+        self.actCreateSwitchContainer.triggered.connect(lambda: self.create_parent('SwitchContainer'))
 
         self.btnFindParent.clicked.connect(self.find_parent)
         self.btnFindChildren.clicked.connect(self.find_children)
@@ -262,6 +268,10 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     # 通用操作
     def convert_to_type(self, target_type: str):
         self.batchProcessor = BatchProcessor(self.activeObjects, lambda obj: WaapiTools.convert_to_type(obj, target_type))
+        self.batchProcessor.start()
+
+    def create_parent(self, target_type: str):
+        self.batchProcessor = BatchProcessor(self.activeObjects, lambda obj: WaapiTools.create_parent(obj, target_type))
         self.batchProcessor.start()
 
     def set_inclusion(self, included: bool):

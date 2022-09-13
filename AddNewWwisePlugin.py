@@ -2,8 +2,8 @@ import sys
 import os
 from shutil import copyfile
 
-plugin_names = ['Auro', 'Resonance']
-source_dir = 'C:\\Users\\mwj\\Documents\\Unreal Projects\\MyProject\\Plugins\\Wwise\\ThirdParty'
+plugin_names = ['Poly']
+source_dir = 'C:\\Program Files (x86)\\Audiokinetic\\Wwise 2021.1.8.7831\\SDK'
 destination_dir = 'D:\\ssjj_next\\battle\\Plugins\\Wwise\\ThirdParty'
 
 
