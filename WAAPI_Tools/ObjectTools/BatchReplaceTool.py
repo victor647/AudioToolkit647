@@ -26,7 +26,7 @@ class BatchReplaceTool(QDialog, Ui_BatchReplaceTool):
         WaapiTools.begin_undo_group()
         for obj in self.__mainWindow.activeObjects:
             self.iterate_child_objects(obj)
-        WaapiTools.end_undo_group()
+        WaapiTools.end_undo_group('Batch Replace')
 
     # 遍历子对象
     def iterate_child_objects(self, obj):

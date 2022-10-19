@@ -51,9 +51,9 @@ def begin_undo_group():
 
 
 # 结束记录操作
-def end_undo_group():
+def end_undo_group(action: str):
     end_args = {
-        'displayName': 'WAAPI'
+        'displayName': 'WAAPI Tool - ' + action
     }
     Client.call('ak.wwise.core.undo.endGroup', end_args)
 

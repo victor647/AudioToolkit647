@@ -26,8 +26,26 @@ def replace_parent(obj):
 
 # 根据名称为Switch Container的下级自动分配
 def auto_assign_switch_mappings(obj):
-    if obj['type'] != 'SwitchContainer' and obj['type'] != 'MusicSwitchContainer':
+    # 获取Switch Group中所有可能值
+    switch_objects = get_available_switch_items(obj)
+    if switch_objects is None:
         return
+
+    # 找到Switch Container里面的所有子对象
+    switch_container_children = WaapiTools.get_children_objects(obj, False)
+    for child in switch_container_children:
+        for switch_obj in switch_objects:
+            # 两者名字任一包括即符合
+            switch_name = switch_obj['name']
+            child_name = child['name']
+            if switch_name in child_name or child_name in switch_name:
+                assign_switch_mapping(child, switch_obj)
+
+
+# 获取SwitchContainer当前分配的Switch下面所有的选项
+def get_available_switch_items(obj):
+    if obj['type'] != 'SwitchContainer' and obj['type'] != 'MusicSwitchContainer':
+        return None
 
     # 获取分配的Switch Group
     get_args = {
@@ -40,21 +58,10 @@ def auto_assign_switch_mappings(obj):
     }
     switch_group_objects = WaapiTools.Client.call('ak.wwise.core.object.get', get_args)['return']
     if len(switch_group_objects) == 0:
-        return
+        return None
 
     switch_group_obj = switch_group_objects[0]['@SwitchGroupOrStateGroup']
-    # 获取Switch Group中所有可能值
-    switch_objects = WaapiTools.get_children_objects(switch_group_obj, False)
-
-    # 找到Switch Container里面的所有子对象
-    switch_container_children = WaapiTools.get_children_objects(obj, False)
-    for child in switch_container_children:
-        for switch_obj in switch_objects:
-            # 两者名字任一包括即符合
-            switch_name = switch_obj['name']
-            child_name = child['name']
-            if switch_name in child_name or child_name in switch_name:
-                assign_switch_mapping(child, switch_obj)
+    return WaapiTools.get_children_objects(switch_group_obj, False)
 
 
 # 分配SwitchContainer的内容
@@ -114,6 +121,24 @@ def remove_all_switch_assignments(obj):
     results = WaapiTools.Client.call('ak.wwise.core.switchContainer.getAssignments', get_args)['return']
     for assignment in results:
         WaapiTools.Client.call('ak.wwise.core.switchContainer.removeAssignment', assignment)
+
+
+# 设置为通用路径分配的对象
+def set_as_generic_path_obj(obj):
+    parent = WaapiTools.get_parent_objects(obj, False)
+    switch_items = get_available_switch_items(parent)
+    if switch_items is None:
+        return
+
+    mappings = get_switch_mapping(parent)
+    for item in switch_items:
+        found = False
+        for mapping in mappings:
+            if item['id'] == mapping['stateOrSwitch']:
+                found = True
+                break
+        if not found:
+            assign_switch_mapping(obj, item)
 
 
 # 将音量音高滤波器等设置应用到下一层

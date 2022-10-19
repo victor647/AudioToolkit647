@@ -99,6 +99,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.actReplaceParent.triggered.connect(self.replace_parent)
         self.actAssignSwitchMappings.triggered.connect(self.assign_switch_mappings)
         self.actRemoveAllSwitchAssignments.triggered.connect(self.remove_all_switch_mappings)
+        self.actSetGenericPath.triggered.connect(self.set_as_generic_path_obj)
         self.actSplitByNetRole.triggered.connect(self.split_by_net_role)
         self.actApplyFaderEditsDownstream.triggered.connect(self.apply_fader_edits_downstream)
         self.actCreatePlayEvent.triggered.connect(self.create_play_event)
@@ -267,15 +268,15 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
     # 通用操作
     def convert_to_type(self, target_type: str):
-        self.batchProcessor = BatchProcessor(self.activeObjects, lambda obj: WaapiTools.convert_to_type(obj, target_type))
+        self.batchProcessor = BatchProcessor(self.activeObjects, lambda obj: WaapiTools.convert_to_type(obj, target_type), 'Convert Type')
         self.batchProcessor.start()
 
     def create_parent(self, target_type: str):
-        self.batchProcessor = BatchProcessor(self.activeObjects, lambda obj: WaapiTools.create_parent(obj, target_type))
+        self.batchProcessor = BatchProcessor(self.activeObjects, lambda obj: WaapiTools.create_parent(obj, target_type), 'Create Parent')
         self.batchProcessor.start()
 
     def set_inclusion(self, included: bool):
-        self.batchProcessor = BatchProcessor(self.activeObjects, lambda obj: WaapiTools.set_object_property(obj, 'Inclusion', True if included else False))
+        self.batchProcessor = BatchProcessor(self.activeObjects, lambda obj: WaapiTools.set_object_property(obj, 'Inclusion', True if included else False), 'Set Inclusion')
         self.batchProcessor.start()
 
     def filter_by_inclusion(self, included: bool):
@@ -284,17 +285,17 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.filter_and_show_list()
 
     def delete_all_objects(self):
-        self.batchProcessor = BatchProcessor(self.activeObjects, WaapiTools.delete_object)
+        self.batchProcessor = BatchProcessor(self.activeObjects, WaapiTools.delete_object, 'Delete Objects')
         self.batchProcessor.start()
         self.clear_object_list()
 
     def apply_naming_convention(self, naming_rule: int):
         if naming_rule == 0:
-            self.batchProcessor = BatchProcessor(self.activeObjects, rename_to_lower_case)
+            self.batchProcessor = BatchProcessor(self.activeObjects, rename_to_lower_case, 'Rename Lower Case')
         elif naming_rule == 1:
-            self.batchProcessor = BatchProcessor(self.activeObjects, rename_to_title_case)
+            self.batchProcessor = BatchProcessor(self.activeObjects, rename_to_title_case, 'Rename Title Case')
         else:
-            self.batchProcessor = BatchProcessor(self.activeObjects, rename_to_upper_case)
+            self.batchProcessor = BatchProcessor(self.activeObjects, rename_to_upper_case, 'Rename Upper Case')
         self.batchProcessor.start()
 
     def create_wwise_silence(self):
@@ -343,7 +344,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             return
         selection = WaapiTools.get_selected_objects()
         if len(selection) > 0:
-            self.batchProcessor = BatchProcessor(self.activeObjects, lambda obj: WaapiTools.move_object(obj, selection[0]))
+            self.batchProcessor = BatchProcessor(self.activeObjects, lambda obj: WaapiTools.move_object(obj, selection[0]), 'Move to Selection')
             self.batchProcessor.start()
 
     def copy_selection_to_active_objects(self):
@@ -351,15 +352,15 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             return
         selection = WaapiTools.get_selected_objects()
         if len(selection) > 0:
-            self.batchProcessor = BatchProcessor(self.activeObjects, lambda obj: WaapiTools.copy_object(selection[0], obj))
+            self.batchProcessor = BatchProcessor(self.activeObjects, lambda obj: WaapiTools.copy_object(selection[0], obj), 'Copy Selection')
             self.batchProcessor.start()
 
     def break_container(self):
-        self.batchProcessor = BatchProcessor(self.activeObjects, break_container)
+        self.batchProcessor = BatchProcessor(self.activeObjects, break_container, 'Break Container')
         self.batchProcessor.start()
 
     def replace_parent(self):
-        self.batchProcessor = BatchProcessor(self.activeObjects, replace_parent)
+        self.batchProcessor = BatchProcessor(self.activeObjects, replace_parent, 'Replace Parent')
         self.batchProcessor.start()
 
     def open_in_multi_editor(self):
@@ -374,11 +375,11 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
     # 音频文件操作
     def apply_source_edits(self):
-        self.batchProcessor = BatchProcessor(self.activeObjects, apply_source_edit)
+        self.batchProcessor = BatchProcessor(self.activeObjects, apply_source_edit, 'Apply Edit to Source')
         self.batchProcessor.start()
 
     def reset_source_editor(self):
-        self.batchProcessor = BatchProcessor(self.activeObjects, reset_source_editor)
+        self.batchProcessor = BatchProcessor(self.activeObjects, reset_source_editor, 'Reset Source Editor')
         self.batchProcessor.start()
 
     def trim_tail_silence(self):
@@ -396,40 +397,44 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     def rename_original_to_wwise(self):
         if WaapiTools.Client is None:
             return
-        self.batchProcessor = BatchProcessor(self.activeObjects, rename_original_to_wwise)
+        self.batchProcessor = BatchProcessor(self.activeObjects, rename_original_to_wwise, 'Rename Source File')
         self.batchProcessor.start()
 
     def localize_languages(self):
         if WaapiTools.Client is None:
             return
-        self.batchProcessor = BatchProcessor(self.activeObjects, localize_languages)
+        self.batchProcessor = BatchProcessor(self.activeObjects, localize_languages, 'Localization')
         self.batchProcessor.start()
 
     # LogicContainer操作
     def assign_switch_mappings(self):
-        self.batchProcessor = BatchProcessor(self.activeObjects, auto_assign_switch_mappings)
+        self.batchProcessor = BatchProcessor(self.activeObjects, auto_assign_switch_mappings, 'Auto Assign Mapping')
         self.batchProcessor.start()
 
     def remove_all_switch_mappings(self):
-        self.batchProcessor = BatchProcessor(self.activeObjects, remove_all_switch_assignments)
+        self.batchProcessor = BatchProcessor(self.activeObjects, remove_all_switch_assignments, 'Clear Mappings')
+        self.batchProcessor.start()
+
+    def set_as_generic_path_obj(self):
+        self.batchProcessor = BatchProcessor(self.activeObjects, set_as_generic_path_obj, 'Set Generic Mapping')
         self.batchProcessor.start()
 
     def apply_fader_edits_downstream(self):
-        self.batchProcessor = BatchProcessor(self.activeObjects, apply_fader_edits_downstream)
+        self.batchProcessor = BatchProcessor(self.activeObjects, apply_fader_edits_downstream, 'Apply Fader Edits')
         self.batchProcessor.start()
 
     def split_by_net_role(self):
-        self.batchProcessor = BatchProcessor(self.activeObjects, split_by_net_role)
+        self.batchProcessor = BatchProcessor(self.activeObjects, split_by_net_role, 'Split by Net Role')
         self.batchProcessor.start()
 
     # Event操作
     def create_play_event(self):
-        self.batchProcessor = BatchProcessor(self.activeObjects, create_play_event)
+        self.batchProcessor = BatchProcessor(self.activeObjects, create_play_event, 'Create Play Event')
         self.batchProcessor.start()
 
     # SoundBank操作
     def create_or_add_to_bank(self):
-        self.batchProcessor = BatchProcessor(self.activeObjects, create_or_add_to_bank)
+        self.batchProcessor = BatchProcessor(self.activeObjects, create_or_add_to_bank, 'Create/Add Bank')
         self.batchProcessor.start()
 
     def calculate_bank_total_size(self):
@@ -446,11 +451,11 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         add_objects_to_bank(banks[0], self.activeObjects, ['media'])
 
     def clear_bank_inclusions(self):
-        self.batchProcessor = BatchProcessor(self.activeObjects, clear_bank_inclusions)
+        self.batchProcessor = BatchProcessor(self.activeObjects, clear_bank_inclusions, 'Clear Bank Inclusions')
         self.batchProcessor.start()
 
     def set_bank_inclusion_type(self, inclusion_type: list):
-        self.batchProcessor = BatchProcessor(self.activeObjects, lambda obj: set_inclusion_type(obj, inclusion_type))
+        self.batchProcessor = BatchProcessor(self.activeObjects, lambda obj: set_inclusion_type(obj, inclusion_type), 'Set Bank Inclusion Type')
         self.batchProcessor.start()
 
     def bank_assignment_matrix(self):

@@ -509,6 +509,7 @@
      </property>
      <addaction name="actAssignSwitchMappings"/>
      <addaction name="actRemoveAllSwitchAssignments"/>
+     <addaction name="actSetGenericPath"/>
     </widget>
     <addaction name="actBreakContainer"/>
     <addaction name="actReplaceParent"/>
@@ -972,6 +973,11 @@
   <action name="actCreateRandomSequenceContainer">
    <property name="text">
     <string>Random/Sequence Container</string>
+   </property>
+  </action>
+  <action name="actSetGenericPath">
+   <property name="text">
+    <string>设为通用路径</string>
    </property>
   </action>
  </widget>

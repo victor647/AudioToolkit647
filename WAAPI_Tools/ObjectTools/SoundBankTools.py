@@ -202,7 +202,7 @@ class BankAssignmentMatrix(QDialog, Ui_BankAssignmentMatrix):
         for permutation in self.permutations:
             bank_name = self.get_bank_name(permutation)
             create_sound_bank_by_name(bank_name)
-        WaapiTools.end_undo_group()
+        WaapiTools.end_undo_group('Bank Matrix')
 
     # 通过关键字组合获得Bank名称
     @staticmethod
@@ -219,7 +219,7 @@ class BankAssignmentMatrix(QDialog, Ui_BankAssignmentMatrix):
         WaapiTools.begin_undo_group()
         for obj in self.__mainWindow.activeObjects:
             self.iterate_through_children(obj)
-        WaapiTools.end_undo_group()
+        WaapiTools.end_undo_group('Assign Bank Media')
 
     # 遍历每个子对象
     def iterate_through_children(self, obj):
