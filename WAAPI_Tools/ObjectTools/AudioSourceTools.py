@@ -130,6 +130,9 @@ def localize_languages(obj):
 def localize_language(obj):
     language_list = WaapiTools.get_language_list()
     sources = WaapiTools.get_children_objects(obj, False)
+    if len(sources) == 0:
+        return
+
     existing_language = ''
     existing_source = None
     for source in sources:

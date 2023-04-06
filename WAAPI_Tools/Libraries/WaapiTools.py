@@ -1,3 +1,4 @@
+import os.path
 from Libraries import LogTool
 from ObjectTools.LogicContainerTools import get_switch_mapping, assign_switch_mapping
 Client = None
@@ -306,6 +307,8 @@ def create_parent(obj, target_type: str):
 
 # 导入音频文件
 def import_audio_file(wave_path, parent_obj, new_sound_name, language='SFX'):
+    if not os.path.exists(wave_path):
+        return
     import_args = {
         'importOperation': 'createNew',
         'default': {

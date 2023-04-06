@@ -238,7 +238,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         if WaapiTools.Client is None:
             return
         if self.cbxKeepSelf.isChecked():
-            all_children = self.activeObjects
+            all_children = self.activeObjects.copy()
         else:
             all_children = []
         for obj in self.activeObjects:
