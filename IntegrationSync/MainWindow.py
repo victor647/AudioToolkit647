@@ -80,9 +80,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             config = json.load(fp=file)
             self.__projects = config['Projects']
             for project in self.__projects:
-                project['Path'] = os.path.join(project['Path'], 'Plugins\\Wwise\\source\\')
-                self.cbbSourceProject.addItems([project['Name']])
-                self.cbbTargetProject.addItems([project['Name']])
+                name_str = f"{project['Name']} ({project['Version']}-{project['Engine']})"
+                self.cbbSourceProject.addItems([name_str])
+                self.cbbTargetProject.addItems([name_str])
         if len(self.__projects) > 1:
             self.cbbTargetProject.setCurrentIndex(1)
 

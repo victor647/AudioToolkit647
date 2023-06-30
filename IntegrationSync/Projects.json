@@ -2,50 +2,49 @@
 	"Projects": 
 	[		
 		{
-			"Name": "MorefunAudioLab",
-			"Path": "P:\\WwiseUnreal\\MoreFunAudioLab",
-			"Version": "2019.2.9",
+			"Name": "WwiseUnityIntegration",
+			"Path": "W:\\Game Audio\\WwiseUnityIntegration",
+			"Version": "2022.1.2",
+			"Engine": "Unity2022",
 	    	"Platforms": 
 	    	[
-	        	"Android",
-	        	"iOS",
-	        	"Windows",
-	        	"Mac",
-	        	"Linux"        
+				"Windows"
 	        ]
 	    },  
 		{
-			"Name": "UA_Mobile",
-			"Path": "U:\\UA_Mobile\\R6Game",
-			"Version": "2019.2.9",
+			"Name": "WwiseUnrealIntegration",
+			"Path": "W:\\Game Audio\\WwiseUnrealIntegration",
+			"Version": "2022.1.2",
+			"Engine": "Unreal4.27",
 	    	"Platforms": 
 	    	[
+	        	"Windows"
+			]
+	    },   	    
+		{
+			"Name": "WwiseAdventureGame",
+			"Path": "W:\\Game Audio\\Wwise Adventure Game 2022.1.0.230\\WwiseAdventureGameSource\\Assets\\Wwise",
+			"Version": "2022.1.2",
+			"Engine": "Unity2022",
+	    	"Platforms": 
+	    	[	        		        	
 	        	"Android",
 	        	"iOS",
 	        	"Windows",
-	        	"Linux"        
-	        ]
-	    },   	    
-		{
-			"Name": "UA_PC",
-			"Path": "U:\\UA_PC\\R6Game",
-			"Version": "2019.2.9",
-	    	"Platforms": 
-	    	[	        		        	
-	        	"Windows",
-	        	"Mac",
-	        	"Linux"        
+	        	"Mac"
 	        ]
 	    },
 	    {
-			"Name": "NRC",
-			"Path": "T:\\NRC_Code_Proj\\Project",
-			"Version": "2019.2.11",
+			"Name": "WwiseAudioLab",
+			"Path": "W:\\Game Audio\\Wwise Audio Lab 2022.1.0.181\\WwiseAudioLabSource\\Plugins\\Wwise",
+			"Version": "2022.1.2",
+			"Engine": "Unreal4.27",
 	    	"Platforms": 
 	    	[
 	        	"Android",
 	        	"iOS",
-	        	"Windows"	        	     
+	        	"Windows",
+	        	"Mac"
 	        ]
 	    }
 	]   

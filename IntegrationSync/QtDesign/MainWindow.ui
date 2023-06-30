@@ -7,11 +7,11 @@
     <x>0</x>
     <y>0</y>
     <width>998</width>
-    <height>337</height>
+    <height>690</height>
    </rect>
   </property>
   <property name="windowTitle">
-   <string>Wwise集成同步工具 - 魔方音频组</string>
+   <string>Wwise集成代码同步工具</string>
   </property>
   <widget class="QWidget" name="centralwidget">
    <layout class="QVBoxLayout" name="verticalLayout">
@@ -136,7 +136,7 @@
      <x>0</x>
      <y>0</y>
      <width>998</width>
-     <height>23</height>
+     <height>18</height>
     </rect>
    </property>
   </widget>
