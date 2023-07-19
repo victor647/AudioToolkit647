@@ -19,7 +19,14 @@
      <item>
       <widget class="QPushButton" name="btnImportFiles">
        <property name="text">
-        <string>导入音频文件</string>
+        <string>导入文件</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QPushButton" name="btnImportFolder">
+       <property name="text">
+        <string>导入文件夹</string>
        </property>
       </widget>
      </item>
@@ -82,7 +89,7 @@
         <double>0.010000000000000</double>
        </property>
        <property name="value">
-        <double>0.200000000000000</double>
+        <double>0.100000000000000</double>
        </property>
       </widget>
      </item>

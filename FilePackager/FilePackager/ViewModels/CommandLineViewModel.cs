@@ -20,9 +20,9 @@ namespace FilePackager.ViewModels
         public string BankPackagePath { get; set; }
         public string StreamPackagePath { get; set; }
         public string LooseMediaPackagePath { get; set; }
-        //[Wooduan Begin] - Build external source package
+        //[V647 Begin] - Build external source package
         public string ExternalSourcePackagePath { get; set; }
-        //[Wooduan End]
+        //[V647 End]
         public uint BlockSize { get; set; }
         public IEnumerable<string> Banks { get; set; }
         public IEnumerable<string> IncludedFilesInBanks { get; set; }
@@ -211,10 +211,10 @@ namespace FilePackager.ViewModels
                 string.IsNullOrEmpty(BankPackagePath) &&
                 string.IsNullOrEmpty(StreamPackagePath) &&
                 string.IsNullOrEmpty(LooseMediaPackagePath) &&
-                //[Wooduan Begin] - Build external source package
+                //[V647 Begin] - Build external source package
                 string.IsNullOrEmpty(ExternalSourcePackagePath))
                 throw new InvalidOperationException("At least one of the output file must be specified (-output, -output_stm, -output_bnk, -output_ext)");
-                //[Wooduan End]
+                //[V647 End]
 
             // -- Filter to keep only the item listed on command line --
             IEnumerable<ContentItemViewModel> sourceItems = projectViewModel.ContentItems;
@@ -303,7 +303,7 @@ namespace FilePackager.ViewModels
                 project.ManualPackagingInfo.Packages.Add(package);
             }
             
-            //[Wooduan Begin] - Build external source package
+            //[V647 Begin] - Build external source package
             // External source package
             if (!string.IsNullOrEmpty(ExternalSourcePackagePath))
             {
@@ -315,7 +315,7 @@ namespace FilePackager.ViewModels
 
                 project.ManualPackagingInfo.Packages.Add(package);
             }
-            //[Wooduan End]
+            //[V647 End]
 
             projectViewModel.ManualPackagingInfo.BlockSize = BlockSize;
         }

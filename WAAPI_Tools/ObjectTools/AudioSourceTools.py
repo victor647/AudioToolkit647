@@ -166,6 +166,7 @@ class AudioTailTrimmer(QDialog, Ui_AudioTailTrimmer):
 
     def setup_triggers(self):
         self.btnImportFiles.clicked.connect(self.import_files)
+        self.btnImportFolder.clicked.connect(self.import_folder)
         self.btnAnalyzeTails.clicked.connect(self.analyze_tails)
         self.btnStartTrim.clicked.connect(self.start_trimming)
         self.tblFileList.viewport().installEventFilter(self)
@@ -206,6 +207,17 @@ class AudioTailTrimmer(QDialog, Ui_AudioTailTrimmer):
             self.add_file(file_path)
         self.tblFileList.repaint()
 
+    # 导入文件夹中所有音频文件
+    def import_folder(self):
+        self.reset()
+        folder = QFileDialog.getExistingDirectory()
+        for root, dirs, files in os.walk(folder):
+            for file in files:
+                if file.endswith(".wav"):
+                    file_path = os.path.join(root, file)
+                    self.add_file(file_path)
+            self.tblFileList.repaint()
+
     # 添加单个文件回调
     def add_file(self, file_path: str):
         # only accept wav files
@@ -224,7 +236,7 @@ class AudioTailTrimmer(QDialog, Ui_AudioTailTrimmer):
     def analyze_tails(self):
         self.__currentRow = 0
         self.__thresholdLinear = AudioEditTools.decibel_to_linear(self.spbCutThreshold.value())
-        self.__batchProcessor = BatchProcessor(self.__soundFiles, self.analyze_file)
+        self.__batchProcessor = BatchProcessor(self.__soundFiles, self.analyze_file, '分析音频时长')
         self.__batchProcessor.start()
 
     # 分析单个音频文件回调
@@ -250,7 +262,7 @@ class AudioTailTrimmer(QDialog, Ui_AudioTailTrimmer):
     def start_trimming(self):
         self.__currentRow = 0
         self.__fadeDuration = self.spbFadeDuration.value()
-        processor = BatchProcessor(self.__soundFiles, self.trim_file)
+        processor = BatchProcessor(self.__soundFiles, self.trim_file, '裁剪音频末尾')
         processor.start()
 
     # 裁剪单个音频文件回调
