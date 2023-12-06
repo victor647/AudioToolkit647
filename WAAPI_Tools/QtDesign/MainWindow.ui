@@ -484,7 +484,7 @@
      <x>0</x>
      <y>0</y>
      <width>738</width>
-     <height>23</height>
+     <height>22</height>
     </rect>
    </property>
    <widget class="QMenu" name="mnuAudioSource">
@@ -625,6 +625,12 @@
     <addaction name="actTempTool"/>
     <addaction name="actUnityResourceManager"/>
    </widget>
+   <widget class="QMenu" name="mnuGameSync">
+    <property name="title">
+     <string>Game Sync</string>
+    </property>
+    <addaction name="actReplaceRTPC"/>
+   </widget>
    <addaction name="mnuFile"/>
    <addaction name="mnuEdit"/>
    <addaction name="mnuCommon"/>
@@ -632,6 +638,7 @@
    <addaction name="mnuLogicContainers"/>
    <addaction name="menuEvent"/>
    <addaction name="mnuSoundBank"/>
+   <addaction name="mnuGameSync"/>
    <addaction name="menu"/>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
@@ -978,6 +985,11 @@
   <action name="actSetGenericPath">
    <property name="text">
     <string>设为通用路径</string>
+   </property>
+  </action>
+  <action name="actReplaceRTPC">
+   <property name="text">
+    <string>替换RTPC</string>
    </property>
   </action>
  </widget>
