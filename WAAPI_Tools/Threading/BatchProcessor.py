@@ -12,15 +12,16 @@ class BatchProcessor(QThread):
         self.work = False
         self.terminate()
 
-    def __init__(self, objects, processor, action_name):
+    def __init__(self, objects, processor, action_name, finished_action=None):
         super().__init__()
-        progress_bar = ProgressBar(len(objects), self)
-        progress_bar.show()
-        self.progressBarCallback.connect(progress_bar.update_search_progress)
-        self.finishedCallback.connect(progress_bar.destroy)
+        self.__progressBar = ProgressBar(len(objects), self)
+        self.__progressBar.show()
+        self.progressBarCallback.connect(self.__progressBar.update_search_progress)
+        self.finishedCallback.connect(self.end)
         self.__objects = objects
         self.__processor = processor
         self.__actionName = action_name
+        self.__finishAction = finished_action
 
     def run(self):
         if WaapiTools.Client is None:
@@ -33,3 +34,10 @@ class BatchProcessor(QThread):
             self.__processor(obj)
         self.finishedCallback.emit()
         WaapiTools.end_undo_group(self.__actionName)
+
+    def end(self):
+        self.__progressBar.destroy()
+        if self.__finishAction:
+            self.__finishAction()
+
+

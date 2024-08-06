@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<WwiseDocument Type="WorkUnit" ID="{7D078ED0-7D58-4532-A360-77A69217F454}" SchemaVersion="110" RootDocumentID="{9A98B5B2-32E5-411F-9664-ACFDB018ACDB}" ParentDocumentID="{9A98B5B2-32E5-411F-9664-ACFDB018ACDB}">
+	<AudioObjects>
+		<WorkUnit Name="Sound" ID="{7D078ED0-7D58-4532-A360-77A69217F454}" OwnerID="{9A98B5B2-32E5-411F-9664-ACFDB018ACDB}" PersistMode="Nested">
+			<ChildrenList>
+				<Sound Name="Skill_Owl_Flying" ID="{86A030E0-DE99-4EC3-892D-6B2421184711}" ShortID="876054830">
+					<ReferenceList>
+						<Reference Name="Conversion">
+							<ObjectRef Name="Default Conversion Settings" ID="{6D1B890C-9826-4384-BF07-C15223E9FB56}" WorkUnitID="{F0D5E8E6-2EE7-49F2-A90A-079485E146CB}"/>
+						</Reference>
+						<Reference Name="OutputBus">
+							<ObjectRef Name="Master Audio Bus" ID="{1514A4D8-1DA6-412A-A17E-75CA0C2149F3}" WorkUnitID="{765C658F-2749-46D8-8B64-504120A744AA}"/>
+						</Reference>
+					</ReferenceList>
+					<ChildrenList>
+						<AudioFileSource Name="Skill_Owl_Flying" ID="{40F1EC8E-E817-4980-AE5D-6CF165CF18BF}">
+							<Language>SFX</Language>
+							<AudioFile>Skill_Owl_Flying.wav</AudioFile>
+							<MediaIDList>
+								<MediaID ID="959883840"/>
+							</MediaIDList>
+						</AudioFileSource>
+					</ChildrenList>
+					<ActiveSourceList>
+						<ActiveSource Name="Skill_Owl_Flying" ID="{40F1EC8E-E817-4980-AE5D-6CF165CF18BF}" Platform="Linked"/>
+					</ActiveSourceList>
+				</Sound>
+				<WorkUnit Name="Foley" ID="{E894E720-09CB-4C5A-A300-9E8B69E08045}" PersistMode="Reference"/>
+			</ChildrenList>
+		</WorkUnit>
+	</AudioObjects>
+</WwiseDocument>

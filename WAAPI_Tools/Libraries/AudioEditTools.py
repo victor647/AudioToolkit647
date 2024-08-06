@@ -1,6 +1,3 @@
-import numpy
-
-
 # 把分贝转换成0-1的值
 def decibel_to_linear(decibel):
     return min(1.0, pow(10, (decibel / 20)))
@@ -54,16 +51,12 @@ def get_sound_frame_max_amp(frame_data):
 
 
 # 淡入淡出，1为淡入，-1为淡出
-def apply_fade(audio_data, duration_samples: int, fade_direction: int):
+def fade(audio_data, duration_samples: int, fade_direction: int):
     if duration_samples > len(audio_data):
         return
     for index in range(duration_samples):
         audio_data[fade_direction * index] *= index / duration_samples
 
 
-# 创建一段静音
-def create_silence(channels, samples: int):
-    if channels == 1:
-        return numpy.zeros(samples)
-    else:
-        return numpy.zeros([samples, channels])
+def trim(audio_data, start_samples: int, end_samples: int):
+    audio_data = audio_data[start_samples:end_samples]

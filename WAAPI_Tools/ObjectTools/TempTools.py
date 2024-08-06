@@ -1,22 +1,23 @@
 from Libraries import WaapiTools
-from ObjectTools import LogicContainerTools
+from ObjectTools import EventTools
+from Threading.BatchProcessor import BatchProcessor
 
 
 def temp_tool(objects: list):
-    pass
-    # for obj in objects:
-    #     parent = WaapiTools.get_parent_objects(obj, False)
-    #     new_obj = WaapiTools.create_object('Tail', 'SwitchContainer', parent, 'rename')
-    #     WaapiTools.move_object(obj, new_obj)
-    #     indoor_switch_group = WaapiTools.find_object_by_name('Indoor_Outdoor', 'SwitchGroup')
-    #     WaapiTools.set_object_reference(new_obj, 'SwitchGroupOrStateGroup', indoor_switch_group)
-    #     outdoor_switch = WaapiTools.get_children_objects(indoor_switch_group, False)[1]
-    #     LogicContainerTools.assign_switch_mapping(obj, outdoor_switch)
-    #     WaapiTools.set_object_reference(new_obj, 'DefaultSwitchOrState', outdoor_switch)
-    #
-    #     if parent['type'] == 'SwitchContainer':
-    #         loop_switch_group = WaapiTools.find_object_by_name('Gun_Shot_Loop_Mode', 'SwitchGroup')
-    #         end_switch = WaapiTools.get_children_objects(loop_switch_group, False)[0]
-    #         LogicContainerTools.assign_switch_mapping(new_obj, end_switch)
+    batch_processor = BatchProcessor(objects, temp_action, '临时操作')
+    batch_processor.start()
+
+
+def temp_action(obj):
+    if obj['type'] == 'Event' and obj['name'].endswith('_1P'):
+        actions = WaapiTools.get_child_objects(obj, False)
+        for action in actions:
+            old_target = WaapiTools.get_object_property(action, 'Target')
+            new_target_name = old_target['name'].replace('_3P', '_1P')
+            new_targets = WaapiTools.find_all_objects_by_name(new_target_name)
+            if len(new_targets) > 0:
+                EventTools.change_action_target(action, new_targets[0])
+
+
 
 

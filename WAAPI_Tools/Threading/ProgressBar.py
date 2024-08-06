@@ -13,7 +13,7 @@ class ProgressBar(QDialog, Ui_ProgressBar):
 
     def update_search_progress(self, index: int, obj_name: str):
         # 更新进度条显示
-        self.pgbSearching.setValue(index / self.__total * 100)
+        self.pgbSearching.setValue(int(index / self.__total * 100))
         # 更新底部文字显示
         self.lblCurrentWorking.setText(obj_name + '(' + str(index) + '/' + str(self.__total) + ')')
 

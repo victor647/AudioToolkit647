@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>738</width>
-    <height>578</height>
+    <height>516</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -156,7 +156,14 @@
       <item>
        <widget class="QPushButton" name="btnRemoveSelection">
         <property name="text">
-         <string>删除列表选中</string>
+         <string>删除选中</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QPushButton" name="btnKeepOnlySelection">
+        <property name="text">
+         <string>仅保留选中</string>
         </property>
        </widget>
       </item>
@@ -496,6 +503,7 @@
     <addaction name="actTrimTailSilence"/>
     <addaction name="separator"/>
     <addaction name="actRenameOriginalToWwise"/>
+    <addaction name="actTidyOriginalFolders"/>
     <addaction name="actDeleteUnusedAKDFiles"/>
     <addaction name="actLocalizeLanguages"/>
    </widget>
@@ -510,12 +518,12 @@
      <addaction name="actAssignSwitchMappings"/>
      <addaction name="actRemoveAllSwitchAssignments"/>
      <addaction name="actSetGenericPath"/>
+     <addaction name="actSplitByPlayerIdentity"/>
     </widget>
     <addaction name="actBreakContainer"/>
     <addaction name="actReplaceParent"/>
     <addaction name="actApplyFaderEditsDownstream"/>
     <addaction name="mnuSwitchContainer"/>
-    <addaction name="actSplitByNetRole"/>
    </widget>
    <widget class="QMenu" name="mnuSoundBank">
     <property name="title">
@@ -574,11 +582,13 @@
     <addaction name="mnuConvertToType"/>
     <addaction name="mnuRename"/>
     <addaction name="mnuCreateParent"/>
+    <addaction name="actRemoveSuffix"/>
     <addaction name="separator"/>
     <addaction name="actMoveListToSelection"/>
     <addaction name="actCopySelectionToList"/>
     <addaction name="separator"/>
     <addaction name="actBatchReplaceTool"/>
+    <addaction name="separator"/>
    </widget>
    <widget class="QMenu" name="menuEvent">
     <property name="title">
@@ -622,8 +632,10 @@
     <property name="title">
      <string>其他</string>
     </property>
+    <addaction name="actCheckProjectValidation"/>
+    <addaction name="actUnityAssetManager"/>
+    <addaction name="separator"/>
     <addaction name="actTempTool"/>
-    <addaction name="actUnityResourceManager"/>
    </widget>
    <widget class="QMenu" name="mnuGameSync">
     <property name="title">
@@ -867,9 +879,9 @@
     <string>混音向下汇总</string>
    </property>
   </action>
-  <action name="actSplitByNetRole">
+  <action name="actSplitByPlayerIdentity">
    <property name="text">
-    <string>按照P1/P3拆分</string>
+    <string>按照1P/3P拆分</string>
    </property>
   </action>
   <action name="actImportFromFile">
@@ -947,9 +959,9 @@
     <string>替换上层</string>
    </property>
   </action>
-  <action name="actUnityResourceManager">
+  <action name="actUnityAssetManager">
    <property name="text">
-    <string>管理UnityResource文件</string>
+    <string>管理UnityAsset文件</string>
    </property>
   </action>
   <action name="actCreateSwitchContainer">
@@ -990,6 +1002,39 @@
   <action name="actReplaceRTPC">
    <property name="text">
     <string>替换RTPC</string>
+   </property>
+  </action>
+  <action name="actTidyOriginalFolders">
+   <property name="text">
+    <string>整理源文件夹</string>
+   </property>
+  </action>
+  <action name="actCreateRandomContainer">
+   <property name="text">
+    <string>自动创建随机容器</string>
+   </property>
+  </action>
+  <action name="actCheckGlobalProject">
+   <property name="text">
+    <string>全局检查</string>
+   </property>
+  </action>
+  <action name="actCheckSelectObject">
+   <property name="text">
+    <string>检查选中对象</string>
+   </property>
+  </action>
+  <action name="actCheckProjectValidation">
+   <property name="text">
+    <string>工程检查</string>
+   </property>
+  </action>
+  <action name="actRemoveSuffix">
+   <property name="text">
+    <string>去除结尾名</string>
+   </property>
+   <property name="iconText">
+    <string>去除结尾名</string>
    </property>
   </action>
  </widget>

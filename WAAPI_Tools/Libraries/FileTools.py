@@ -1,7 +1,9 @@
 import json
 import os
 import time
+import shutil
 from PyQt5.QtWidgets import QFileDialog
+from Libraries import WaapiTools
 
 use_filetypes = [('wwise tool save files', '.json')]
 use_extension = '.json'
@@ -23,4 +25,16 @@ def export_to_file(dictobj):
     if file_path[0] == '':
         return
     file = open(file_path[0], 'w')
-    json.dump(dictobj, file)
+    file.write(json.dumps(dictobj))
+
+
+# 移动文件
+def move_file(old_path, new_path):
+    if not os.path.exists(old_path):
+        return
+    folder = os.path.dirname(new_path)
+    if not os.path.exists(folder):
+        os.makedirs(folder)
+    shutil.move(old_path, new_path)
+    print(f'Moved file from {old_path} to {new_path}')
+    # WaapiTools.add_to_source_control(new_path)

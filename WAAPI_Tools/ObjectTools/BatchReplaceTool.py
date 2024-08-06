@@ -46,7 +46,7 @@ class BatchReplaceTool(QDialog, Ui_BatchReplaceTool):
                 if self.cbxObjectType.currentText() != 'AudioSource':
                     new_object_name = new_object_name.replace('_01', '')
                 WaapiTools.rename_object(obj, new_object_name)
-            for child in WaapiTools.get_children_objects(obj, False):
+            for child in WaapiTools.get_child_objects(obj, False):
                 self.iterate_child_objects(child)
 
     # 对声音文件进行替换
@@ -54,9 +54,9 @@ class BatchReplaceTool(QDialog, Ui_BatchReplaceTool):
         new_sound_name = sound_obj['name'].replace(self.__oldName, self.__newName)
         WaapiTools.rename_object(sound_obj, new_sound_name)
 
-        sources = WaapiTools.get_children_objects(sound_obj, False)
+        sources = WaapiTools.get_child_objects(sound_obj, False)
         for source in sources:
-            original_path = WaapiTools.get_original_wave_path(source)
+            original_path = WaapiTools.get_object_property(source, 'sound:originalWavFilePath')
             language = WaapiTools.get_sound_language(source)
             new_wave_path = original_path.replace(self.__oldName, self.__newName)
             WaapiTools.delete_object(source)
@@ -66,12 +66,12 @@ class BatchReplaceTool(QDialog, Ui_BatchReplaceTool):
     def replace_event(self, event_obj):
         new_event_name = event_obj['name'].replace(self.__oldName, self.__newName).replace('_01', '')
         WaapiTools.rename_object(event_obj, new_event_name)
-        for action in WaapiTools.get_children_objects(event_obj, False):
+        for action in WaapiTools.get_child_objects(event_obj, False):
             target = WaapiTools.get_object_property(action, '@Target')
             target_full = WaapiTools.get_full_info_from_obj_id(target['id'])
             new_target_path = target_full['path'].replace(self.__oldName, self.__newName)
             new_target = WaapiTools.get_object_from_path(new_target_path)
-            if new_target is not None:
+            if new_target:
                 WaapiTools.set_object_reference(action, 'Target', new_target)
 
     # 对bank内容进行替换
@@ -83,7 +83,7 @@ class BatchReplaceTool(QDialog, Ui_BatchReplaceTool):
             target_full = WaapiTools.get_full_info_from_obj_id(old_inclusion_obj['object'])
             new_target_path = target_full['path'].replace(self.__oldName, self.__newName)
             new_target = WaapiTools.get_object_from_path(new_target_path)
-            if new_target is not None:
+            if new_target:
                 inclusion = {
                     'object': new_target['id'],
                     'filter': old_inclusion_obj['filter']

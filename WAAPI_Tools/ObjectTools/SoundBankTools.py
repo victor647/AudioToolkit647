@@ -1,8 +1,10 @@
-import win32api, os
+import itertools
+import os
+
+from PyQt5.QtWidgets import QDialog, QTableWidgetItem
+
 from Libraries import ScriptingTools, WaapiTools
 from QtDesign.BankAssignmentMatrix_ui import Ui_BankAssignmentMatrix
-from PyQt5.QtWidgets import QDialog, QTableWidgetItem
-import itertools
 
 
 # 获取bank中的内容
@@ -29,7 +31,7 @@ def clear_bank_inclusions(bank_obj):
 # 为每个选中的对象创建一个SoundBank
 def create_or_add_to_bank(obj):
     # 寻找或创建同名bank
-    bank = WaapiTools.find_object_by_name(obj['name'], 'SoundBank')
+    bank = WaapiTools.find_object_by_name_and_type(obj['name'], 'SoundBank')
     if bank is None:
         bank = create_sound_bank_by_name(obj['name'])
 
@@ -54,51 +56,58 @@ def create_sound_bank_by_name(bank_name: str):
     return new_bank
 
 
-# 获取选中的Bank的大小
-def get_bank_size(objects):
-    banks = ScriptingTools.filter_objects_by_type(objects, 'SoundBank')
-    total_wav_size = total_wem_size = generated_file_count = total_file_count = 0
-    unused_files = ''
-    for obj in banks:
-        for inclusion in get_bank_inclusions(obj):
-            if 'media' in inclusion['filter']:
-                get_args = {
-                    'from': {
-                        'id': [inclusion['object']]
-                    },
-                    'options': {
-                        'return': ['name', 'sound:originalWavFilePath', 'sound:convertedWemFilePath', 'audioSource:language']
-                    },
-                    'transform': [
-                        {
-                            'select': ['descendants']
-                        },
-                        {
-                            'where': ['type:isIn', ['AudioFileSource']]
-                        }
-                    ]
+# 传统方式获取Bank大小
+def get_bank_size(obj):
+    wav_size = wem_size = used_files_count = 0
+    unused_files = []
+    for inclusion in get_bank_inclusions(obj):
+        if 'media' in inclusion['filter']:
+            bank_id = inclusion['object']
+            get_args = {
+                'waql': f'from object \"{bank_id}\" select descendants where type = \"AudioFileSource\"',
+                'options': {
+                    'return': ['name', 'originalWavFilePath', 'convertedWemFilePath', 'audioSourceLanguage']
                 }
-                result = WaapiTools.Client.call('ak.wwise.core.object.get', get_args)
-                for audio_source in result['return']:
-                    language = audio_source['audioSource:language']['name']
-                    if language == 'SFX' or language == 'Chinese':
-                        total_file_count += 1
-                        wav_path = audio_source['sound:originalWavFilePath']
-                        wav_size = os.path.getsize(wav_path) / 1024
-                        total_wav_size += wav_size
-                        wem_path = audio_source['sound:convertedWemFilePath']
-                        if os.path.exists(wem_path):
-                            wem_size = os.path.getsize(wem_path) / 1024
-                            total_wem_size += wem_size
-                            generated_file_count += 1
-                        else:
-                            unused_files += '  ' + os.path.basename(wav_path) + '\n'
-    total_wav_size = round(total_wav_size / 1024, 2)
-    total_wem_size = round(total_wem_size / 1024, 2)
-    message = f'原始Wav文件: {total_file_count} 个文件, {total_wav_size}MB\n压缩后的Wem: {generated_file_count}个文件, {total_wem_size}MB'
-    if unused_files != '':
-        message += f'\n未使用或未生成到Bank中的文件:\n{unused_files}'
-    win32api.MessageBox(0, message, '统计完毕!')
+            }
+            result = WaapiTools.Client.call('ak.wwise.core.object.get', get_args)
+            bank_name = obj['name']
+            if len(result) == 0:
+                print(f'Bank[{bank_name}]不包含任何资源！')
+                return 5
+
+            for audio_source in result['return']:
+                language = audio_source['audioSourceLanguage']['name']
+                if language == 'SFX' or language == 'Chinese':
+                    wav_path = audio_source['originalWavFilePath']
+                    if not os.path.exists(wav_path):
+                        print(f'在Bank[{bank_name}]中找不到源文件[{wav_path}!]')
+                        continue
+                    wav_name = os.path.basename(wav_path)
+                    wav_size += os.path.getsize(wav_path) / 1024
+                    wem_path = audio_source['convertedWemFilePath']
+                    if os.path.exists(wem_path):
+                        wem_size += os.path.getsize(wem_path) / 1024
+                        used_files_count += 1
+                    else:
+                        unused_files.append(wav_name)
+
+    wav_size = round(wav_size / 1024, 2)
+    wem_size = round(wem_size / 1024, 2)
+    return wav_size, wem_size, used_files_count, unused_files
+
+
+# 计算多个Bank合计大小
+def get_total_bank_size(objects):
+    total_wav_size = total_wem_size = total_used_files_count = 0
+    total_unused_files = []
+    for obj in objects:
+        if obj['type'] == 'SoundBank':
+            wav_size, wem_size, used_files_count, unused_files = get_bank_size(obj)
+            total_wav_size += wav_size
+            total_wem_size += wem_size
+            total_used_files_count += used_files_count
+            total_unused_files += unused_files
+    return total_wav_size, total_wem_size, total_used_files_count, total_unused_files
 
 
 # 把一批对象添加到的bank中，使用统一的inclusion
@@ -174,7 +183,7 @@ class BankAssignmentMatrix(QDialog, Ui_BankAssignmentMatrix):
         if len(selected_objects) == 0:
             return
 
-        children = WaapiTools.get_children_objects(selected_objects[0], False)
+        children = WaapiTools.get_child_objects(selected_objects[0], False)
         row = 0
         for child in children:
             if row >= self.tblMatrix.rowCount():
@@ -223,7 +232,7 @@ class BankAssignmentMatrix(QDialog, Ui_BankAssignmentMatrix):
 
     # 遍历每个子对象
     def iterate_through_children(self, obj):
-        children = WaapiTools.get_children_objects(obj, False)
+        children = WaapiTools.get_child_objects(obj, False)
         for child in children:
             # 找不到就继续往里层找，直到Sound这一级为止
             if not self.find_matching_bank(child) and child['type'] != 'Sound':
@@ -241,7 +250,7 @@ class BankAssignmentMatrix(QDialog, Ui_BankAssignmentMatrix):
             # 找到符合名称的Bank
             if match:
                 bank_name = self.get_bank_name(permutation)
-                bank = WaapiTools.find_object_by_name(bank_name, 'SoundBank')
+                bank = WaapiTools.find_object_by_name_and_type(bank_name, 'SoundBank')
                 # Wwise搜索会包含所有带有关键词的，需要精确搜索
                 if bank and bank['name'] == bank_name:
                     set_args = {

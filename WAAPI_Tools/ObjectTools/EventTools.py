@@ -26,9 +26,13 @@ def create_event_action(event_obj, target_obj, action_type: int):
         'value': action_type
     }
     WaapiTools.Client.call('ak.wwise.core.object.setProperty', set_args)
-    # 设置播放对象
+    change_action_target(action, target_obj)
+
+
+# 改变Action的目标对象
+def change_action_target(action_obj, target_obj):
     set_args = {
-        'object': action['id'],
+        'object': action_obj['id'],
         'reference': 'Target',
         'value': target_obj['id']
     }

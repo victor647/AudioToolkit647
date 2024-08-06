@@ -1,7 +1,6 @@
 ﻿import os
 import soundfile
-from Libraries.SSWave import SWaveObject
-from Libraries import WaapiTools, ScriptingTools, AudioEditTools
+from Libraries import WaapiTools, ScriptingTools, AudioEditTools, FileTools
 from PyQt5.QtCore import QEvent
 from PyQt5.QtGui import QColor
 from PyQt5.QtWidgets import QDialog, QFileDialog, QTableWidgetItem, QHeaderView
@@ -11,7 +10,7 @@ from Threading.BatchProcessor import BatchProcessor
 
 # 获取当前Sound下面所有的AudioSource并删除
 def delete_audio_sources(obj):
-    audio_sources = WaapiTools.get_children_objects(obj, False)
+    audio_sources = WaapiTools.get_child_objects(obj, False)
     for audio_source in audio_sources:
         WaapiTools.delete_object(audio_source)
 
@@ -44,6 +43,31 @@ def reset_source_editor(sound_object):
     WaapiTools.set_object_property(sound_object, 'LoopEnd', -1)
 
 
+# 将源文件编辑信息缓存
+def backup_source_edits(sound_object):
+    if sound_object['type'] != 'AudioFileSource':
+        return
+    data = [WaapiTools.get_object_property(sound_object, 'FadeInDuration'),
+            WaapiTools.get_object_property(sound_object, 'FadeOutDuration'),
+            WaapiTools.get_object_property(sound_object, 'TrimBegin'),
+            WaapiTools.get_object_property(sound_object, 'TrimEnd'),
+            WaapiTools.get_object_property(sound_object, 'LoopBegin'),
+            WaapiTools.get_object_property(sound_object, 'LoopEnd')]
+    return data
+
+
+# 恢复缓存的源文件编辑信息
+def restore_source_edits(sound_object, data: list):
+    if sound_object['type'] != 'AudioFileSource':
+        return
+    WaapiTools.set_object_property(sound_object, 'FadeInDuration', data[0])
+    WaapiTools.set_object_property(sound_object, 'FadeOutDuration', data[1])
+    WaapiTools.set_object_property(sound_object, 'TrimBegin', data[2])
+    WaapiTools.set_object_property(sound_object, 'TrimEnd', data[3])
+    WaapiTools.set_object_property(sound_object, 'LoopBegin', data[4])
+    WaapiTools.set_object_property(sound_object, 'LoopEnd', data[5])
+
+
 # 将裁剪和淡入淡出覆盖写入源文件
 def change_source(sound_object_id, original_wav_path):
     fade_info_args = {
@@ -51,27 +75,37 @@ def change_source(sound_object_id, original_wav_path):
             'id': sound_object_id
         },
         'options': {
-            'return': ['@TrimBegin', '@TrimEnd', '@FadeInDuration', '@FadeOutDuration']
+            'return': ['TrimBegin', 'TrimEnd', 'FadeInDuration', 'FadeOutDuration']
         }
     }
     # 获取淡入淡出和裁剪信息
     fade_info_result = WaapiTools.Client.call('ak.wwise.core.object.get', fade_info_args)['return']
-    trim_begin = fade_info_result['@TrimBegin']
-    fade_in_duration = fade_info_result['@FadeInDuration']
-    fade_out_duration = fade_info_result['@FadeOutDuration']
-    trim_end = fade_info_result['@TrimEnd']
-    # 确保源文件是wav
-    if original_wav_path[-4:] == '.wav':
-        wave_file = SWaveObject(original_wav_path)
-        song_length = wave_file.duration
-        if trim_begin != -1.0:
-            wave_file.audioCut(original_wav_path, trim_begin, song_length)
-        if trim_end != -1.0:
-            wave_file.audioCut(original_wav_path, 0, trim_end)
-        if fade_in_duration > 0:
-            wave_file.audioFadeIn(original_wav_path, -120.0, 0, round(fade_in_duration, 2))
-        if fade_out_duration > 0:
-            wave_file.audioFadeOut(original_wav_path, -120.0, song_length, fade_out_duration)
+    trim_begin = fade_info_result['TrimBegin']
+    fade_in_duration = fade_info_result['FadeInDuration']
+    fade_out_duration = fade_info_result['FadeOutDuration']
+    trim_end = fade_info_result['TrimEnd']
+    sound_file = soundfile.SoundFile(file=original_wav_path)
+    sound_data = sound_file.read()
+    sample_rate = sound_file.samplerate
+    song_length = sound_file.duration
+    if trim_begin != -1.0:
+        AudioEditTools.trim(sound_data, trim_begin * sample_rate, song_length * sample_rate)
+    if trim_end != -1.0:
+        AudioEditTools.trim(sound_data, 0, trim_end * sample_rate)
+    if fade_in_duration > 0:
+        AudioEditTools.fade(sound_data, fade_in_duration * sample_rate, 1)
+    if fade_out_duration > 0:
+        AudioEditTools.fade(sound_data, fade_out_duration * sample_rate, -1)
+    soundfile.write(file=original_wav_path.name, data=sound_data, samplerate=sample_rate)
+
+
+# 替换样本文件
+def replace_audio_file(sound_obj, new_wav_path, language):
+    data = backup_source_edits(WaapiTools.get_audio_source_from_sound(sound_obj))
+    delete_audio_sources(sound_obj)
+
+    WaapiTools.import_audio_file(new_wav_path, sound_obj, sound_obj['name'], language)
+    restore_source_edits(WaapiTools.get_audio_source_from_sound(sound_obj), data)
 
 
 # 将原始资源文件名字改为Wwise中资源名字
@@ -79,34 +113,69 @@ def rename_original_to_wwise(obj):
     if obj['type'] != 'Sound':
         return
 
-    original_wave_path = WaapiTools.get_original_wave_path(obj)
+    original_wave_path = WaapiTools.get_object_property(obj, 'sound:originalWavFilePath')
+    if original_wave_path is None:
+        return
+
     new_wave_name = obj['name'] + '.wav'
     language = WaapiTools.get_sound_language(obj)
-    # 当前不包含源文件，直接根据名称导入
-    if language == '':
-        if 'SFX' in original_wave_path:
-            language = 'SFX'
-        else:
-            language = WaapiTools.get_default_language()
-
-    if original_wave_path != '':
-        original_wave_name = os.path.basename(original_wave_path)
-        # 同名不用修改
-        if original_wave_name == new_wave_name:
-            return
+    original_wave_name = os.path.basename(original_wave_path)
+    if original_wave_name != new_wave_name:
         new_wave_path = original_wave_path.replace(original_wave_name, new_wave_name)
-        # 重命名源文件
+        # 重命名源文件，若已存在则直接导入
         if not os.path.exists(new_wave_path):
             os.rename(original_wave_path, new_wave_path)
-        # 删除旧资源
-        delete_audio_sources(obj)
-    # 找不到源文件，直接导入新的
+        replace_audio_file(obj, new_wave_path, language)
+
+
+# 按照文件夹与WorkUnit整理源文件目录
+def tidy_original_folders(obj):
+    # 仅对ActorMixerHierarchy下的资源生效
+    if not obj['path'].startswith('\\Actor-Mixer Hierarchy\\'):
+        return
+    obj_type = obj['type']
+    children = WaapiTools.get_child_objects(obj, False)
+    if obj_type == 'WorkUnit' or obj_type == 'Folder':
+        # 递归查找所有文件夹与WorkUnit
+        for child in children:
+            tidy_original_folders(child)
     else:
-        if language != 'SFX':
-            language = os.path.join('Voice', language)
-        new_wave_path = os.path.join(ScriptingTools.get_originals_folder(), language, new_wave_name)
-    # 导入新资源
-    WaapiTools.import_audio_file(new_wave_path, obj, obj['name'], language)
+        wav_sub_folder = get_wav_subfolder(obj)
+        result_msg = tidy_children(obj, wav_sub_folder)
+        return result_msg
+
+
+# 找到所有Sound层级并整理audioFileSource
+def tidy_children(obj, wav_sub_folder):
+    result_msg = []
+    base_folder = os.path.abspath(os.path.join(WaapiTools.get_project_directory(), '../Originals/'))
+    children = WaapiTools.get_child_objects(obj, False)
+    for child in children:
+        if child['type'] == 'Sound':
+            original_path = WaapiTools.get_object_property(child, 'sound:originalWavFilePath')
+            file_name = os.path.basename(original_path)
+            language = WaapiTools.get_sound_language(child)
+            # 按照文件夹和WorkUnit得到新的样本路径
+            new_path = os.path.join(base_folder, language, wav_sub_folder, file_name)
+            if original_path != new_path:
+                FileTools.move_file(original_path, new_path)
+                replace_audio_file(child, new_path, language)
+                result_msg.append(f'{child["name"]} from {original_path} -> {new_path}')
+        # 递归查找下级所有对象
+        elif child['type'] != 'AudioFileSource':
+            tidy_children(child, wav_sub_folder)
+    return result_msg
+
+
+# 递归查找最近的Folder或WorkUnit
+def get_wav_subfolder(obj, path=''):
+    parent = WaapiTools.get_parent_objects(obj, False)
+    if not parent:
+        return path[22:]
+    parent_type = parent['type']
+    if parent_type == 'WorkUnit' or parent_type == 'Folder':
+        path = os.path.join(parent['name'], path)
+    return get_wav_subfolder(parent, path)
 
 
 # 清除工程中多余的akd文件
@@ -129,7 +198,7 @@ def localize_languages(obj):
 # 对单个音效导入本地化资源
 def localize_language(obj):
     language_list = WaapiTools.get_language_list()
-    sources = WaapiTools.get_children_objects(obj, False)
+    sources = WaapiTools.get_child_objects(obj, False)
     if len(sources) == 0:
         return
 
@@ -143,8 +212,9 @@ def localize_language(obj):
     for language_obj in language_list:
         language = language_obj['name']
         if language != existing_language:
-            original_file_path = WaapiTools.get_original_wave_path(existing_source)
-            WaapiTools.import_audio_file(original_file_path.replace(existing_language, language), obj, obj['name'], language)
+            original_file_path = WaapiTools.get_object_property(existing_source, 'sound:originalWavFilePath')
+            WaapiTools.import_audio_file(original_file_path.replace(existing_language, language), obj, obj['name'],
+                                         language)
 
 
 # 裁剪音频文件尾巴的工具
@@ -192,9 +262,9 @@ class AudioTailTrimmer(QDialog, Ui_AudioTailTrimmer):
     def populate_from_wwise(self, objects: list):
         for obj in objects:
             if obj['type'] == 'Sound':
-                self.add_file(WaapiTools.get_original_wave_path(obj))
+                self.add_file(WaapiTools.get_object_property(obj, 'sound:originalWavFilePath'))
             else:
-                self.populate_from_wwise(WaapiTools.get_children_objects(obj, False))
+                self.populate_from_wwise(WaapiTools.get_child_objects(obj, False))
 
     # 导入音频文件
     def import_files(self):
@@ -275,7 +345,7 @@ class AudioTailTrimmer(QDialog, Ui_AudioTailTrimmer):
             # 进行裁剪
             audio_data = audio_data[:len(audio_data) - trim_samples]
             # 把保留的静音时长做个淡出
-            AudioEditTools.apply_fade(audio_data, int(self.__fadeDuration * sound_file.samplerate), -1)
+            AudioEditTools.fade(audio_data, int(self.__fadeDuration * sound_file.samplerate), -1)
             soundfile.write(file=sound_file.name, data=audio_data, samplerate=sound_file.samplerate)
             # 更新列表显示
             self.tblFileList.setItem(self.__currentRow, 2, QTableWidgetItem(str(self.__fadeDuration)))

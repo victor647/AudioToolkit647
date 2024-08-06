@@ -1,8 +1,9 @@
 import sys
 import traceback
 from waapi import WaapiClient, CannotConnectToWaapiException
-from PyQt5.QtWidgets import QApplication, QMainWindow
+from PyQt5.QtWidgets import QApplication, QMainWindow, QMessageBox
 from PyQt5.QtCore import Qt
+
 from QtDesign.MainWindow_ui import Ui_MainWindow
 from ObjectTools.CommonTools import *
 from ObjectTools.AudioSourceTools import *
@@ -11,9 +12,10 @@ from ObjectTools.EventTools import *
 from ObjectTools.SoundBankTools import *
 from ObjectTools.BatchReplaceTool import *
 from ObjectTools.TempTools import temp_tool
-from ObjectTools.UnityResourceManager import UnityResourceManager
+from ObjectTools.UnityAssetManager import UnityAssetManager
+from ObjectTools.ProjectValidationTool import ProjectValidation
 from Threading.BatchProcessor import BatchProcessor
-from Libraries import ScriptingTools, WaapiTools, FileTools, LogTool, WwiseSilenceTool
+from Libraries import ScriptingTools, WaapiTools, FileTools, WwiseSilenceTool
 
 if hasattr(Qt, 'AA_EnableHighDpiScaling'):
     QApplication.setAttribute(Qt.AA_EnableHighDpiScaling, True)
@@ -26,24 +28,24 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
     def __init__(self):
         super().__init__()
-        LogTool.init_log()
         self.setupUi(self)
         self.setup_triggers()
         self.cacheObjects = []  # 通过Get Seletion、Find Children等操作获得的obj列表
         self.activeObjects = []  # cacheObjects经过filter过滤后的obj列表
         self.batchProcessor = None
         self.statusbar.showMessage('Wwise无法连接...')
-        self.tblActiveObjects.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeToContents)
         # 初始化默认尝试连接wwise
         self.connect_to_wwise()
 
     def setup_triggers(self):
         self.tblActiveObjects.itemDoubleClicked.connect(self.show_object_in_wwise)
+        self.tblActiveObjects.setColumnWidth(2, 600)
 
         self.btnWaapiConnect.clicked.connect(self.connect_to_wwise)
         self.btnGetSelectedObjects.clicked.connect(self.get_selected_objects)
-        self.btnUpdateObjects.clicked.connect(self.update_list_objects)
+        self.btnUpdateObjects.clicked.connect(self.update_table_listed_objects)
         self.btnRemoveSelection.clicked.connect(self.remove_table_selection)
+        self.btnKeepOnlySelection.clicked.connect(self.keep_table_selection_only)
         self.btnClearObjects.clicked.connect(self.clear_object_list)
         self.btnMultiEditor.clicked.connect(self.open_in_multi_editor)
         self.btnBatchRename.clicked.connect(self.open_in_batch_rename)
@@ -52,7 +54,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.actConvertToActorMixer.triggered.connect(lambda: self.convert_to_type('ActorMixer'))
         self.actConvertToVirtualFolder.triggered.connect(lambda: self.convert_to_type('Folder'))
         self.actConvertToBlendContainer.triggered.connect(lambda: self.convert_to_type('BlendContainer'))
-        self.actConvertToRandomSequenceContainer.triggered.connect(lambda: self.convert_to_type('RandomSequenceContainer'))
+        self.actConvertToRandomSequenceContainer.triggered.connect(
+            lambda: self.convert_to_type('RandomSequenceContainer'))
         self.actConvertToSwitchContainer.triggered.connect(lambda: self.convert_to_type('SwitchContainer'))
 
         self.actCreateWorkUnit.triggered.connect(lambda: self.create_parent('WorkUnit'))
@@ -80,6 +83,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.actChangeToLowerCase.triggered.connect(lambda: self.apply_naming_convention(0))
         self.actChangeToTitleCase.triggered.connect(lambda: self.apply_naming_convention(1))
         self.actChangeToUpperCase.triggered.connect(lambda: self.apply_naming_convention(2))
+        self.actRemoveSuffix.triggered.connect(self.remove_suffix)
         # self.actWwiseSilenceAdd.triggered.connect(self.create_wwise_silence)
         # self.actWwiseSilenceRemove.triggered.connect(self.remove_wwise_silence)
 
@@ -92,6 +96,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.actResetSourceEdits.triggered.connect(self.reset_source_editor)
         self.actTrimTailSilence.triggered.connect(self.trim_tail_silence)
         self.actRenameOriginalToWwise.triggered.connect(self.rename_original_to_wwise)
+        self.actTidyOriginalFolders.triggered.connect(self.tidy_original_folders)
         self.actDeleteUnusedAKDFiles.triggered.connect(delete_unused_akd_files)
         self.actLocalizeLanguages.triggered.connect(self.localize_languages)
 
@@ -100,7 +105,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.actAssignSwitchMappings.triggered.connect(self.assign_switch_mappings)
         self.actRemoveAllSwitchAssignments.triggered.connect(self.remove_all_switch_mappings)
         self.actSetGenericPath.triggered.connect(self.set_as_generic_path_obj)
-        self.actSplitByNetRole.triggered.connect(self.split_by_net_role)
+        self.actSplitByPlayerIdentity.triggered.connect(self.split_by_player_identity)
         self.actApplyFaderEditsDownstream.triggered.connect(self.apply_fader_edits_downstream)
         self.actCreatePlayEvent.triggered.connect(self.create_play_event)
 
@@ -109,12 +114,14 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.actAddToSelectedBank.triggered.connect(self.add_to_selected_bank)
         self.actClearInclusions.triggered.connect(self.clear_bank_inclusions)
         self.actIncludeMediaOnly.triggered.connect(lambda: self.set_bank_inclusion_type(['media']))
-        self.actIncludeEventsAndStructures.triggered.connect(lambda: self.set_bank_inclusion_type(['events', 'structures']))
+        self.actIncludeEventsAndStructures.triggered.connect(
+            lambda: self.set_bank_inclusion_type(['events', 'structures']))
         self.actIncludeAll.triggered.connect(lambda: self.set_bank_inclusion_type(['events', 'structures', 'media']))
         self.actBankAssignmentMatrix.triggered.connect(self.bank_assignment_matrix)
 
         self.actTempTool.triggered.connect(lambda: temp_tool(self.activeObjects))
-        self.actUnityResourceManager.triggered.connect(self.manage_unity_resources)
+        self.actUnityAssetManager.triggered.connect(self.manage_unity_assets)
+        self.actCheckProjectValidation.triggered.connect(self.validate_project)
 
     # 重置筛选条件
     def reset_filter(self):
@@ -175,7 +182,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.filter_and_show_list()
 
     # 根据filter刷新当前列表内容
-    def update_list_objects(self):
+    def update_table_listed_objects(self):
         self.cacheObjects = self.activeObjects
         self.reset_filter()
         self.filter_and_show_list()
@@ -185,6 +192,14 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         for item in self.tblActiveObjects.selectedItems():
             self.activeObjects.pop(item.row())
             self.tblActiveObjects.removeRow(item.row())
+
+    # 仅保留表格中选中的对象
+    def keep_table_selection_only(self):
+        keep_objects = []
+        for item in self.tblActiveObjects.selectedItems():
+            keep_objects.append(self.activeObjects[item.row()])
+        self.activeObjects = keep_objects
+        self.update_table_listed_objects()
 
     # 清空操作对象列表
     def clear_object_list(self):
@@ -212,6 +227,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.tblActiveObjects.setItem(row_count, 0, QTableWidgetItem(obj['name']))
             self.tblActiveObjects.setItem(row_count, 1, QTableWidgetItem(obj['type']))
             self.tblActiveObjects.setItem(row_count, 2, QTableWidgetItem(obj['path']))
+        self.tblActiveObjects.resizeColumnsToContents()
 
     # 在表中显示筛选过的对象
     def filter_and_show_list(self):
@@ -222,13 +238,14 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     def find_parent(self):
         if WaapiTools.Client is None:
             return
-        if self.cbxKeepSelf.isChecked():
-            all_parents = self.activeObjects
-        else:
-            all_parents = []
+        ancestor_mode = self.cbxRecursiveFind.isChecked()
+        all_parents = self.activeObjects if self.cbxKeepSelf.isChecked() else []
         for obj in self.activeObjects:
-            for parent in WaapiTools.get_parent_objects(obj, self.cbxRecursiveFind.isChecked()):
-                all_parents.append(parent)
+            if ancestor_mode:
+                for parent in WaapiTools.get_parent_objects(obj, True):
+                    all_parents.append(parent)
+            else:
+                all_parents.append(WaapiTools.get_parent_objects(obj, False))
         self.cacheObjects = all_parents
         self.reset_filter()
         self.filter_and_show_list()
@@ -237,12 +254,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     def find_children(self):
         if WaapiTools.Client is None:
             return
-        if self.cbxKeepSelf.isChecked():
-            all_children = self.activeObjects.copy()
-        else:
-            all_children = []
+        all_children = self.activeObjects.copy() if self.cbxKeepSelf.isChecked() else []
         for obj in self.activeObjects:
-            for child in WaapiTools.get_children_objects(obj, self.cbxRecursiveFind.isChecked()):
+            for child in WaapiTools.get_child_objects(obj, self.cbxRecursiveFind.isChecked()):
                 all_children.append(child)
         self.cacheObjects = all_children
         self.reset_filter()
@@ -264,19 +278,24 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             return
         if item.column() != 2:
             item = self.tblActiveObjects.item(item.row(), 2)
-            WaapiTools.open_item_in_wwise_by_path(item.text())
+        WaapiTools.open_item_in_wwise_by_path(item.text())
 
     # 通用操作
     def convert_to_type(self, target_type: str):
-        self.batchProcessor = BatchProcessor(self.activeObjects, lambda obj: WaapiTools.convert_to_type(obj, target_type), 'Convert Type')
+        self.batchProcessor = BatchProcessor(self.activeObjects,
+                                             lambda obj: WaapiTools.convert_to_type(obj, target_type), 'Convert Type')
         self.batchProcessor.start()
 
     def create_parent(self, target_type: str):
-        self.batchProcessor = BatchProcessor(self.activeObjects, lambda obj: WaapiTools.create_parent(obj, target_type), 'Create Parent')
+        self.batchProcessor = BatchProcessor(self.activeObjects, lambda obj: WaapiTools.create_parent(obj, target_type),
+                                             'Create Parent')
         self.batchProcessor.start()
 
     def set_inclusion(self, included: bool):
-        self.batchProcessor = BatchProcessor(self.activeObjects, lambda obj: WaapiTools.set_object_property(obj, 'Inclusion', True if included else False), 'Set Inclusion')
+        self.batchProcessor = BatchProcessor(self.activeObjects,
+                                             lambda obj: WaapiTools.set_object_property(obj, 'Inclusion',
+                                                                                        True if included else False),
+                                             'Set Inclusion')
         self.batchProcessor.start()
 
     def filter_by_inclusion(self, included: bool):
@@ -344,7 +363,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             return
         selection = WaapiTools.get_selected_objects()
         if len(selection) > 0:
-            self.batchProcessor = BatchProcessor(self.activeObjects, lambda obj: WaapiTools.move_object(obj, selection[0]), 'Move to Selection')
+            self.batchProcessor = BatchProcessor(self.activeObjects,
+                                                 lambda obj: WaapiTools.move_object(obj, selection[0]),
+                                                 'Move to Selection')
             self.batchProcessor.start()
 
     def copy_selection_to_active_objects(self):
@@ -352,8 +373,14 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             return
         selection = WaapiTools.get_selected_objects()
         if len(selection) > 0:
-            self.batchProcessor = BatchProcessor(self.activeObjects, lambda obj: WaapiTools.copy_object(selection[0], obj), 'Copy Selection')
+            self.batchProcessor = BatchProcessor(self.activeObjects,
+                                                 lambda obj: WaapiTools.copy_object(selection[0], obj),
+                                                 'Copy Selection')
             self.batchProcessor.start()
+
+    def remove_suffix(self):
+        self.batchProcessor = BatchProcessor(self.activeObjects, remove_suffix, 'Break Container')
+        self.batchProcessor.start()
 
     def break_container(self):
         self.batchProcessor = BatchProcessor(self.activeObjects, break_container, 'Break Container')
@@ -400,6 +427,12 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.batchProcessor = BatchProcessor(self.activeObjects, rename_original_to_wwise, 'Rename Source File')
         self.batchProcessor.start()
 
+    def tidy_original_folders(self):
+        if WaapiTools.Client is None:
+            return
+        self.batchProcessor = BatchProcessor(self.activeObjects, tidy_original_folders, 'Tidy Original Folders')
+        self.batchProcessor.start()
+
     def localize_languages(self):
         if WaapiTools.Client is None:
             return
@@ -423,8 +456,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.batchProcessor = BatchProcessor(self.activeObjects, apply_fader_edits_downstream, 'Apply Fader Edits')
         self.batchProcessor.start()
 
-    def split_by_net_role(self):
-        self.batchProcessor = BatchProcessor(self.activeObjects, split_by_net_role, 'Split by Net Role')
+    def split_by_player_identity(self):
+        self.batchProcessor = BatchProcessor(self.activeObjects, split_by_player_identity, 'Split by Net Role')
         self.batchProcessor.start()
 
     # Event操作
@@ -440,7 +473,16 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     def calculate_bank_total_size(self):
         if WaapiTools.Client is None:
             return
-        get_bank_size(self.activeObjects)
+        total_wav_size, total_wem_size, total_files_count, unused_files = get_total_bank_size(self.activeObjects)
+        text = f'原始Wav文件: {total_wav_size}MB\n压缩后的Wem: {total_files_count}个文件, 共{total_wem_size}MB'
+        if len(unused_files) > 0:
+            text += f'\n未使用或未生成到Bank中的文件:\n'
+            for file in unused_files:
+                text += f'{file}\n'
+        message = QMessageBox()
+        message.setWindowTitle('统计完毕')
+        message.setText(text)
+        message.exec()
 
     def add_to_selected_bank(self):
         if WaapiTools.Client is None:
@@ -455,7 +497,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.batchProcessor.start()
 
     def set_bank_inclusion_type(self, inclusion_type: list):
-        self.batchProcessor = BatchProcessor(self.activeObjects, lambda obj: set_inclusion_type(obj, inclusion_type), 'Set Bank Inclusion Type')
+        self.batchProcessor = BatchProcessor(self.activeObjects, lambda obj: set_inclusion_type(obj, inclusion_type),
+                                             'Set Bank Inclusion Type')
         self.batchProcessor.start()
 
     def bank_assignment_matrix(self):
@@ -466,13 +509,18 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         matrix_window.exec_()
 
     # 其他操作
-    def manage_unity_resources(self):
-        resource_manager = UnityResourceManager()
-        resource_manager.show()
-        resource_manager.exec_()
+    def manage_unity_assets(self):
+        asset_manager = UnityAssetManager()
+        asset_manager.show()
+        asset_manager.exec_()
 
     def closeEvent(self, close_event):
         self.batchProcessor = None
+
+    def validate_project(self):
+        validate_window = ProjectValidation(self)
+        validate_window.show()
+        validate_window.exec_()
 
 
 sys.excepthook = traceback.print_exception

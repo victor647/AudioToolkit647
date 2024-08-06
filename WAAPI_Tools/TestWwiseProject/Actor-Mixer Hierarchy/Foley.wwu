@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="utf-8"?>
+<WwiseDocument Type="WorkUnit" ID="{E894E720-09CB-4C5A-A300-9E8B69E08045}" SchemaVersion="110" RootDocumentID="{9A98B5B2-32E5-411F-9664-ACFDB018ACDB}" ParentDocumentID="{7D078ED0-7D58-4532-A360-77A69217F454}">
+	<AudioObjects>
+		<WorkUnit Name="Foley" ID="{E894E720-09CB-4C5A-A300-9E8B69E08045}" OwnerID="{7D078ED0-7D58-4532-A360-77A69217F454}" PersistMode="Nested">
+			<ChildrenList>
+				<ActorMixer Name="foley" ID="{963CC5A4-D9E3-4A12-BEC1-2C48E32E59FF}" ShortID="853634879">
+					<PropertyList>
+						<Property Name="Color" Type="int16" Value="21"/>
+						<Property Name="OverrideColor" Type="bool" Value="True"/>
+					</PropertyList>
+					<ReferenceList>
+						<Reference Name="Conversion">
+							<ObjectRef Name="Default Conversion Settings" ID="{6D1B890C-9826-4384-BF07-C15223E9FB56}" WorkUnitID="{F0D5E8E6-2EE7-49F2-A90A-079485E146CB}"/>
+						</Reference>
+						<Reference Name="OutputBus">
+							<ObjectRef Name="SFX" ID="{E2FC4574-E257-457B-AA3B-F12262412246}" WorkUnitID="{765C658F-2749-46D8-8B64-504120A744AA}"/>
+						</Reference>
+					</ReferenceList>
+					<ChildrenList>
+						<ActorMixer Name="Footstep" ID="{676D5110-3442-49FA-9D1D-C88B9336518B}" ShortID="391605474">
+							<ReferenceList>
+								<Reference Name="Conversion">
+									<ObjectRef Name="Default Conversion Settings" ID="{6D1B890C-9826-4384-BF07-C15223E9FB56}" WorkUnitID="{F0D5E8E6-2EE7-49F2-A90A-079485E146CB}"/>
+								</Reference>
+								<Reference Name="OutputBus">
+									<ObjectRef Name="Master Audio Bus" ID="{1514A4D8-1DA6-412A-A17E-75CA0C2149F3}" WorkUnitID="{765C658F-2749-46D8-8B64-504120A744AA}"/>
+								</Reference>
+							</ReferenceList>
+							<ChildrenList>
+								<RandomSequenceContainer Name="Foley_Footstep" ID="{58AF0AB7-9CF5-4973-A105-8762EC5EC9C6}" ShortID="156849011">
+									<PropertyList>
+										<Property Name="Color" Type="int16" Value="23"/>
+										<Property Name="OverrideColor" Type="bool" Value="True"/>
+										<Property Name="OverrideOutput" Type="bool" Value="True"/>
+									</PropertyList>
+									<ReferenceList>
+										<Reference Name="Conversion">
+											<ObjectRef Name="Default Conversion Settings" ID="{6D1B890C-9826-4384-BF07-C15223E9FB56}" WorkUnitID="{F0D5E8E6-2EE7-49F2-A90A-079485E146CB}"/>
+										</Reference>
+										<Reference Name="OutputBus">
+											<ObjectRef Name="Master Audio Bus" ID="{1514A4D8-1DA6-412A-A17E-75CA0C2149F3}" WorkUnitID="{765C658F-2749-46D8-8B64-504120A744AA}"/>
+										</Reference>
+									</ReferenceList>
+									<ChildrenList>
+										<Sound Name="ACT_Foley_Footstep_Run" ID="{49871B05-EA59-4007-8ECF-AA39CF23B9B9}" ShortID="458033994">
+											<ReferenceList>
+												<Reference Name="Conversion">
+													<ObjectRef Name="Default Conversion Settings" ID="{6D1B890C-9826-4384-BF07-C15223E9FB56}" WorkUnitID="{F0D5E8E6-2EE7-49F2-A90A-079485E146CB}"/>
+												</Reference>
+												<Reference Name="OutputBus">
+													<ObjectRef Name="Master Audio Bus" ID="{1514A4D8-1DA6-412A-A17E-75CA0C2149F3}" WorkUnitID="{765C658F-2749-46D8-8B64-504120A744AA}"/>
+												</Reference>
+											</ReferenceList>
+											<ChildrenList>
+												<AudioFileSource Name="Char_MVMT_Ducksyde_Rock_Run_3P_04" ID="{57C21639-8B11-4D3F-9A4A-C9A04675BD3A}">
+													<Language>SFX</Language>
+													<AudioFile>Char_MVMT_Ducksyde_Rock_Run_3P_04.wav</AudioFile>
+													<MediaIDList>
+														<MediaID ID="472737523"/>
+													</MediaIDList>
+												</AudioFileSource>
+											</ChildrenList>
+											<ActiveSourceList>
+												<ActiveSource Name="Char_MVMT_Ducksyde_Rock_Run_3P_04" ID="{57C21639-8B11-4D3F-9A4A-C9A04675BD3A}" Platform="Linked"/>
+											</ActiveSourceList>
+										</Sound>
+									</ChildrenList>
+								</RandomSequenceContainer>
+							</ChildrenList>
+						</ActorMixer>
+					</ChildrenList>
+				</ActorMixer>
+			</ChildrenList>
+		</WorkUnit>
+	</AudioObjects>
+</WwiseDocument>

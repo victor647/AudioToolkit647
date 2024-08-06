@@ -63,7 +63,7 @@ class WwiseSilenceTool:
         have_en = False
         for child in Node:
             language = child.find('Language')
-            if language is not None:
+            if language:
                 if language.text == 'zh-CN':
                     have_zh_cn = True
                 if language.text == 'zh-Hans':
@@ -88,7 +88,7 @@ class WwiseSilenceTool:
         elem_language.text = "en"
         elem_source_plugin.append(elem_language)
         children_list = Node.find("ChildrenList")
-        if children_list is not None:
+        if children_list:
             children_list.append(elem_source_plugin)
         # <ActiveSource Name = "Wwise Silence" ID = "{28F00FD7-6D84-4BAE-9333-46E3BDF6446E}" Platform = "Linked" / >
         elem_active_source = ElementTree.Element("ActiveSource")
@@ -96,7 +96,7 @@ class WwiseSilenceTool:
         self.set_attribute(elem_active_source, 'ID', sID)
         self.set_attribute(elem_active_source, 'Platform', 'Linked')
         active_source_list = Node.find("ActiveSourceList")
-        if active_source_list is not None:
+        if active_source_list:
             active_source_list.append(elem_active_source)
         self.ID += 1
         self.ShortID += 1
@@ -125,7 +125,7 @@ class WwiseSilenceTool:
     def meet_remove_condition(self, Node: Element):
         for child in Node:
             source_plugin = child.find('SourcePlugin')
-            if source_plugin is not None:
+            if source_plugin:
                 if source_plugin.get("Name") == "Auto_Create_Wwise_Silence":
                     return True
         return False
@@ -134,13 +134,13 @@ class WwiseSilenceTool:
         sID = "{" + self.IDString + str(self.ID).zfill(12) + "}"
         # <SourcePlugin Name="Wwise Silence" ID="{28F00FD7-6D84-4BAE-9333-46E3BDF6446E}" ShortID="999913397" PluginName="Wwise Silence" CompanyID="0" PluginID="101">
         children_list = Node.find("ChildrenList")
-        if children_list is not None:
+        if children_list:
             for elem_source_plugin in children_list.findall("SourcePlugin"):
                 if elem_source_plugin.get("Name") == "Auto_Create_Wwise_Silence":
                     children_list.remove(elem_source_plugin)
         # <ActiveSource Name = "Wwise Silence" ID = "{28F00FD7-6D84-4BAE-9333-46E3BDF6446E}" Platform = "Linked" / >
         active_source_list = Node.find("ActiveSourceList")
-        if active_source_list is not None:
+        if active_source_list:
             for active_elem_source in active_source_list.findall("ActiveSource"):
                 if active_elem_source.get("Name") == "Auto_Create_Wwise_Silence":
                     active_source_list.remove(active_elem_source)

@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<WwiseDocument Type="WorkUnit" ID="{A7428157-8492-4339-B09A-6500CAD38AC8}" SchemaVersion="110">
+	<Events>
+		<WorkUnit Name="Foley" ID="{A7428157-8492-4339-B09A-6500CAD38AC8}" PersistMode="Standalone">
+			<PropertyList>
+				<Property Name="Color" Type="int16" Value="21"/>
+				<Property Name="OverrideColor" Type="bool" Value="True"/>
+			</PropertyList>
+			<ChildrenList>
+				<Event Name="Play_Foley_Footstep" ID="{F83E4C97-6F63-4FA4-BE31-43E8DD62197D}">
+					<ChildrenList>
+						<Action Name="" ID="{4BDEE9F9-E68F-4E78-A37E-CFE1BD980D48}" ShortID="642360243">
+							<ReferenceList>
+								<Reference Name="Target">
+									<ObjectRef Name="Foley_Footstep" ID="{58AF0AB7-9CF5-4973-A105-8762EC5EC9C6}" WorkUnitID="{E894E720-09CB-4C5A-A300-9E8B69E08045}"/>
+								</Reference>
+							</ReferenceList>
+						</Action>
+					</ChildrenList>
+				</Event>
+				<Event Name="Stop_Foley_Footstep" ID="{6989E661-E95B-44B6-A069-60BEDBA63F53}">
+					<ChildrenList>
+						<Action Name="" ID="{457BE249-690F-4C39-B7CC-EF8B519B52F6}" ShortID="809220417">
+							<PropertyList>
+								<Property Name="ActionType" Type="int16" Value="2"/>
+							</PropertyList>
+							<ReferenceList>
+								<Reference Name="Target">
+									<ObjectRef Name="Foley_Footstep" ID="{58AF0AB7-9CF5-4973-A105-8762EC5EC9C6}" WorkUnitID="{E894E720-09CB-4C5A-A300-9E8B69E08045}"/>
+								</Reference>
+							</ReferenceList>
+						</Action>
+					</ChildrenList>
+				</Event>
+			</ChildrenList>
+		</WorkUnit>
+	</Events>
+</WwiseDocument>

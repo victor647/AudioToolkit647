@@ -28,7 +28,7 @@ def filter_objects(objects: list, filter_input: str,
             elif use_regular_expression:
                 filter_input_for_match = trans_to_regular_expression(filter_input_for_match)
                 try:
-                    if re.search(filter_input_for_match, objKey) is not None:
+                    if re.search(filter_input_for_match, objKey):
                         match = True
                 except:
                     print("regular match except")
@@ -49,7 +49,7 @@ def filter_objects_by_inclusion(objects: list, inclusion: bool):
         # 音频资源没有inclusion选项
         if obj['type'] == 'AudioFileSource':
             continue
-        if WaapiTools.get_object_property(obj, '@Inclusion') == inclusion:
+        if WaapiTools.get_object_property(obj, 'Inclusion') == inclusion:
             objects_filtered.append(obj)
     return objects_filtered
 
@@ -156,5 +156,5 @@ def iterate_child_sound_objects(obj, action):
     if obj['type'] == 'Sound':
         action(obj)
     else:
-        for child in WaapiTools.get_children_objects(obj, False):
+        for child in WaapiTools.get_child_objects(obj, False):
             iterate_child_sound_objects(child, action)

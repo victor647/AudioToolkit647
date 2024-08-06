@@ -1,6 +1,6 @@
 import os.path
-from Libraries import LogTool
 from ObjectTools.LogicContainerTools import get_switch_mapping, assign_switch_mapping
+
 Client = None
 
 
@@ -25,11 +25,11 @@ def get_default_language():
             'ofType': ['Project']
         },
         'options': {
-            'return': ['@DefaultLanguage']
+            'return': ['DefaultLanguage']
         }
     }
     result = Client.call('ak.wwise.core.object.get', get_args)
-    return result['return'][0]['@DefaultLanguage']
+    return result['return'][0]['DefaultLanguage']
 
 
 # 获取所有的语言
@@ -83,32 +83,42 @@ def get_selected_objects():
         }
     }
     result = Client.call('ak.wwise.ui.getSelectedObjects', get_args)
-    return result['objects'] if result is not None else []
+    return result['objects'] if result else []
 
 
-# 获取一个对象递归上层的所有母对象
-def get_parent_objects(obj, include_ancestors: bool):
+# 获取一个对象所有的引用
+def get_references_to_object(obj):
+    obj_id = obj['id']
     get_args = {
-        'from': {
-            'id': [obj['id']]
-        },
-        'transform': [
-            {'select': ['ancestors' if include_ancestors else 'parent']},
-        ],
+        'waql': f'from object \"{obj_id}\" select referencesTo',
         'options': {
             'return': ['id', 'name', 'type', 'path']
         }
     }
     result = Client.call('ak.wwise.core.object.get', get_args)
-    parents = result['return'] if result is not None else []
+    return result['return'] if result else []
+
+
+# 获取一个对象递归上层的所有母对象
+def get_parent_objects(obj, include_ancestors: bool):
+    obj_id = obj['id']
+    parent_type = 'ancestors' if include_ancestors else 'parent'
+    get_args = {
+        'waql': f'from object \"{obj_id}\" select {parent_type}',
+        'options': {
+            'return': ['id', 'name', 'type', 'path']
+        }
+    }
+    result = Client.call('ak.wwise.core.object.get', get_args)
+    parents = result['return'] if result else []
     if not include_ancestors and len(parents) > 0:
         return parents[0]
     return parents
 
 
 # 获取一个对象递归下层的所有子对象
-def get_children_objects(obj, include_descendants: bool):
-    result_obj = []
+def get_child_objects(obj, include_descendants: bool):
+    children = []
     index = 0
     interval = 500
     while True:
@@ -125,13 +135,63 @@ def get_children_objects(obj, include_descendants: bool):
             }
         }
         cur_range_result = Client.call('ak.wwise.core.object.get', get_args)
-        if cur_range_result is not None and len(cur_range_result['return']):
-            result_obj += cur_range_result['return']
+        if cur_range_result and len(cur_range_result['return']) > 0:
+            children += cur_range_result['return']
             index += 1
         else:
             break
+    return children
 
-    return result_obj
+
+def get_selected_children_by_type(obj, type_name):
+    parent_obj = obj
+    children_objs = get_child_objects(parent_obj, False)
+    return [obj for obj in children_objs if obj['type'] == type_name]
+
+
+# 获取指定类型的对象
+def get_objects_by_type(type_name):
+    get_args = {
+        'from': {
+            'ofType': [type_name]
+        },
+        'options': {
+            'return': ['id', 'name', 'type', 'path']
+        }
+    }
+    result = Client.call('ak.wwise.core.object.get', get_args)
+    return result['return'] if result else []
+
+
+# 获取整个Wwise工程所有对象
+def get_global_objects():
+    global_objects = []
+    objects_type = {'WorkUnit', 'Folder', 'ActorMixer', 'SwitchContainer', 'BlendContainer', 'RandomSequenceContainer',
+                    'Sound', 'Event', 'AuxBus', 'Bus', 'SoundBank', 'StateGroup', 'SwitchGroup', 'GameParameter',
+                    'MusicSwitchContainer', 'MusicPlaylistContainer', 'MusicSegment', 'MusicTrack'}
+    for obj_type in objects_type:
+        results = get_objects_by_type(obj_type)
+        global_objects += results
+    return global_objects
+
+
+# 从Sound层级获取包含的AudioSource
+def get_audio_source_from_sound(sound_obj):
+    get_args = {
+        'from': {
+            'id': [sound_obj['id']]
+        },
+        'transform': [
+            {'select': ['children']},
+        ],
+        'options': {
+            'return': ['id', 'name', 'type', 'path']
+        }
+    }
+    result = Client.call('ak.wwise.core.object.get', get_args)
+    if result:
+        return result['return'][0]
+    return None
 
 
 # 通过guid获取对象完整信息
@@ -167,19 +227,9 @@ def get_object_from_path(path: str):
 
 
 # 从名称和类型获取对象
-def find_object_by_name(obj_name: str, obj_type: str):
+def find_object_by_name_and_type(obj_name: str, obj_type: str):
     get_args = {
-        'from': {
-            'search': [obj_name]
-        },
-        'transform': [
-            {
-                'where': [
-                    'type:isIn',
-                    [obj_type]
-                ]
-            }
-        ],
+        'waql': f'from type {obj_type} where name: \"{obj_name}\"',
         'options': {
             'return': ['id', 'name', 'type', 'path']
         }
@@ -187,45 +237,37 @@ def find_object_by_name(obj_name: str, obj_type: str):
     return_obj = Client.call('ak.wwise.core.object.get', get_args)
     if return_obj is None or len(return_obj['return']) == 0:
         return None
-    # Exact match only
+    # 仅查找名称完全一致的对象
     for obj in return_obj['return']:
         if obj['name'] == obj_name:
             return obj
     return None
 
 
-# 获取音频源文件路径
-def get_original_wave_path(obj):
+# 从名称和类型获取对象
+def find_all_objects_by_name(obj_name: str):
     get_args = {
-        'from': {
-            'id': [obj['id']]
-        },
+        'waql': f'from search \"{obj_name}\"',
         'options': {
-            'return': ['sound:originalWavFilePath']
+            'return': ['id', 'name', 'type', 'path']
         }
     }
-    return_obj = Client.call('ak.wwise.core.object.get', get_args)
-    if return_obj is None or len(return_obj['return']) == 0:
-        return ''
-    return_obj = return_obj['return'][0]
-    return return_obj['sound:originalWavFilePath'] if 'sound:originalWavFilePath' in return_obj else ''
+    return_objects = Client.call('ak.wwise.core.object.get', get_args)
+    if return_objects is None or len(return_objects['return']) == 0:
+        return None
+    matching_objects = []
+    for return_obj in return_objects['return']:
+        if return_obj['name'] == obj_name:
+            matching_objects.append(return_obj)
+    return matching_objects
 
 
 # 获取音频源文件语言
 def get_sound_language(obj):
-    get_args = {
-        'from': {
-            'id': [obj['id']]
-        },
-        'options': {
-            'return': ['audioSource:language']
-        }
-    }
-    return_obj = Client.call('ak.wwise.core.object.get', get_args)
-    if return_obj is None or len(return_obj['return']) == 0:
-        return ''
-    return_obj = return_obj['return'][0]
-    return return_obj['audioSource:language']['name'] if 'audioSource:language' in return_obj else ''
+    language = get_object_property(obj, 'audioSource:language')
+    if language is None:
+        return 'SFX'
+    return language['name']
 
 
 # 在指定路径下创建一个新的对象
@@ -264,7 +306,7 @@ def copy_object(obj, parent):
     }
     result = Client.call('ak.wwise.core.object.copy', copy_args, options)
     if result is None:
-        LogTool.safe_log('[Copy Failed] Obj:' + obj['name'] + ' to Parent:' + parent['name'], 'error')
+        print(f'Copy {obj} to {parent} failed!')
     return result
 
 
@@ -278,7 +320,7 @@ def convert_to_type(obj, target_type: str):
     if new_obj is None:
         return
     # 将所有子对象移至新对象上
-    for child in get_children_objects(obj, False):
+    for child in get_child_objects(obj, False):
         move_object(child, new_obj)
     # 刷新SwitchContainer分配
     if parent['type'] == 'SwitchContainer':
@@ -290,6 +332,7 @@ def convert_to_type(obj, target_type: str):
     delete_object(obj)
     # 将新对象重命名成原对象名
     rename_object(new_obj, original_name)
+    print(f'{obj} converted to type {target_type}')
 
 
 # 为对象创建父级
@@ -303,11 +346,14 @@ def create_parent(obj, target_type: str):
     move_object(obj, new_parent)
     # 将新对象重命名成原对象名
     rename_object(new_parent, original_name)
+    print(f'Parent of type {target_type} created for {obj}')
+    return new_parent
 
 
-# 导入音频文件
-def import_audio_file(wave_path, parent_obj, new_sound_name, language='SFX'):
+# 导入新的音频文件
+def import_audio_file(wave_path, sound_obj, new_sound_name, language='SFX'):
     if not os.path.exists(wave_path):
+        print(f'File not found at {wave_path}')
         return
     import_args = {
         'importOperation': 'createNew',
@@ -318,12 +364,14 @@ def import_audio_file(wave_path, parent_obj, new_sound_name, language='SFX'):
         'imports': [
             {
                 'audioFile': wave_path,
-                'importLocation': parent_obj['id'],
+                'importLocation': sound_obj['id'],
                 'objectPath': '<Sound>' + new_sound_name
             },
         ]
     }
     Client.call('ak.wwise.core.audio.import', import_args)
+    path = sound_obj['path']
+    print(f'File {wave_path} imported to {path}')
 
 
 # 执行Wwise操作
@@ -372,7 +420,10 @@ def get_object_property(obj, property_name: str):
         }
     }
     result = Client.call('ak.wwise.core.object.get', get_args)
-    return result['return'][0][property_name]
+    if result is None or len(result['return']) == 0:
+        return None
+    return_obj = result['return'][0]
+    return return_obj[property_name] if property_name in return_obj else None
 
 
 # 设置对象的属性
@@ -401,3 +452,11 @@ def delete_object(obj):
         'object': obj['id'],
     }
     Client.call('ak.wwise.core.object.delete', delete_args)
+
+
+# 将文件添加到版本控制
+def add_to_source_control(file_path):
+    add_args = {
+        'files': file_path,
+    }
+    Client.call('ak.wwise.core.sourceControl.add', add_args)
