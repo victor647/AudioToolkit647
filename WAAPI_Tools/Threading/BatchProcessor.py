@@ -1,4 +1,5 @@
-from PyQt5.QtCore import pyqtSignal, QThread
+from PyQt6.QtCore import pyqtSignal, QThread
+from PyQt6.QtWidgets import QTableWidgetItem
 from Threading.ProgressBar import ProgressBar
 from Libraries import WaapiTools
 
@@ -26,11 +27,18 @@ class BatchProcessor(QThread):
     def run(self):
         if WaapiTools.Client is None:
             return
-        WaapiTools.begin_undo_group()
+        WaapiTools.begin_undo_group(self.__actionName)
         index = 0
         for obj in self.__objects:
             index += 1
-            self.progressBarCallback.emit(index, obj.name if hasattr(obj, 'name') else obj['name'])
+            text = ''
+            if hasattr(obj, 'name'):
+                text = obj.name
+            elif isinstance(obj, QTableWidgetItem):
+                text = obj.text()
+            elif 'name' in obj:
+                text = obj['name']
+            self.progressBarCallback.emit(index, text)
             self.__processor(obj)
         self.finishedCallback.emit()
         WaapiTools.end_undo_group(self.__actionName)

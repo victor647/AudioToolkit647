@@ -1,11 +1,11 @@
 import os.path
-from PyQt5.QtWidgets import QDialog, QFileDialog, QTableWidgetItem, QHeaderView
+from PyQt6.QtWidgets import QDialog, QFileDialog, QTableWidgetItem, QHeaderView
 from Libraries import WaapiTools
 from QtDesign.UnityAssetManager_ui import Ui_UnityAssetManager
 
 
 # 管理Unity中的Asset文件
-class UnityAssetManager(QDialog, Ui_UnityAssetManager):
+class UnityAssetManagerWindow(QDialog, Ui_UnityAssetManager):
 
     def __init__(self):
         super().__init__()
@@ -31,16 +31,16 @@ class UnityAssetManager(QDialog, Ui_UnityAssetManager):
                         self.add_file(file, subfolder)
 
     # 在表中添加文件
-    def add_file(self, file, asset_type):
+    def add_file(self, file_path: str, asset_type: str):
         row = self.tblFileList.rowCount()
         self.tblFileList.setRowCount(row + 1)
-        file_guid = file.rstrip('.asset')
+        file_guid = file_path.rstrip('.asset')
         obj = WaapiTools.get_full_info_from_obj_id('{' + file_guid + '}')
         if obj:
             obj_name = obj['name']
             status = '正常'
         else:
-            full_path = os.path.join(self.__workDir, asset_type, file)
+            full_path = os.path.join(self.__workDir, asset_type, file_path)
             with open(full_path) as text:
                 obj_name = text.readlines()[13].lstrip('  objectName: ').rstrip()
             status = '多余'

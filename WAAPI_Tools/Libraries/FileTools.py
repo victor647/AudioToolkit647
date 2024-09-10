@@ -1,16 +1,14 @@
 import json
 import os
-import time
 import shutil
-from PyQt5.QtWidgets import QFileDialog
-from Libraries import WaapiTools
+from PyQt6.QtWidgets import QFileDialog
 
 use_filetypes = [('wwise tool save files', '.json')]
 use_extension = '.json'
 
 
 # 从文件导入
-def import_from_file():
+def import_from_json():
     file_path = QFileDialog.getOpenFileName(filter='JSON(*.json)')
     if file_path[0] == '':
         return None
@@ -19,13 +17,12 @@ def import_from_file():
 
 
 # 导出到文件
-def export_to_file(dictobj):
-    default_filename = "WwiseTool_Save_" + time.strftime("%Y-%m-%d_%H-%M-%S", time.localtime())
-    file_path = QFileDialog.getSaveFileName(filter='JSON(*.json)', caption=default_filename)
+def export_to_json(json_obj, file_name: str):
+    file_path = QFileDialog.getSaveFileName(filter='JSON(*.json)', directory=file_name)
     if file_path[0] == '':
         return
     file = open(file_path[0], 'w')
-    file.write(json.dumps(dictobj))
+    file.write(json.dumps(json_obj, indent=2))
 
 
 # 移动文件

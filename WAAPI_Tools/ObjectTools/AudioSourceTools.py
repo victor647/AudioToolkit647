@@ -1,25 +1,55 @@
 ﻿import os
 import soundfile
 from Libraries import WaapiTools, ScriptingTools, AudioEditTools, FileTools
-from PyQt5.QtCore import QEvent
-from PyQt5.QtGui import QColor
-from PyQt5.QtWidgets import QDialog, QFileDialog, QTableWidgetItem, QHeaderView
+from ObjectTools import LocalizationTools
+from PyQt6.QtCore import QEvent
+from PyQt6.QtGui import QColor
+from PyQt6.QtWidgets import QDialog, QFileDialog, QTableWidgetItem
 from QtDesign.AudioTailTrimmer_ui import Ui_AudioTailTrimmer
 from Threading.BatchProcessor import BatchProcessor
 
 
+# 检查样本的裁剪末尾是否超出时长范围
+def trim_out_of_range(audio_source: dict):
+    trim_end = WaapiTools.get_object_property(audio_source, 'TrimEnd')
+    if trim_end == -1:
+        return False
+    duration = WaapiTools.get_object_property(audio_source, 'playbackDuration')
+    if duration:
+        return trim_end > duration['playbackDurationMax']
+    return False
+
+
+# 检查源文件是否与Sound命名一致
+def is_source_path_inconsistent(sound: dict):
+    sound_name = sound['name']
+    if sound_name.endswith('_1P') or sound_name.endswith('_3P'):
+        sound_name = sound_name[:-3]
+    elif sound_name.endswith('_3P_Enemy'):
+        sound_name = sound_name[:-9]
+
+    children = WaapiTools.get_child_objects(sound, False)
+    for audio_source in children:
+        source_path = WaapiTools.get_object_property(audio_source, 'sound:originalWavFilePath')
+        if source_path:
+            source_name = os.path.basename(source_path)[:-4]
+            if sound_name != source_name:
+                return True
+    return False
+
+
 # 获取当前Sound下面所有的AudioSource并删除
-def delete_audio_sources(obj):
-    audio_sources = WaapiTools.get_child_objects(obj, False)
+def delete_audio_sources(sound: dict):
+    audio_sources = WaapiTools.get_child_objects(sound, False)
     for audio_source in audio_sources:
         WaapiTools.delete_object(audio_source)
 
 
 # 将Source Editor里编辑的信息写入源文件中
-def apply_source_edit(obj):
+def apply_source_edit(audio_source: dict):
     query_args = {
         'from': {
-            'id': obj['id']
+            'id': audio_source['id']
         },
         'options': {
             'return': ['sound:originalWavFilePath']
@@ -27,52 +57,52 @@ def apply_source_edit(obj):
     }
     # 获取所选object的类型
     query_result = WaapiTools.Client.call('ak.wwise.core.object.get', query_args)['return']
-    change_source(obj, query_result['sound:originalWavFilePath'])
-    reset_source_editor(obj)
+    change_source(audio_source, query_result['sound:originalWavFilePath'])
+    reset_source_editor(audio_source)
 
 
 # 重置所有的淡入淡出和裁剪
-def reset_source_editor(sound_object):
-    if sound_object['type'] != 'AudioFileSource':
+def reset_source_editor(audio_source: dict):
+    if audio_source['type'] != 'AudioFileSource':
         return
-    WaapiTools.set_object_property(sound_object, 'FadeInDuration', 0)
-    WaapiTools.set_object_property(sound_object, 'FadeOutDuration', 0)
-    WaapiTools.set_object_property(sound_object, 'TrimBegin', -1)
-    WaapiTools.set_object_property(sound_object, 'TrimEnd', -1)
-    WaapiTools.set_object_property(sound_object, 'LoopBegin', -1)
-    WaapiTools.set_object_property(sound_object, 'LoopEnd', -1)
+    WaapiTools.set_object_property(audio_source, 'FadeInDuration', 0)
+    WaapiTools.set_object_property(audio_source, 'FadeOutDuration', 0)
+    WaapiTools.set_object_property(audio_source, 'TrimBegin', -1)
+    WaapiTools.set_object_property(audio_source, 'TrimEnd', -1)
+    WaapiTools.set_object_property(audio_source, 'LoopBegin', -1)
+    WaapiTools.set_object_property(audio_source, 'LoopEnd', -1)
 
 
 # 将源文件编辑信息缓存
-def backup_source_edits(sound_object):
-    if sound_object['type'] != 'AudioFileSource':
+def backup_source_edits(audio_source: dict):
+    if audio_source['type'] != 'AudioFileSource':
         return
-    data = [WaapiTools.get_object_property(sound_object, 'FadeInDuration'),
-            WaapiTools.get_object_property(sound_object, 'FadeOutDuration'),
-            WaapiTools.get_object_property(sound_object, 'TrimBegin'),
-            WaapiTools.get_object_property(sound_object, 'TrimEnd'),
-            WaapiTools.get_object_property(sound_object, 'LoopBegin'),
-            WaapiTools.get_object_property(sound_object, 'LoopEnd')]
+    data = [WaapiTools.get_object_property(audio_source, 'FadeInDuration'),
+            WaapiTools.get_object_property(audio_source, 'FadeOutDuration'),
+            WaapiTools.get_object_property(audio_source, 'TrimBegin'),
+            WaapiTools.get_object_property(audio_source, 'TrimEnd'),
+            WaapiTools.get_object_property(audio_source, 'LoopBegin'),
+            WaapiTools.get_object_property(audio_source, 'LoopEnd')]
     return data
 
 
 # 恢复缓存的源文件编辑信息
-def restore_source_edits(sound_object, data: list):
-    if sound_object['type'] != 'AudioFileSource':
+def restore_source_edits(audio_source: dict, data: list):
+    if audio_source['type'] != 'AudioFileSource':
         return
-    WaapiTools.set_object_property(sound_object, 'FadeInDuration', data[0])
-    WaapiTools.set_object_property(sound_object, 'FadeOutDuration', data[1])
-    WaapiTools.set_object_property(sound_object, 'TrimBegin', data[2])
-    WaapiTools.set_object_property(sound_object, 'TrimEnd', data[3])
-    WaapiTools.set_object_property(sound_object, 'LoopBegin', data[4])
-    WaapiTools.set_object_property(sound_object, 'LoopEnd', data[5])
+    WaapiTools.set_object_property(audio_source, 'FadeInDuration', data[0])
+    WaapiTools.set_object_property(audio_source, 'FadeOutDuration', data[1])
+    WaapiTools.set_object_property(audio_source, 'TrimBegin', data[2])
+    WaapiTools.set_object_property(audio_source, 'TrimEnd', data[3])
+    WaapiTools.set_object_property(audio_source, 'LoopBegin', data[4])
+    WaapiTools.set_object_property(audio_source, 'LoopEnd', data[5])
 
 
 # 将裁剪和淡入淡出覆盖写入源文件
-def change_source(sound_object_id, original_wav_path):
+def change_source(audio_source: dict, original_wav_path: str):
     fade_info_args = {
         'from': {
-            'id': sound_object_id
+            'id': audio_source['id']
         },
         'options': {
             'return': ['TrimBegin', 'TrimEnd', 'FadeInDuration', 'FadeOutDuration']
@@ -96,40 +126,57 @@ def change_source(sound_object_id, original_wav_path):
         AudioEditTools.fade(sound_data, fade_in_duration * sample_rate, 1)
     if fade_out_duration > 0:
         AudioEditTools.fade(sound_data, fade_out_duration * sample_rate, -1)
-    soundfile.write(file=original_wav_path.name, data=sound_data, samplerate=sample_rate)
+    soundfile.write(file=original_wav_path, data=sound_data, samplerate=sample_rate)
 
 
 # 替换样本文件
-def replace_audio_file(sound_obj, new_wav_path, language):
-    data = backup_source_edits(WaapiTools.get_audio_source_from_sound(sound_obj))
-    delete_audio_sources(sound_obj)
+def replace_audio_file(sound: dict, new_wav_path: str, language: str):
+    data = backup_source_edits(WaapiTools.get_audio_source_from_sound(sound))
+    delete_audio_sources(sound)
 
-    WaapiTools.import_audio_file(new_wav_path, sound_obj, sound_obj['name'], language)
-    restore_source_edits(WaapiTools.get_audio_source_from_sound(sound_obj), data)
+    WaapiTools.import_audio_file(new_wav_path, sound, sound['name'], language)
+    audio_file = WaapiTools.get_audio_source_from_sound(sound)
+    if audio_file:
+        restore_source_edits(WaapiTools.get_audio_source_from_sound(sound), data)
 
 
 # 将原始资源文件名字改为Wwise中资源名字
-def rename_original_to_wwise(obj):
-    if obj['type'] != 'Sound':
+def rename_original_to_wwise(sound: dict):
+    if sound['type'] != 'Sound':
         return
 
-    original_wave_path = WaapiTools.get_object_property(obj, 'sound:originalWavFilePath')
-    if original_wave_path is None:
-        return
+    # 去除1P和3P后缀
+    sound_name = sound['name']
+    if sound_name.endswith('_1P') or sound_name.endswith('_3P'):
+        sound_name = sound_name[:-3]
+    elif sound_name.endswith('_3P_Enemy'):
+        sound_name = sound_name[:-9]
+    new_wave_name = sound_name + '.wav'
 
-    new_wave_name = obj['name'] + '.wav'
-    language = WaapiTools.get_sound_language(obj)
-    original_wave_name = os.path.basename(original_wave_path)
-    if original_wave_name != new_wave_name:
-        new_wave_path = original_wave_path.replace(original_wave_name, new_wave_name)
-        # 重命名源文件，若已存在则直接导入
-        if not os.path.exists(new_wave_path):
-            os.rename(original_wave_path, new_wave_path)
-        replace_audio_file(obj, new_wave_path, language)
+    children = WaapiTools.get_child_objects(sound, False)
+    for audio_source in children:
+        language = LocalizationTools.get_sound_language(audio_source)
+        original_wave_path = WaapiTools.get_object_property(sound, 'sound:originalWavFilePath')
+        if not original_wave_path:
+            print(f'AudioFile of Sound [{sound_name}] missing at [{original_wave_path}]!')
+            continue
+        original_wave_name = os.path.basename(original_wave_path)
+        if original_wave_name != new_wave_name:
+            new_wave_path = original_wave_path.replace(original_wave_name, new_wave_name)
+            # 重命名源文件，若已存在则直接导入
+            if os.path.exists(original_wave_path) and not os.path.exists(new_wave_path):
+                os.rename(original_wave_path, new_wave_path)
+            replace_audio_file(sound, new_wave_path, language)
+
+
+
+
+
+
 
 
 # 按照文件夹与WorkUnit整理源文件目录
-def tidy_original_folders(obj):
+def tidy_original_folders(obj: dict):
     # 仅对ActorMixerHierarchy下的资源生效
     if not obj['path'].startswith('\\Actor-Mixer Hierarchy\\'):
         return
@@ -146,7 +193,7 @@ def tidy_original_folders(obj):
 
 
 # 找到所有Sound层级并整理audioFileSource
-def tidy_children(obj, wav_sub_folder):
+def tidy_children(obj: dict, wav_sub_folder: str):
     result_msg = []
     base_folder = os.path.abspath(os.path.join(WaapiTools.get_project_directory(), '../Originals/'))
     children = WaapiTools.get_child_objects(obj, False)
@@ -154,7 +201,7 @@ def tidy_children(obj, wav_sub_folder):
         if child['type'] == 'Sound':
             original_path = WaapiTools.get_object_property(child, 'sound:originalWavFilePath')
             file_name = os.path.basename(original_path)
-            language = WaapiTools.get_sound_language(child)
+            language = LocalizationTools.get_sound_language(child)
             # 按照文件夹和WorkUnit得到新的样本路径
             new_path = os.path.join(base_folder, language, wav_sub_folder, file_name)
             if original_path != new_path:
@@ -168,7 +215,7 @@ def tidy_children(obj, wav_sub_folder):
 
 
 # 递归查找最近的Folder或WorkUnit
-def get_wav_subfolder(obj, path=''):
+def get_wav_subfolder(obj: dict, path=''):
     parent = WaapiTools.get_parent_objects(obj, False)
     if not parent:
         return path[22:]
@@ -190,31 +237,16 @@ def delete_unused_akd_files():
                     os.remove(full_path)
 
 
-# 尝试导入当前所有语音资源的本地化文件
-def localize_languages(obj):
-    ScriptingTools.iterate_child_sound_objects(obj, localize_language)
-
-
-# 对单个音效导入本地化资源
-def localize_language(obj):
-    language_list = WaapiTools.get_language_list()
-    sources = WaapiTools.get_child_objects(obj, False)
-    if len(sources) == 0:
-        return
-
-    existing_language = ''
-    existing_source = None
-    for source in sources:
-        existing_language = WaapiTools.get_sound_language(source)
-        existing_source = source
-        break
-
-    for language_obj in language_list:
-        language = language_obj['name']
-        if language != existing_language:
-            original_file_path = WaapiTools.get_object_property(existing_source, 'sound:originalWavFilePath')
-            WaapiTools.import_audio_file(original_file_path.replace(existing_language, language), obj, obj['name'],
-                                         language)
+# 检查样本是否是静音替代资源
+def is_audio_source_silent(obj: dict):
+    children = WaapiTools.get_child_objects(obj, False)
+    for child in children:
+        if child['type'] == 'AudioFileSource':
+            path = WaapiTools.get_object_property(child, 'sound:originalWavFilePath')
+            silent = AudioEditTools.is_sound_completely_silent(path)
+            if silent:
+                return True
+    return False
 
 
 # 裁剪音频文件尾巴的工具
@@ -232,7 +264,7 @@ class AudioTailTrimmer(QDialog, Ui_AudioTailTrimmer):
         # 主窗口中有wwise对象，从中查找音频源文件
         if len(active_objects) > 0 and WaapiTools.Client:
             self.populate_from_wwise(active_objects)
-        self.tblFileList.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeToContents)
+        self.tblFileList.resizeColumnsToContents()
 
     def setup_triggers(self):
         self.btnImportFiles.clicked.connect(self.import_files)
@@ -284,7 +316,7 @@ class AudioTailTrimmer(QDialog, Ui_AudioTailTrimmer):
         for root, dirs, files in os.walk(folder):
             for file in files:
                 if file.endswith(".wav"):
-                    file_path = os.path.join(root, file)
+                    file_path = str(os.path.join(root, file))
                     self.add_file(file_path)
             self.tblFileList.repaint()
 

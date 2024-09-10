@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>738</width>
-    <height>516</height>
+    <height>510</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -496,7 +496,7 @@
    </property>
    <widget class="QMenu" name="mnuAudioSource">
     <property name="title">
-     <string>AudioSource</string>
+     <string>源文件</string>
     </property>
     <addaction name="actApplyEditsToOriginal"/>
     <addaction name="actResetSourceEdits"/>
@@ -507,7 +507,7 @@
     <addaction name="actDeleteUnusedAKDFiles"/>
     <addaction name="actLocalizeLanguages"/>
    </widget>
-   <widget class="QMenu" name="mnuLogicContainers">
+   <widget class="QMenu" name="mnuContainer">
     <property name="title">
      <string>Container</string>
     </property>
@@ -522,7 +522,6 @@
     </widget>
     <addaction name="actBreakContainer"/>
     <addaction name="actReplaceParent"/>
-    <addaction name="actApplyFaderEditsDownstream"/>
     <addaction name="mnuSwitchContainer"/>
    </widget>
    <widget class="QMenu" name="mnuSoundBank">
@@ -579,29 +578,35 @@
      <addaction name="actCreateVirtualFolder"/>
      <addaction name="actCreateWorkUnit"/>
     </widget>
-    <addaction name="mnuConvertToType"/>
+    <addaction name="actSimplifyName"/>
     <addaction name="mnuRename"/>
+    <addaction name="actRemoveNameSuffix"/>
+    <addaction name="actUpdateNoteAndColor"/>
+    <addaction name="separator"/>
+    <addaction name="mnuConvertToType"/>
     <addaction name="mnuCreateParent"/>
-    <addaction name="actRemoveSuffix"/>
     <addaction name="separator"/>
     <addaction name="actMoveListToSelection"/>
     <addaction name="actCopySelectionToList"/>
     <addaction name="separator"/>
     <addaction name="actBatchReplaceTool"/>
-    <addaction name="separator"/>
    </widget>
-   <widget class="QMenu" name="menuEvent">
+   <widget class="QMenu" name="mnuEvent">
     <property name="title">
      <string>Event</string>
     </property>
     <addaction name="actCreatePlayEvent"/>
+    <addaction name="actRenameEventByTarget"/>
    </widget>
    <widget class="QMenu" name="mnuFile">
     <property name="title">
      <string>文件</string>
     </property>
-    <addaction name="actImportFromFile"/>
-    <addaction name="actExportToFile"/>
+    <addaction name="actExportCriterias"/>
+    <addaction name="actImportCriterias"/>
+    <addaction name="separator"/>
+    <addaction name="actExportObjects"/>
+    <addaction name="actImportObjects"/>
    </widget>
    <widget class="QMenu" name="mnuEdit">
     <property name="title">
@@ -628,12 +633,21 @@
     <addaction name="mnuSetInclusion"/>
     <addaction name="actDeleteObjects"/>
    </widget>
-   <widget class="QMenu" name="menu">
+   <widget class="QMenu" name="mnuOther">
     <property name="title">
      <string>其他</string>
     </property>
+    <widget class="QMenu" name="mnuImportFMOD">
+     <property name="title">
+      <string>从FMOD导入</string>
+     </property>
+     <addaction name="actImportFMODEvent"/>
+     <addaction name="actImportFMODPreset"/>
+    </widget>
     <addaction name="actCheckProjectValidation"/>
     <addaction name="actUnityAssetManager"/>
+    <addaction name="separator"/>
+    <addaction name="mnuImportFMOD"/>
     <addaction name="separator"/>
     <addaction name="actTempTool"/>
    </widget>
@@ -643,15 +657,22 @@
     </property>
     <addaction name="actReplaceRTPC"/>
    </widget>
+   <widget class="QMenu" name="mnuMixing">
+    <property name="title">
+     <string>混音</string>
+    </property>
+    <addaction name="actDownMixFader"/>
+   </widget>
    <addaction name="mnuFile"/>
    <addaction name="mnuEdit"/>
    <addaction name="mnuCommon"/>
    <addaction name="mnuAudioSource"/>
-   <addaction name="mnuLogicContainers"/>
-   <addaction name="menuEvent"/>
+   <addaction name="mnuMixing"/>
+   <addaction name="mnuContainer"/>
+   <addaction name="mnuEvent"/>
    <addaction name="mnuSoundBank"/>
    <addaction name="mnuGameSync"/>
-   <addaction name="menu"/>
+   <addaction name="mnuOther"/>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
   <action name="actionEnable">
@@ -711,7 +732,7 @@
   </action>
   <action name="actCreateOrAddToBank">
    <property name="text">
-    <string>为每个对象创建或加入Bank</string>
+    <string>为对象创建或添加到Bank</string>
    </property>
   </action>
   <action name="actionPlay">
@@ -826,7 +847,7 @@
   </action>
   <action name="actAddToSelectedBank">
    <property name="text">
-    <string>添加列表到选中的Bank</string>
+    <string>添加对象到选中的Bank</string>
    </property>
   </action>
   <action name="actRenameOriginalToWwise">
@@ -874,9 +895,9 @@
     <string>全部</string>
    </property>
   </action>
-  <action name="actApplyFaderEditsDownstream">
+  <action name="actDownMixFader">
    <property name="text">
-    <string>混音向下汇总</string>
+    <string>向下传递参数</string>
    </property>
   </action>
   <action name="actSplitByPlayerIdentity">
@@ -884,14 +905,14 @@
     <string>按照1P/3P拆分</string>
    </property>
   </action>
-  <action name="actImportFromFile">
+  <action name="actImportCriterias">
    <property name="text">
-    <string>导入</string>
+    <string>导入筛选条件</string>
    </property>
   </action>
-  <action name="actExportToFile">
+  <action name="actExportCriterias">
    <property name="text">
-    <string>导出</string>
+    <string>导出筛选条件</string>
    </property>
   </action>
   <action name="actCopySelectionToList">
@@ -1029,12 +1050,52 @@
     <string>工程检查</string>
    </property>
   </action>
-  <action name="actRemoveSuffix">
+  <action name="actRemoveNameSuffix">
    <property name="text">
-    <string>去除结尾名</string>
+    <string>删除名称末尾</string>
    </property>
    <property name="iconText">
-    <string>去除结尾名</string>
+    <string>删除名称末尾</string>
+   </property>
+  </action>
+  <action name="actFixTrimRange">
+   <property name="text">
+    <string>修复超出范围裁剪</string>
+   </property>
+  </action>
+  <action name="actImportObjects">
+   <property name="text">
+    <string>导入对象列表</string>
+   </property>
+  </action>
+  <action name="actExportObjects">
+   <property name="text">
+    <string>导出对象列表</string>
+   </property>
+  </action>
+  <action name="actImportFMODEvent">
+   <property name="text">
+    <string>Event</string>
+   </property>
+  </action>
+  <action name="actImportFMODPreset">
+   <property name="text">
+    <string>Preset</string>
+   </property>
+  </action>
+  <action name="actSimplifyName">
+   <property name="text">
+    <string>简化命名</string>
+   </property>
+  </action>
+  <action name="actUpdateNoteAndColor">
+   <property name="text">
+    <string>更新备注与颜色</string>
+   </property>
+  </action>
+  <action name="actRenameEventByTarget">
+   <property name="text">
+    <string>根据播放对象重命名</string>
    </property>
   </action>
  </widget>

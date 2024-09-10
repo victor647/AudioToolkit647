@@ -1,6 +1,23 @@
+import os.path
+
+import soundfile
+
+
 # 把分贝转换成0-1的值
-def decibel_to_linear(decibel):
+def decibel_to_linear(decibel: float):
     return min(1.0, pow(10, (decibel / 20)))
+
+
+# 检测音频文件是否完全是静音
+def is_sound_completely_silent(file_path: str):
+    if not os.path.exists(file_path):
+        return False
+    sound_file = soundfile.SoundFile(file=file_path)
+    if not sound_file:
+        return True
+    sound_file.seek(0)
+    audio_data = sound_file.read()
+    return get_sound_frame_max_amp(audio_data) == 0
 
 
 # 寻找下一个间隔

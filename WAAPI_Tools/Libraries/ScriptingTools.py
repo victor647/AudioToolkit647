@@ -4,6 +4,37 @@ import re
 from Libraries import WaapiTools
 
 
+# 根据全名获取缩写名
+def convert_category_to_acronym(full_name: str):
+    if full_name.startswith('Voice'):
+        return 'VO'
+    if full_name.startswith('Ambien'):
+        return 'AMB'
+    if full_name.startswith('Action'):
+        return 'ACT'
+    if full_name.startswith('Character'):
+        return 'CHR'
+    if full_name.startswith('Effect'):
+        return 'EFT'
+    if full_name.startswith('Enemy'):
+        return 'ENM'
+    if full_name.startswith('Interface'):
+        return 'UI'
+    if full_name.startswith('Movie'):
+        return 'MVE'
+    if full_name.startswith('Music'):
+        return 'BGM'
+    if full_name.startswith('Object'):
+        return 'OBJ'
+    if full_name.startswith('Skill'):
+        return 'SKL'
+    if full_name.startswith('Vehicle'):
+        return 'VCL'
+    if full_name.startswith('Weapon'):
+        return 'WPN'
+    return full_name
+
+
 # 根据条件筛选或筛除列表中对象
 def filter_objects(objects: list, filter_input: str,
                    case_sensitive: bool, match_whole_word: bool, use_regular_expression: bool,

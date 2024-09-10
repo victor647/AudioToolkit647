@@ -40,9 +40,9 @@
       </widget>
      </item>
      <item>
-      <widget class="QCheckBox" name="cbxColorMismatch">
+      <widget class="QCheckBox" name="cbxColorConvention">
        <property name="text">
-        <string>颜色与上级对象不一致</string>
+        <string>颜色不符合规范或未标记引用</string>
        </property>
        <property name="checked">
         <bool>true</bool>
@@ -50,9 +50,9 @@
       </widget>
      </item>
      <item>
-      <widget class="QCheckBox" name="cbxInconsistentSourcePath">
+      <widget class="QCheckBox" name="cbxDuplicatedRTPC">
        <property name="text">
-        <string>Sound与样本命名不一致</string>
+        <string>RTPC重复绑定内部属性</string>
        </property>
        <property name="checked">
         <bool>true</bool>
@@ -64,9 +64,9 @@
    <item>
     <layout class="QHBoxLayout" name="horizontalLayout_4">
      <item>
-      <widget class="QCheckBox" name="cbxMismatchedEvent">
+      <widget class="QCheckBox" name="cbxEventNamingMismatch">
        <property name="text">
-        <string>Event和播放对象不一致</string>
+        <string>Event命名与目标不一致</string>
        </property>
        <property name="checked">
         <bool>true</bool>
@@ -76,7 +76,7 @@
      <item>
       <widget class="QCheckBox" name="cbxUnnecessaryEvent">
        <property name="text">
-        <string>不必要的Stop和1P/3P Event</string>
+        <string>不必要的1P/3P Event</string>
        </property>
        <property name="checked">
         <bool>true</bool>
@@ -84,9 +84,9 @@
       </widget>
      </item>
      <item>
-      <widget class="QCheckBox" name="cbxUnusedSound">
+      <widget class="QCheckBox" name="cbxSoundNotInEvent">
        <property name="text">
-        <string>样本未被任何Event引用</string>
+        <string>Sound未被任何Event引用</string>
        </property>
        <property name="checked">
         <bool>true</bool>
@@ -94,9 +94,24 @@
       </widget>
      </item>
      <item>
-      <widget class="QCheckBox" name="cbxAssignedToMasterBus">
+      <widget class="QCheckBox" name="cbxEventNotInBank">
        <property name="text">
-        <string>分配到了默认的MasterAudioBus</string>
+        <string>Event未被任何Bank包含</string>
+       </property>
+       <property name="checked">
+        <bool>true</bool>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QCheckBox" name="cbxMissingEventNotes">
+       <property name="font">
+        <font>
+         <stylestrategy>PreferDefault</stylestrategy>
+        </font>
+       </property>
+       <property name="text">
+        <string>Event或播放对象缺少备注</string>
        </property>
        <property name="checked">
         <bool>true</bool>
@@ -150,14 +165,44 @@
        </property>
       </widget>
      </item>
+     <item>
+      <widget class="QCheckBox" name="cbxInconsistentSourcePath">
+       <property name="text">
+        <string>Sound与样本命名不一致</string>
+       </property>
+       <property name="checked">
+        <bool>true</bool>
+       </property>
+      </widget>
+     </item>
     </layout>
    </item>
    <item>
     <layout class="QHBoxLayout" name="horizontalLayout_5">
      <item>
-      <widget class="QCheckBox" name="cbxDuplicatedRTPC">
+      <widget class="QCheckBox" name="cbxTrimOutOfRange">
        <property name="text">
-        <string>RTPC重复绑定内部属性</string>
+        <string>样本裁剪超出范围</string>
+       </property>
+       <property name="checked">
+        <bool>true</bool>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QCheckBox" name="cbxSoundNotImported">
+       <property name="text">
+        <string>样本未导入或缺失语言</string>
+       </property>
+       <property name="checked">
+        <bool>true</bool>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QCheckBox" name="cbxSilentVoicePlaceholder">
+       <property name="text">
+        <string>临时静音替代语音</string>
        </property>
        <property name="checked">
         <bool>true</bool>
@@ -174,6 +219,20 @@
        </property>
       </widget>
      </item>
+     <item>
+      <widget class="QCheckBox" name="cbxAssignedToMasterBus">
+       <property name="text">
+        <string>分配到了默认的MasterAudioBus</string>
+       </property>
+       <property name="checked">
+        <bool>true</bool>
+       </property>
+      </widget>
+     </item>
+    </layout>
+   </item>
+   <item>
+    <layout class="QHBoxLayout" name="horizontalLayout">
      <item>
       <widget class="QPushButton" name="btnSelectAll">
        <property name="maximumSize">
@@ -209,7 +268,7 @@
         </size>
        </property>
        <property name="text">
-        <string>检查整个工程</string>
+        <string>检查整个工程（可能会很慢）</string>
        </property>
       </widget>
      </item>
@@ -222,7 +281,20 @@
         </size>
        </property>
        <property name="text">
-        <string>检查主窗口中对象</string>
+        <string>检查主窗口列表</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QPushButton" name="btnValidateProjectSelection">
+       <property name="maximumSize">
+        <size>
+         <width>16777215</width>
+         <height>20</height>
+        </size>
+       </property>
+       <property name="text">
+        <string>检查Wwise选中对象</string>
        </property>
       </widget>
      </item>
@@ -239,6 +311,19 @@
        </property>
       </widget>
      </item>
+     <item>
+      <widget class="QPushButton" name="btnAutoFixSelection">
+       <property name="maximumSize">
+        <size>
+         <width>16777215</width>
+         <height>20</height>
+        </size>
+       </property>
+       <property name="text">
+        <string>一键修复列表选中项</string>
+       </property>
+      </widget>
+     </item>
     </layout>
    </item>
    <item>
@@ -250,7 +335,7 @@
       <set>QAbstractItemView::NoEditTriggers</set>
      </property>
      <property name="sortingEnabled">
-      <bool>true</bool>
+      <bool>false</bool>
      </property>
      <attribute name="horizontalHeaderShowSortIndicator" stdset="0">
       <bool>false</bool>

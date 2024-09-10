@@ -1,27 +1,13 @@
 import sys
 import traceback
 from waapi import WaapiClient, CannotConnectToWaapiException
-from PyQt5.QtWidgets import QApplication, QMainWindow, QMessageBox
-from PyQt5.QtCore import Qt
+from PyQt6.QtWidgets import QApplication, QMainWindow, QMessageBox, QTableWidgetItem
 
 from QtDesign.MainWindow_ui import Ui_MainWindow
-from ObjectTools.CommonTools import *
-from ObjectTools.AudioSourceTools import *
-from ObjectTools.LogicContainerTools import *
-from ObjectTools.EventTools import *
-from ObjectTools.SoundBankTools import *
-from ObjectTools.BatchReplaceTool import *
-from ObjectTools.TempTools import temp_tool
-from ObjectTools.UnityAssetManager import UnityAssetManager
-from ObjectTools.ProjectValidationTool import ProjectValidation
+from ObjectTools import AudioSourceTools, BatchReplaceTool, CommonTools, EventTools, ImportTools, LogicContainerTools
+from ObjectTools import LocalizationTools, MixingTools, ProjectValidationTool, SoundBankTools, TempTools, UnityAssetManager
 from Threading.BatchProcessor import BatchProcessor
-from Libraries import ScriptingTools, WaapiTools, FileTools, WwiseSilenceTool
-
-if hasattr(Qt, 'AA_EnableHighDpiScaling'):
-    QApplication.setAttribute(Qt.AA_EnableHighDpiScaling, True)
-
-if hasattr(Qt, 'AA_UseHighDpiPixmaps'):
-    QApplication.setAttribute(Qt.AA_UseHighDpiPixmaps, True)
+from Libraries import ScriptingTools, WaapiTools, FileTools
 
 
 class MainWindow(QMainWindow, Ui_MainWindow):
@@ -38,9 +24,10 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.connect_to_wwise()
 
     def setup_triggers(self):
+        self.reset_filter()
         self.tblActiveObjects.itemDoubleClicked.connect(self.show_object_in_wwise)
         self.tblActiveObjects.setColumnWidth(2, 600)
-
+        # 所有按键
         self.btnWaapiConnect.clicked.connect(self.connect_to_wwise)
         self.btnGetSelectedObjects.clicked.connect(self.get_selected_objects)
         self.btnUpdateObjects.clicked.connect(self.update_table_listed_objects)
@@ -49,13 +36,25 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.btnClearObjects.clicked.connect(self.clear_object_list)
         self.btnMultiEditor.clicked.connect(self.open_in_multi_editor)
         self.btnBatchRename.clicked.connect(self.open_in_batch_rename)
-
+        # 文件菜单
+        self.actImportCriterias.triggered.connect(self.import_criterias)
+        self.actExportCriterias.triggered.connect(self.export_criterias)
+        self.actImportObjects.triggered.connect(self.import_objects)
+        self.actExportObjects.triggered.connect(self.export_objects)
+        # 编辑菜单
+        self.actUndo.triggered.connect(WaapiTools.undo)
+        self.actRedo.triggered.connect(WaapiTools.redo)
+        self.actSetIncluded.triggered.connect(lambda: self.set_inclusion(True))
+        self.actSetExcluded.triggered.connect(lambda: self.set_inclusion(False))
+        self.actFilterIncluded.triggered.connect(lambda: self.filter_by_inclusion(True))
+        self.actFilterExcluded.triggered.connect(lambda: self.filter_by_inclusion(False))
+        self.actDeleteObjects.triggered.connect(self.delete_all_objects)
+        # 通用菜单
         self.actConvertToWorkUnit.triggered.connect(lambda: self.convert_to_type('WorkUnit'))
         self.actConvertToActorMixer.triggered.connect(lambda: self.convert_to_type('ActorMixer'))
         self.actConvertToVirtualFolder.triggered.connect(lambda: self.convert_to_type('Folder'))
         self.actConvertToBlendContainer.triggered.connect(lambda: self.convert_to_type('BlendContainer'))
-        self.actConvertToRandomSequenceContainer.triggered.connect(
-            lambda: self.convert_to_type('RandomSequenceContainer'))
+        self.actConvertToRandomSequenceContainer.triggered.connect(lambda: self.convert_to_type('RandomSequenceContainer'))
         self.actConvertToSwitchContainer.triggered.connect(lambda: self.convert_to_type('SwitchContainer'))
 
         self.actCreateWorkUnit.triggered.connect(lambda: self.create_parent('WorkUnit'))
@@ -67,61 +66,53 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         self.btnFindParent.clicked.connect(self.find_parent)
         self.btnFindChildren.clicked.connect(self.find_children)
-
-        self.reset_filter()
-
-        self.actUndo.triggered.connect(WaapiTools.undo)
-        self.actRedo.triggered.connect(WaapiTools.redo)
-        self.actSetIncluded.triggered.connect(lambda: self.set_inclusion(True))
-        self.actSetExcluded.triggered.connect(lambda: self.set_inclusion(False))
-        self.actFilterIncluded.triggered.connect(lambda: self.filter_by_inclusion(True))
-        self.actFilterExcluded.triggered.connect(lambda: self.filter_by_inclusion(False))
-        self.actDeleteObjects.triggered.connect(self.delete_all_objects)
-
         self.actMoveListToSelection.triggered.connect(self.move_active_objects_to_selection)
         self.actCopySelectionToList.triggered.connect(self.copy_selection_to_active_objects)
+
+        self.actSimplifyName.triggered.connect(self.simplify_name)
         self.actChangeToLowerCase.triggered.connect(lambda: self.apply_naming_convention(0))
         self.actChangeToTitleCase.triggered.connect(lambda: self.apply_naming_convention(1))
         self.actChangeToUpperCase.triggered.connect(lambda: self.apply_naming_convention(2))
-        self.actRemoveSuffix.triggered.connect(self.remove_suffix)
+        self.actRemoveNameSuffix.triggered.connect(self.remove_name_suffix)
+        self.actUpdateNoteAndColor.triggered.connect(self.update_notes_and_color)
         # self.actWwiseSilenceAdd.triggered.connect(self.create_wwise_silence)
         # self.actWwiseSilenceRemove.triggered.connect(self.remove_wwise_silence)
-
-        self.actImportFromFile.triggered.connect(self.import_from_file)
-        self.actExportToFile.triggered.connect(self.export_to_file)
-
         self.actBatchReplaceTool.triggered.connect(self.batch_replace_tool)
-
+        # 源文件菜单
         self.actApplyEditsToOriginal.triggered.connect(self.apply_source_edits)
         self.actResetSourceEdits.triggered.connect(self.reset_source_editor)
         self.actTrimTailSilence.triggered.connect(self.trim_tail_silence)
         self.actRenameOriginalToWwise.triggered.connect(self.rename_original_to_wwise)
         self.actTidyOriginalFolders.triggered.connect(self.tidy_original_folders)
-        self.actDeleteUnusedAKDFiles.triggered.connect(delete_unused_akd_files)
+        self.actDeleteUnusedAKDFiles.triggered.connect(AudioSourceTools.delete_unused_akd_files)
         self.actLocalizeLanguages.triggered.connect(self.localize_languages)
-
+        # 混音菜单
+        self.actDownMixFader.triggered.connect(self.down_mix_fader)
+        # Container菜单
         self.actBreakContainer.triggered.connect(self.break_container)
         self.actReplaceParent.triggered.connect(self.replace_parent)
         self.actAssignSwitchMappings.triggered.connect(self.assign_switch_mappings)
         self.actRemoveAllSwitchAssignments.triggered.connect(self.remove_all_switch_mappings)
         self.actSetGenericPath.triggered.connect(self.set_as_generic_path_obj)
         self.actSplitByPlayerIdentity.triggered.connect(self.split_by_player_identity)
-        self.actApplyFaderEditsDownstream.triggered.connect(self.apply_fader_edits_downstream)
+        # Event菜单
         self.actCreatePlayEvent.triggered.connect(self.create_play_event)
-
+        self.actRenameEventByTarget.triggered.connect(self.rename_event_by_target)
+        # SoundBank菜单
         self.actCalculateBankSize.triggered.connect(self.calculate_bank_total_size)
         self.actCreateOrAddToBank.triggered.connect(self.create_or_add_to_bank)
         self.actAddToSelectedBank.triggered.connect(self.add_to_selected_bank)
         self.actClearInclusions.triggered.connect(self.clear_bank_inclusions)
         self.actIncludeMediaOnly.triggered.connect(lambda: self.set_bank_inclusion_type(['media']))
-        self.actIncludeEventsAndStructures.triggered.connect(
-            lambda: self.set_bank_inclusion_type(['events', 'structures']))
+        self.actIncludeEventsAndStructures.triggered.connect(lambda: self.set_bank_inclusion_type(['events', 'structures']))
         self.actIncludeAll.triggered.connect(lambda: self.set_bank_inclusion_type(['events', 'structures', 'media']))
         self.actBankAssignmentMatrix.triggered.connect(self.bank_assignment_matrix)
-
-        self.actTempTool.triggered.connect(lambda: temp_tool(self.activeObjects))
-        self.actUnityAssetManager.triggered.connect(self.manage_unity_assets)
+        # 其他菜单
         self.actCheckProjectValidation.triggered.connect(self.validate_project)
+        self.actTempTool.triggered.connect(lambda: TempTools.temp_tool(self.activeObjects))
+        self.actUnityAssetManager.triggered.connect(self.manage_unity_assets)
+        self.actImportFMODEvent.triggered.connect(ImportTools.import_fmod_events)
+        self.actImportFMODPreset.triggered.connect(ImportTools.import_fmod_presets)
 
     # 重置筛选条件
     def reset_filter(self):
@@ -262,7 +253,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.reset_filter()
         self.filter_and_show_list()
 
-    def on_ui_executed(*args, **kwargs):
+    @staticmethod
+    def on_ui_executed(**kwargs):
         # 获取对象类型
         obj_type = kwargs.get("object", {}).get("type")
         # 获取之前的名字
@@ -292,14 +284,11 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.batchProcessor.start()
 
     def set_inclusion(self, included: bool):
-        self.batchProcessor = BatchProcessor(self.activeObjects,
-                                             lambda obj: WaapiTools.set_object_property(obj, 'Inclusion',
-                                                                                        True if included else False),
-                                             'Set Inclusion')
+        self.batchProcessor = BatchProcessor(self.activeObjects, lambda obj: CommonTools.set_object_inclusion(obj, included), '启用/禁用对象')
         self.batchProcessor.start()
 
     def filter_by_inclusion(self, included: bool):
-        self.cacheObjects = ScriptingTools.filter_objects_by_inclusion(self.activeObjects, True if included else False)
+        self.cacheObjects = ScriptingTools.filter_objects_by_inclusion(self.activeObjects, included)
         self.reset_filter()
         self.filter_and_show_list()
 
@@ -310,53 +299,55 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
     def apply_naming_convention(self, naming_rule: int):
         if naming_rule == 0:
-            self.batchProcessor = BatchProcessor(self.activeObjects, rename_to_lower_case, 'Rename Lower Case')
+            self.batchProcessor = BatchProcessor(self.activeObjects, CommonTools.rename_to_lower_case, '重命名')
         elif naming_rule == 1:
-            self.batchProcessor = BatchProcessor(self.activeObjects, rename_to_title_case, 'Rename Title Case')
+            self.batchProcessor = BatchProcessor(self.activeObjects, CommonTools.rename_to_title_case, '重命名')
         else:
-            self.batchProcessor = BatchProcessor(self.activeObjects, rename_to_upper_case, 'Rename Upper Case')
+            self.batchProcessor = BatchProcessor(self.activeObjects, CommonTools.rename_to_upper_case, '重命名')
         self.batchProcessor.start()
 
-    def create_wwise_silence(self):
-        WwiseSilenceTool.WwiseSilenceInstance.Add()
+    # 导出筛选条件
+    def export_criterias(self):
+        options = {
+            self.rbnFilterByName.objectName(): self.rbnFilterByName.isChecked(),
+            self.rbnFilterByPath.objectName(): self.rbnFilterByPath.isChecked(),
+            self.rbnFilterByInclude.objectName(): self.rbnFilterByInclude.isChecked(),
+            self.rbnFilterByExclude.objectName(): self.rbnFilterByExclude.isChecked(),
+            self.cbxKeepSelf.objectName(): self.cbxKeepSelf.isChecked(),
+            self.cbxRecursiveFind.objectName(): self.cbxRecursiveFind.isChecked(),
+            self.cbxCaseSensitive.objectName(): self.cbxCaseSensitive.isChecked(),
+            self.cbxMatchWholeWord.objectName(): self.cbxMatchWholeWord.isChecked(),
+            self.cbxUseRegularExpression.objectName(): self.cbxUseRegularExpression.isChecked(),
+            self.cbbDescendantType.objectName(): self.cbbDescendantType.currentIndex(),
+            self.iptSelectionFilter.objectName(): self.iptSelectionFilter.text()
+        }
+        FileTools.export_to_json(options, 'WAAPI_Tools_Criteria')
 
-    def remove_wwise_silence(self):
-        WwiseSilenceTool.WwiseSilenceInstance.Remove()
+    # 导入筛选条件
+    def import_criterias(self):
+        options = FileTools.import_from_json()
+        if options:
+            self.rbnFilterByName.setChecked(options[self.rbnFilterByName.objectName()])
+            self.rbnFilterByPath.setChecked(options[self.rbnFilterByPath.objectName()])
+            self.rbnFilterByInclude.setChecked(options[self.rbnFilterByInclude.objectName()])
+            self.rbnFilterByExclude.setChecked(options[self.rbnFilterByExclude.objectName()])
+            self.cbxKeepSelf.setChecked(options[self.cbxKeepSelf.objectName()])
+            self.cbxRecursiveFind.setChecked(options[self.cbxRecursiveFind.objectName()])
+            self.cbxCaseSensitive.setChecked(options[self.cbxCaseSensitive.objectName()])
+            self.cbxMatchWholeWord.setChecked(options[self.cbxMatchWholeWord.objectName()])
+            self.cbxUseRegularExpression.setChecked(options[self.cbxUseRegularExpression.objectName()])
+            self.cbbDescendantType.setCurrentIndex(options[self.cbbDescendantType.objectName()])
+            self.iptSelectionFilter.setText(options[self.iptSelectionFilter.objectName()])
+        self.filter_and_show_list()
 
-    # 导出为文件
-    def export_to_file(self):
-        if WaapiTools.Client is None:
-            return
-        saveDict = {"selectObject": WaapiTools.get_selected_objects(),
-                    "activeObjects": self.activeObjects,
-                    "cacheObjects": self.cacheObjects,
-                    "radioBtn_group_key_name": self.radioBtn_group_key_name.isChecked(),
-                    "radioBtn_group_ope_include": self.radioBtn_group_ope_include.isChecked(),
-                    "cbxUseRegularExpression": self.cbxUseRegularExpression.isChecked(),
-                    "cbxMatchWholeWord": self.cbxMatchWholeWord.isChecked(),
-                    "cbxCaseSensitive": self.cbxCaseSensitive.isChecked(),
-                    "cbbDescendantType": self.cbbDescendantType.currentIndex(),
-                    "iptSelectionFilter": self.iptSelectionFilter.text()
-                    }
-        FileTools.export_to_file(saveDict)
+    # 导出对象列表
+    def export_objects(self):
+        FileTools.export_to_json(self.activeObjects, 'WAAPI_Tools_Objects')
 
-    # 从文件导入，并刷新UI
-    def import_from_file(self):
-        loadDict = FileTools.import_from_file()
-        if loadDict:
-            try:
-                self.radioBtn_group_key_name.setChecked(loadDict["radioBtn_group_key_name"])
-                self.radioBtn_group_ope_include.setChecked(loadDict["radioBtn_group_ope_include"])
-                self.cbxUseRegularExpression.setChecked(loadDict["cbxUseRegularExpression"])
-                self.cbxMatchWholeWord.setChecked(loadDict["cbxMatchWholeWord"])
-                self.cbxCaseSensitive.setChecked(loadDict["cbxCaseSensitive"])
-                self.cbbDescendantType.setCurrentIndex(loadDict["cbbDescendantType"])
-                self.iptSelectionFilter.setText(loadDict["iptSelectionFilter"])
-                self.activeObjects = loadDict["activeObjects"]
-                self.cacheObjects = loadDict["cacheObjects"]
-                self.show_obj_list()
-            except:
-                print("import from file failed")
+    # 导入对象列表
+    def import_objects(self):
+        self.activeObjects = FileTools.import_from_json()
+        self.show_obj_list()
 
     def move_active_objects_to_selection(self):
         if WaapiTools.Client is None:
@@ -365,7 +356,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         if len(selection) > 0:
             self.batchProcessor = BatchProcessor(self.activeObjects,
                                                  lambda obj: WaapiTools.move_object(obj, selection[0]),
-                                                 'Move to Selection')
+                                                 '移动到选中对象')
             self.batchProcessor.start()
 
     def copy_selection_to_active_objects(self):
@@ -375,105 +366,116 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         if len(selection) > 0:
             self.batchProcessor = BatchProcessor(self.activeObjects,
                                                  lambda obj: WaapiTools.copy_object(selection[0], obj),
-                                                 'Copy Selection')
+                                                 '复制到选中对象')
             self.batchProcessor.start()
 
-    def remove_suffix(self):
-        self.batchProcessor = BatchProcessor(self.activeObjects, remove_suffix, 'Break Container')
+    def simplify_name(self):
+        self.batchProcessor = BatchProcessor(self.activeObjects, CommonTools.rename_to_short_name, '简化命名')
+        self.batchProcessor.start()
+
+    def remove_name_suffix(self):
+        self.batchProcessor = BatchProcessor(self.activeObjects, CommonTools.remove_suffix, '删除名称末尾')
         self.batchProcessor.start()
 
     def break_container(self):
-        self.batchProcessor = BatchProcessor(self.activeObjects, break_container, 'Break Container')
+        self.batchProcessor = BatchProcessor(self.activeObjects, LogicContainerTools.break_container, '移除容器')
         self.batchProcessor.start()
 
     def replace_parent(self):
-        self.batchProcessor = BatchProcessor(self.activeObjects, replace_parent, 'Replace Parent')
+        self.batchProcessor = BatchProcessor(self.activeObjects, LogicContainerTools.replace_parent, '替换上级容器')
         self.batchProcessor.start()
 
     def open_in_multi_editor(self):
-        if WaapiTools.Client is None:
-            return
-        WaapiTools.execute_ui_command(self.activeObjects, 'ShowMultiEditor')
+        if WaapiTools.Client:
+            WaapiTools.execute_ui_command(self.activeObjects, 'ShowMultiEditor')
 
     def open_in_batch_rename(self):
-        if WaapiTools.Client is None:
-            return
-        WaapiTools.execute_ui_command(self.activeObjects, 'ShowBatchRename')
-
-    # 音频文件操作
-    def apply_source_edits(self):
-        self.batchProcessor = BatchProcessor(self.activeObjects, apply_source_edit, 'Apply Edit to Source')
-        self.batchProcessor.start()
-
-    def reset_source_editor(self):
-        self.batchProcessor = BatchProcessor(self.activeObjects, reset_source_editor, 'Reset Source Editor')
-        self.batchProcessor.start()
-
-    def trim_tail_silence(self):
-        trim_window = AudioTailTrimmer(self.activeObjects)
-        trim_window.show()
-        trim_window.exec_()
+        if WaapiTools.Client:
+            WaapiTools.execute_ui_command(self.activeObjects, 'ShowBatchRename')
 
     def batch_replace_tool(self):
         if WaapiTools.Client is None:
             return
-        replace_window = BatchReplaceTool(self)
+        replace_window = BatchReplaceTool.BatchReplaceWindow(self)
         replace_window.show()
-        replace_window.exec_()
+        replace_window.exec()
+
+    # 音频文件操作
+    def apply_source_edits(self):
+        self.batchProcessor = BatchProcessor(self.activeObjects, AudioSourceTools.apply_source_edit, '应用剪辑到源文件')
+        self.batchProcessor.start()
+
+    def reset_source_editor(self):
+        self.batchProcessor = BatchProcessor(self.activeObjects, AudioSourceTools.reset_source_editor, '重置音频剪辑')
+        self.batchProcessor.start()
+
+    def trim_tail_silence(self):
+        trim_window = AudioSourceTools.AudioTailTrimmer(self.activeObjects)
+        trim_window.show()
+        trim_window.exec()
 
     def rename_original_to_wwise(self):
         if WaapiTools.Client is None:
             return
-        self.batchProcessor = BatchProcessor(self.activeObjects, rename_original_to_wwise, 'Rename Source File')
+        self.batchProcessor = BatchProcessor(self.activeObjects, AudioSourceTools.rename_original_to_wwise, '重命名源文件')
         self.batchProcessor.start()
 
     def tidy_original_folders(self):
         if WaapiTools.Client is None:
             return
-        self.batchProcessor = BatchProcessor(self.activeObjects, tidy_original_folders, 'Tidy Original Folders')
+        self.batchProcessor = BatchProcessor(self.activeObjects, AudioSourceTools.tidy_original_folders, '整理源文件目录')
         self.batchProcessor.start()
 
     def localize_languages(self):
         if WaapiTools.Client is None:
             return
-        self.batchProcessor = BatchProcessor(self.activeObjects, localize_languages, 'Localization')
+        self.batchProcessor = BatchProcessor(self.activeObjects, LocalizationTools.localize_languages, '导入本地化资源')
+        self.batchProcessor.start()
+
+    # 混音操作
+    def down_mix_fader(self):
+        self.batchProcessor = BatchProcessor(self.activeObjects, MixingTools.down_mix_fader, '向下传递混音参数')
         self.batchProcessor.start()
 
     # LogicContainer操作
     def assign_switch_mappings(self):
-        self.batchProcessor = BatchProcessor(self.activeObjects, auto_assign_switch_mappings, 'Auto Assign Mapping')
+        self.batchProcessor = BatchProcessor(self.activeObjects, LogicContainerTools.auto_assign_switch_mappings, '自动分配Switch对象')
         self.batchProcessor.start()
 
     def remove_all_switch_mappings(self):
-        self.batchProcessor = BatchProcessor(self.activeObjects, remove_all_switch_assignments, 'Clear Mappings')
+        self.batchProcessor = BatchProcessor(self.activeObjects, LogicContainerTools.remove_all_switch_assignments, '清除Switch分配')
         self.batchProcessor.start()
 
     def set_as_generic_path_obj(self):
-        self.batchProcessor = BatchProcessor(self.activeObjects, set_as_generic_path_obj, 'Set Generic Mapping')
-        self.batchProcessor.start()
-
-    def apply_fader_edits_downstream(self):
-        self.batchProcessor = BatchProcessor(self.activeObjects, apply_fader_edits_downstream, 'Apply Fader Edits')
+        self.batchProcessor = BatchProcessor(self.activeObjects, LogicContainerTools.set_as_generic_path_obj, '设为默认播放对象')
         self.batchProcessor.start()
 
     def split_by_player_identity(self):
-        self.batchProcessor = BatchProcessor(self.activeObjects, split_by_player_identity, 'Split by Net Role')
+        self.batchProcessor = BatchProcessor(self.activeObjects, LogicContainerTools.split_by_player_identity, '拆分1P/3P')
         self.batchProcessor.start()
 
     # Event操作
     def create_play_event(self):
-        self.batchProcessor = BatchProcessor(self.activeObjects, create_play_event, 'Create Play Event')
+        self.batchProcessor = BatchProcessor(self.activeObjects, EventTools.create_play_event, '创建播放事件')
+        self.batchProcessor.start()
+
+    def update_notes_and_color(self):
+        self.batchProcessor = BatchProcessor(self.activeObjects, CommonTools.update_notes_and_color, '更新备注')
+        self.batchProcessor.start()
+
+    def rename_event_by_target(self):
+        self.batchProcessor = BatchProcessor(self.activeObjects, EventTools.rename_by_target, '重命名事件')
         self.batchProcessor.start()
 
     # SoundBank操作
     def create_or_add_to_bank(self):
-        self.batchProcessor = BatchProcessor(self.activeObjects, create_or_add_to_bank, 'Create/Add Bank')
+        self.batchProcessor = BatchProcessor(self.activeObjects, SoundBankTools.create_or_add_to_bank, '创建或添加到Bank')
         self.batchProcessor.start()
 
     def calculate_bank_total_size(self):
         if WaapiTools.Client is None:
             return
-        total_wav_size, total_wem_size, total_files_count, unused_files = get_total_bank_size(self.activeObjects)
+        total_wav_size, total_wem_size, total_files_count, unused_files = SoundBankTools.get_total_bank_size(self.activeObjects)
         text = f'原始Wav文件: {total_wav_size}MB\n压缩后的Wem: {total_files_count}个文件, 共{total_wem_size}MB'
         if len(unused_files) > 0:
             text += f'\n未使用或未生成到Bank中的文件:\n'
@@ -490,37 +492,38 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         banks = WaapiTools.get_selected_objects()
         if len(banks) == 0 or banks[0]['type'] != 'SoundBank':
             return
-        add_objects_to_bank(banks[0], self.activeObjects, ['media'])
+        SoundBankTools.add_objects_to_bank(banks[0], self.activeObjects, ['media'])
 
     def clear_bank_inclusions(self):
-        self.batchProcessor = BatchProcessor(self.activeObjects, clear_bank_inclusions, 'Clear Bank Inclusions')
+        self.batchProcessor = BatchProcessor(self.activeObjects, SoundBankTools.clear_bank_inclusions, '清除Bank内容')
         self.batchProcessor.start()
 
     def set_bank_inclusion_type(self, inclusion_type: list):
-        self.batchProcessor = BatchProcessor(self.activeObjects, lambda obj: set_inclusion_type(obj, inclusion_type),
-                                             'Set Bank Inclusion Type')
+        self.batchProcessor = BatchProcessor(self.activeObjects, lambda obj: SoundBankTools.set_inclusion_type(obj, inclusion_type),
+                                             '设置Bank内容模式')
         self.batchProcessor.start()
 
     def bank_assignment_matrix(self):
         if WaapiTools.Client is None:
             return
-        matrix_window = BankAssignmentMatrix(self)
+        matrix_window = SoundBankTools.BankAssignmentMatrix(self)
         matrix_window.show()
-        matrix_window.exec_()
+        matrix_window.exec()
 
     # 其他操作
-    def manage_unity_assets(self):
-        asset_manager = UnityAssetManager()
+    @staticmethod
+    def manage_unity_assets():
+        asset_manager = UnityAssetManager.UnityAssetManagerWindow()
         asset_manager.show()
-        asset_manager.exec_()
+        asset_manager.exec()
 
     def closeEvent(self, close_event):
         self.batchProcessor = None
 
     def validate_project(self):
-        validate_window = ProjectValidation(self)
+        validate_window = ProjectValidationTool.ProjectValidationWindow(self)
         validate_window.show()
-        validate_window.exec_()
+        validate_window.exec()
 
 
 sys.excepthook = traceback.print_exception
@@ -529,4 +532,4 @@ if __name__ == '__main__':
     app = QApplication(sys.argv)
     main_window = MainWindow()
     main_window.show()
-    sys.exit(app.exec_())
+    sys.exit(app.exec())

@@ -8,15 +8,15 @@ def temp_tool(objects: list):
     batch_processor.start()
 
 
-def temp_action(obj):
+def temp_action(obj: dict):
     if obj['type'] == 'Event' and obj['name'].endswith('_1P'):
         actions = WaapiTools.get_child_objects(obj, False)
         for action in actions:
             old_target = WaapiTools.get_object_property(action, 'Target')
             new_target_name = old_target['name'].replace('_3P', '_1P')
-            new_targets = WaapiTools.find_all_objects_by_name(new_target_name)
+            new_targets = WaapiTools.find_all_objects_by_name(new_target_name, True)
             if len(new_targets) > 0:
-                EventTools.change_action_target(action, new_targets[0])
+                EventTools.set_action_target(action, new_targets[0])
 
 
 

@@ -3,16 +3,16 @@ from ObjectTools import MixingTools
 
 
 # 打破Container并将内容移出
-def break_container(obj):
-    children = WaapiTools.get_child_objects(obj, False)
-    parent = WaapiTools.get_parent_objects(obj, False)
+def break_container(container: dict):
+    children = WaapiTools.get_child_objects(container, False)
+    parent = WaapiTools.get_parent_objects(container, False)
     for child in children:
         WaapiTools.move_object(child, parent)
-    WaapiTools.delete_object(obj)
+    WaapiTools.delete_object(container)
 
 
 # 替换父级对象并分配Switch Container
-def replace_parent(obj):
+def replace_parent(obj: dict):
     parent = WaapiTools.get_parent_objects(obj, False)
     grand_parent = WaapiTools.get_parent_objects(parent, False)
     WaapiTools.move_object(obj, grand_parent)
@@ -25,8 +25,17 @@ def replace_parent(obj):
     WaapiTools.rename_object(obj, parent['name'])
 
 
+# 检查是否存在不包含或仅包含一个子节点的Container
+def has_single_child(container: dict):
+    # 音乐容器可以只包含一首
+    if container['type'] == 'MusicPlaylistContainer':
+        return False
+    children = WaapiTools.get_child_objects(container, False)
+    return len(children) == 1
+
+
 # 根据名称为Switch Container的下级自动分配
-def auto_assign_switch_mappings(obj):
+def auto_assign_switch_mappings(obj: dict):
     # 获取Switch Group中所有可能值
     switch_objects = get_available_switch_items(obj)
     if switch_objects is None:
@@ -44,7 +53,7 @@ def auto_assign_switch_mappings(obj):
 
 
 # 获取SwitchContainer当前分配的Switch下面所有的选项
-def get_available_switch_items(obj):
+def get_available_switch_items(obj: dict):
     if obj['type'] != 'SwitchContainer' and obj['type'] != 'MusicSwitchContainer':
         return None
 
@@ -54,14 +63,14 @@ def get_available_switch_items(obj):
             'id': [obj['id']]
         },
         'options': {
-            'return': ['@SwitchGroupOrStateGroup']
+            'return': ['SwitchGroupOrStateGroup']
         }
     }
     switch_group_objects = WaapiTools.Client.call('ak.wwise.core.object.get', get_args)['return']
     if len(switch_group_objects) == 0:
         return None
 
-    switch_group_obj = switch_group_objects[0]['@SwitchGroupOrStateGroup']
+    switch_group_obj = switch_group_objects[0]['SwitchGroupOrStateGroup']
     return WaapiTools.get_child_objects(switch_group_obj, False)
 
 
@@ -75,7 +84,7 @@ def assign_switch_mapping(child_obj, switch_obj):
 
 
 # 获取SwitchContainer的Mapping
-def get_switch_mapping(obj):
+def get_switch_mapping(obj: dict):
     assign_args = {
         'id': obj['id']
     }
@@ -86,7 +95,7 @@ def get_switch_mapping(obj):
     return result if result is None else result['return']
 
 
-def get_switch_container_child_context(obj):
+def get_switch_container_child_context(obj: dict):
     get_args = {
         'from': {
             'id': [obj['id']]
@@ -113,7 +122,7 @@ def get_switch_container_child_context(obj):
 
 
 # 删除Switch Container下面所有的分配
-def remove_all_switch_assignments(obj):
+def remove_all_switch_assignments(obj: dict):
     if obj['type'] != 'SwitchContainer' and obj['type'] != 'MusicSwitchContainer':
         return
     get_args = {
@@ -137,7 +146,7 @@ def divide_group(obj_group):
 
 
 # 设置为通用路径分配的对象
-def set_as_generic_path_obj(obj):
+def set_as_generic_path_obj(obj: dict):
     parent = WaapiTools.get_parent_objects(obj, False)
     switch_items = get_available_switch_items(parent)
     if switch_items is None:
@@ -154,37 +163,8 @@ def set_as_generic_path_obj(obj):
             assign_switch_mapping(obj, item)
 
 
-# 将音量音高滤波器等设置应用到下一层
-def apply_fader_edits_downstream(obj):
-    volume_bias = WaapiTools.get_object_property(obj, 'Volume')
-    pitch_bias = WaapiTools.get_object_property(obj, 'Pitch')
-    low_pass_bias = WaapiTools.get_object_property(obj, 'Lowpass')
-    high_pass_bias = WaapiTools.get_object_property(obj, 'Highpass')
-    gain_bias = WaapiTools.get_object_property(obj, 'MakeUpGain')
-    WaapiTools.set_object_property(obj, 'Volume', 0)
-    WaapiTools.set_object_property(obj, 'Pitch', 0)
-    WaapiTools.set_object_property(obj, 'Lowpass', 0)
-    WaapiTools.set_object_property(obj, 'Highpass', 0)
-    WaapiTools.set_object_property(obj, 'MakeUpGain', 0)
-    children = WaapiTools.get_child_objects(obj, False)
-    for child in children:
-        volume_base = WaapiTools.get_object_property(child, 'Volume')
-        pitch_base = WaapiTools.get_object_property(child, 'Pitch')
-        low_pass_base = WaapiTools.get_object_property(child, 'Lowpass')
-        high_pass_base = WaapiTools.get_object_property(child, 'Highpass')
-        gain_base = WaapiTools.get_object_property(child, 'MakeUpGain')
-        WaapiTools.set_object_property(child, 'Volume', volume_base + volume_bias)
-        WaapiTools.set_object_property(child, 'Pitch', pitch_base + pitch_bias)
-        WaapiTools.set_object_property(child, 'Lowpass', low_pass_base + low_pass_bias)
-        WaapiTools.set_object_property(child, 'Highpass', high_pass_base + high_pass_bias)
-        WaapiTools.set_object_property(child, 'MakeUpGain', gain_base + gain_bias)
-        # 递归应用编辑
-        if child['type'] != 'Sound':
-            apply_fader_edits_downstream(child)
-
-
 # 将一个对象根据自己，队友和敌人拆分成子对象
-def split_by_player_identity(obj):
+def split_by_player_identity(obj: dict):
     # Actor Mixer和Virtual Folder无法被放在SwitchContainer下面
     if obj['type'] == 'ActorMixer' or obj['type'] == 'Folder':
         return
@@ -200,18 +180,18 @@ def split_by_player_identity(obj):
     WaapiTools.rename_object(obj_enemy, original_name + '_3P_Enemy')
     WaapiTools.rename_object(new_parent, original_name)
     # 创建并分配bus
-    original_bus = WaapiTools.get_object_property(obj, '@OutputBus')
+    original_bus = WaapiTools.get_object_property(obj, 'OutputBus')
     original_bus_name = original_bus['name']
     bus_self = MixingTools.get_or_create_bus(original_bus_name + '_1P', original_bus)
     bus_teammate = MixingTools.get_or_create_bus(original_bus_name + '_3P', original_bus)
     bus_enemy = MixingTools.get_or_create_bus(original_bus_name + '_3P_Enemy', original_bus)
-    MixingTools.set_bus(obj, bus_self)
-    MixingTools.set_bus(obj_teammate, bus_teammate)
-    MixingTools.set_bus(obj_enemy, bus_enemy)
+    MixingTools.set_output_bus(obj, bus_self)
+    MixingTools.set_output_bus(obj_teammate, bus_teammate)
+    MixingTools.set_output_bus(obj_enemy, bus_enemy)
     # 为1P和3P对象设置空间开关
-    MixingTools.set_spatialization(obj, False)
-    MixingTools.set_spatialization(obj_teammate, True)
-    MixingTools.set_spatialization(obj_enemy, True)
+    MixingTools.set_sound_3d(obj, False)
+    MixingTools.set_sound_3d(obj_teammate, True)
+    MixingTools.set_sound_3d(obj_enemy, True)
     role_switch_group = WaapiTools.find_object_by_name_and_type('Player_Identity', 'SwitchGroup')
     if role_switch_group is None:
         return
