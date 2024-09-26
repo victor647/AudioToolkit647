@@ -18,38 +18,6 @@
     <item>
      <layout class="QHBoxLayout" name="horizontalLayout">
       <item>
-       <widget class="QLabel" name="lblWaapiPort">
-        <property name="maximumSize">
-         <size>
-          <width>80</width>
-          <height>16777215</height>
-         </size>
-        </property>
-        <property name="text">
-         <string>WAAPI网络端口</string>
-        </property>
-       </widget>
-      </item>
-      <item>
-       <widget class="QSpinBox" name="spbWaapiPort">
-        <property name="maximumSize">
-         <size>
-          <width>80</width>
-          <height>16777215</height>
-         </size>
-        </property>
-        <property name="minimum">
-         <number>1000</number>
-        </property>
-        <property name="maximum">
-         <number>9999</number>
-        </property>
-        <property name="value">
-         <number>8080</number>
-        </property>
-       </widget>
-      </item>
-      <item>
        <widget class="QPushButton" name="btnWaapiConnect">
         <property name="text">
          <string>连接到Wwise工程</string>
@@ -96,7 +64,7 @@
       </column>
       <column>
        <property name="text">
-        <string>路径</string>
+        <string>路径（双击可在Wwise中查看）</string>
        </property>
       </column>
      </widget>
@@ -505,7 +473,6 @@
     <addaction name="actRenameOriginalToWwise"/>
     <addaction name="actTidyOriginalFolders"/>
     <addaction name="actDeleteUnusedAKDFiles"/>
-    <addaction name="actLocalizeLanguages"/>
    </widget>
    <widget class="QMenu" name="mnuContainer">
     <property name="title">
@@ -515,13 +482,21 @@
      <property name="title">
       <string>Switch Container</string>
      </property>
+     <widget class="QMenu" name="mnuSplitByNetRole">
+      <property name="title">
+       <string>按照角色拆分</string>
+      </property>
+      <addaction name="actSplitTo1P3P"/>
+      <addaction name="actSplitTo1P2P3P"/>
+     </widget>
      <addaction name="actAssignSwitchMappings"/>
-     <addaction name="actRemoveAllSwitchAssignments"/>
-     <addaction name="actSetGenericPath"/>
-     <addaction name="actSplitByPlayerIdentity"/>
+     <addaction name="actRemoveSwitchMappings"/>
+     <addaction name="actAssignToGenericPath"/>
+     <addaction name="mnuSplitByNetRole"/>
     </widget>
     <addaction name="actBreakContainer"/>
     <addaction name="actReplaceParent"/>
+    <addaction name="actGroupAsRandom"/>
     <addaction name="mnuSwitchContainer"/>
    </widget>
    <widget class="QMenu" name="mnuSoundBank">
@@ -536,13 +511,15 @@
      <addaction name="actIncludeEventsAndStructures"/>
      <addaction name="actIncludeAll"/>
     </widget>
+    <addaction name="actCreateSoundBank"/>
     <addaction name="actAddToSelectedBank"/>
-    <addaction name="actCreateOrAddToBank"/>
     <addaction name="actBankAssignmentMatrix"/>
     <addaction name="separator"/>
-    <addaction name="actClearInclusions"/>
-    <addaction name="actCalculateBankSize"/>
     <addaction name="mnuSetInclusionTo"/>
+    <addaction name="actClearInclusions"/>
+    <addaction name="separator"/>
+    <addaction name="actCalculateBankSize"/>
+    <addaction name="actGenerateEventBankMap"/>
    </widget>
    <widget class="QMenu" name="mnuCommon">
     <property name="title">
@@ -578,18 +555,20 @@
      <addaction name="actCreateVirtualFolder"/>
      <addaction name="actCreateWorkUnit"/>
     </widget>
-    <addaction name="actSimplifyName"/>
-    <addaction name="mnuRename"/>
+    <addaction name="actOptimizeNameLength"/>
     <addaction name="actRemoveNameSuffix"/>
     <addaction name="actUpdateNoteAndColor"/>
+    <addaction name="mnuRename"/>
     <addaction name="separator"/>
     <addaction name="mnuConvertToType"/>
     <addaction name="mnuCreateParent"/>
+    <addaction name="actSplitUnderScore"/>
     <addaction name="separator"/>
-    <addaction name="actMoveListToSelection"/>
-    <addaction name="actCopySelectionToList"/>
+    <addaction name="actMoveToSelection"/>
+    <addaction name="actCopyFromSelection"/>
     <addaction name="separator"/>
-    <addaction name="actBatchReplaceTool"/>
+    <addaction name="actReplaceByTemplate"/>
+    <addaction name="actRenameByDataTable"/>
    </widget>
    <widget class="QMenu" name="mnuEvent">
     <property name="title">
@@ -644,7 +623,7 @@
      <addaction name="actImportFMODEvent"/>
      <addaction name="actImportFMODPreset"/>
     </widget>
-    <addaction name="actCheckProjectValidation"/>
+    <addaction name="actProjectValidation"/>
     <addaction name="actUnityAssetManager"/>
     <addaction name="separator"/>
     <addaction name="mnuImportFMOD"/>
@@ -663,10 +642,25 @@
     </property>
     <addaction name="actDownMixFader"/>
    </widget>
+   <widget class="QMenu" name="menu">
+    <property name="title">
+     <string>本地化</string>
+    </property>
+    <widget class="QMenu" name="mnuFillSilence">
+     <property name="title">
+      <string>用静音填补空缺</string>
+     </property>
+     <addaction name="actFillSilenceForRefLanguage"/>
+     <addaction name="actFillSilenceForAllLanguages"/>
+    </widget>
+    <addaction name="actLocalizeLanguages"/>
+    <addaction name="mnuFillSilence"/>
+   </widget>
    <addaction name="mnuFile"/>
    <addaction name="mnuEdit"/>
    <addaction name="mnuCommon"/>
    <addaction name="mnuAudioSource"/>
+   <addaction name="menu"/>
    <addaction name="mnuMixing"/>
    <addaction name="mnuContainer"/>
    <addaction name="mnuEvent"/>
@@ -697,7 +691,7 @@
   </action>
   <action name="actApplyEditsToOriginal">
    <property name="text">
-    <string>应用剪辑至源文件</string>
+    <string>保存剪辑</string>
    </property>
   </action>
   <action name="actResetSourceEdits">
@@ -730,9 +724,9 @@
     <string>计算媒体资源大小</string>
    </property>
   </action>
-  <action name="actCreateOrAddToBank">
+  <action name="actCreateSoundBank">
    <property name="text">
-    <string>为对象创建或添加到Bank</string>
+    <string>创建SoundBank</string>
    </property>
   </action>
   <action name="actionPlay">
@@ -780,9 +774,9 @@
     <string>Batch Rename</string>
    </property>
   </action>
-  <action name="actMoveListToSelection">
+  <action name="actMoveToSelection">
    <property name="text">
-    <string>列表移至工程选中</string>
+    <string>移动到选中对象</string>
    </property>
   </action>
   <action name="actUndo">
@@ -805,7 +799,7 @@
     <string>Replace Source Files</string>
    </property>
   </action>
-  <action name="actRemoveAllSwitchAssignments">
+  <action name="actRemoveSwitchMappings">
    <property name="text">
     <string>清空分配</string>
    </property>
@@ -852,7 +846,7 @@
   </action>
   <action name="actRenameOriginalToWwise">
    <property name="text">
-    <string>重命名源文件</string>
+    <string>统一Sound和样本命名</string>
    </property>
   </action>
   <action name="actDeleteUnusedAKDFiles">
@@ -900,11 +894,6 @@
     <string>向下传递参数</string>
    </property>
   </action>
-  <action name="actSplitByPlayerIdentity">
-   <property name="text">
-    <string>按照1P/3P拆分</string>
-   </property>
-  </action>
   <action name="actImportCriterias">
    <property name="text">
     <string>导入筛选条件</string>
@@ -915,9 +904,9 @@
     <string>导出筛选条件</string>
    </property>
   </action>
-  <action name="actCopySelectionToList">
+  <action name="actCopyFromSelection">
    <property name="text">
-    <string>复制工程选中到列表</string>
+    <string>从选中对象复制</string>
    </property>
   </action>
   <action name="actWwiseSilenceAdd">
@@ -935,14 +924,14 @@
     <string>Replace Event Names</string>
    </property>
   </action>
-  <action name="actBatchReplaceTool">
+  <action name="actReplaceByTemplate">
    <property name="text">
     <string>模板批量替换</string>
    </property>
   </action>
   <action name="actTrimTailSilence">
    <property name="text">
-    <string>裁剪末尾冗余静音</string>
+    <string>裁剪末尾静音</string>
    </property>
   </action>
   <action name="actFilterIncluded">
@@ -1015,7 +1004,7 @@
     <string>Random/Sequence Container</string>
    </property>
   </action>
-  <action name="actSetGenericPath">
+  <action name="actAssignToGenericPath">
    <property name="text">
     <string>设为通用路径</string>
    </property>
@@ -1027,12 +1016,7 @@
   </action>
   <action name="actTidyOriginalFolders">
    <property name="text">
-    <string>整理源文件夹</string>
-   </property>
-  </action>
-  <action name="actCreateRandomContainer">
-   <property name="text">
-    <string>自动创建随机容器</string>
+    <string>自动归类子文件夹</string>
    </property>
   </action>
   <action name="actCheckGlobalProject">
@@ -1045,7 +1029,7 @@
     <string>检查选中对象</string>
    </property>
   </action>
-  <action name="actCheckProjectValidation">
+  <action name="actProjectValidation">
    <property name="text">
     <string>工程检查</string>
    </property>
@@ -1083,9 +1067,9 @@
     <string>Preset</string>
    </property>
   </action>
-  <action name="actSimplifyName">
+  <action name="actOptimizeNameLength">
    <property name="text">
-    <string>简化命名</string>
+    <string>优化名称长度</string>
    </property>
   </action>
   <action name="actUpdateNoteAndColor">
@@ -1096,6 +1080,56 @@
   <action name="actRenameEventByTarget">
    <property name="text">
     <string>根据播放对象重命名</string>
+   </property>
+  </action>
+  <action name="actUseFullName">
+   <property name="text">
+    <string>改为完整命名</string>
+   </property>
+  </action>
+  <action name="actSplitUnderScore">
+   <property name="text">
+    <string>拆分下划线到文件夹</string>
+   </property>
+  </action>
+  <action name="actRenameByDataTable">
+   <property name="text">
+    <string>读表批量重命名</string>
+   </property>
+  </action>
+  <action name="actSplitTo1P3P">
+   <property name="text">
+    <string>1P/3P</string>
+   </property>
+  </action>
+  <action name="actSplitTo1P2P3P">
+   <property name="text">
+    <string>1P/2P/3P</string>
+   </property>
+  </action>
+  <action name="actGenerateEventBankMap">
+   <property name="text">
+    <string>生成事件对应表</string>
+   </property>
+  </action>
+  <action name="actGroupAsRandom">
+   <property name="text">
+    <string>归类为随机容器</string>
+   </property>
+  </action>
+  <action name="actCreateSilenceForOtherLanguages">
+   <property name="text">
+    <string>静音填补其他语言</string>
+   </property>
+  </action>
+  <action name="actFillSilenceForRefLanguage">
+   <property name="text">
+    <string>参考语言</string>
+   </property>
+  </action>
+  <action name="actFillSilenceForAllLanguages">
+   <property name="text">
+    <string>全部其他语言</string>
    </property>
   </action>
  </widget>

@@ -1,44 +1,65 @@
-import os.path
-
-from Libraries import WaapiTools, ScriptingTools
+from Libraries import WAAPI
+from ObjectTools import AudioSourceTools, ProjectTools
 
 
 # 获取音频源文件语言
-def get_sound_language(sound: dict):
-    language = WaapiTools.get_object_property(sound, 'audioSource:language')
+def get_sound_language(source: dict):
+    language = WAAPI.get_object_property(source, 'audioSource:language')
     if language is None:
         return 'SFX'
     return language['name']
 
 
-# 检测音效是否丢失或缺失中英文中的某个语言
-def sound_missing_or_not_localized(sound: dict):
-    if get_sound_language(sound) == 'SFX':
-        path = WaapiTools.get_object_property(sound, 'sound:originalWavFilePath')
-        if not path:
-            return True
-        return not os.path.exists(path)
-    else:
-        children = WaapiTools.get_child_objects(sound, False)
-        missing_languages = 2
-        for child in children:
-            language = get_sound_language(child)
-            if 'Chinese' in language or 'English' in language:
-                missing_languages -= 1
-        return missing_languages > 0
+# 获取默认语言
+def get_default_language():
+    return WAAPI.get_project_property('DefaultLanguage')
+
+
+# 获取全部语言名称
+def get_all_language_names():
+    language_names = []
+    language_list = WAAPI.get_language_list()
+    for language in language_list:
+        name = language['name']
+        if name != 'SFX' and name != 'External' and name != 'Mixed':
+            language_names.append(name)
+    return language_names
+
+
+# 获取语音对象下某个语言的样本路径
+def get_wave_path_for_language(sound: dict, language:str):
+    sources = WAAPI.get_child_objects(sound, False)
+    for source in sources:
+        if source['type'] == 'AudioFileSource':
+            source_langauge = get_sound_language(source)
+            if source_langauge == language:
+                return AudioSourceTools.get_source_file_path(source)
+    return None
+
+
+# 获取已有语言的源文件路径
+def get_wave_path_for_any_existing_language(sound: dict):
+    sources = WAAPI.get_child_objects(sound, False)
+    for source in sources:
+        source_path = AudioSourceTools.get_source_file_path(source)
+        if source_path:
+            language = get_sound_language(source)
+            return source_path, language
+    return None
 
 
 # 尝试导入当前所有语音资源的本地化文件
 def localize_languages(sound: dict):
-    ScriptingTools.iterate_child_sound_objects(sound, localize_language)
+    if sound['type'] != 'Sound':
+        return False
+    return localize_language(sound)
 
 
 # 对单个音效导入本地化资源
 def localize_language(sound: dict):
-    language_list = WaapiTools.get_language_list()
-    sources = WaapiTools.get_child_objects(sound, False)
+    sources = WAAPI.get_child_objects(sound, False)
     if len(sources) == 0:
-        return
+        return False
 
     existing_language = ''
     existing_source = None
@@ -47,10 +68,30 @@ def localize_language(sound: dict):
         existing_source = source
         break
 
-    for language_obj in language_list:
-        language = language_obj['name']
+    for language in get_all_language_names():
         if language != existing_language:
-            original_file_path = WaapiTools.get_object_property(existing_source, 'sound:originalWavFilePath')
-            WaapiTools.import_audio_file(original_file_path.replace(existing_language, language), sound, sound['name'],
-                                         language)
+            original_file_path = AudioSourceTools.get_source_file_path(existing_source)
+            WAAPI.import_audio_file(original_file_path.replace(existing_language, language), sound, sound['name'], language)
+    return True
 
+
+# 为语音对象的参考语言创建静音
+def import_silence_for_ref_language(sound):
+    if sound['type'] != 'Sound':
+        return False
+    ref_language = get_default_language()
+    source_path = get_wave_path_for_language(sound, ref_language)
+    if not source_path:
+        return AudioSourceTools.add_silence(sound, 2, ref_language)
+    return False
+
+
+# 为语音对象的所有未导入语言创建静音
+def import_silence_for_all_languages(sound):
+    if sound['type'] != 'Sound':
+        return False
+    for language in get_all_language_names():
+        source_path = get_wave_path_for_language(sound, language)
+        if not source_path:
+            AudioSourceTools.add_silence(sound, 2, language)
+    return True

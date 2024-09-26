@@ -1,5 +1,4 @@
 import os.path
-
 import soundfile
 
 
@@ -17,6 +16,8 @@ def is_sound_completely_silent(file_path: str):
         return True
     sound_file.seek(0)
     audio_data = sound_file.read()
+    if not audio_data.any():
+        return True
     return get_sound_frame_max_amp(audio_data) == 0
 
 
@@ -43,6 +44,13 @@ def find_next_silence(audio_data, threshold: float, samples_per_frame: int, gap_
                 break
         frame_begin_sample = frame_end_sample
     return silence_start_sample, silence_end_sample
+
+
+# 在指定路径创建静音文件
+def create_silence_audio_file(path: str, duration: int, sample_rate=44100):
+    num_samples = int(duration * sample_rate)
+    silence_data = [0] * num_samples
+    soundfile.write(path, silence_data, sample_rate)
 
 
 # 获取音频尾巴静音部分长度（以采样窗口为单位）
@@ -77,3 +85,4 @@ def fade(audio_data, duration_samples: int, fade_direction: int):
 
 def trim(audio_data, start_samples: int, end_samples: int):
     audio_data = audio_data[start_samples:end_samples]
+    return audio_data

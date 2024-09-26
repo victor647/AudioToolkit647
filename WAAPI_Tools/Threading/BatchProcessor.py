@@ -1,7 +1,7 @@
 from PyQt6.QtCore import pyqtSignal, QThread
 from PyQt6.QtWidgets import QTableWidgetItem
 from Threading.ProgressBar import ProgressBar
-from Libraries import WaapiTools
+from Libraries import WAAPI, ScriptingHelper
 
 
 # 处理线程
@@ -23,12 +23,14 @@ class BatchProcessor(QThread):
         self.__processor = processor
         self.__actionName = action_name
         self.__finishAction = finished_action
+        self.__messageText = ''
 
     def run(self):
-        if WaapiTools.Client is None:
+        if WAAPI.Client is None:
             return
-        WaapiTools.begin_undo_group(self.__actionName)
+        WAAPI.begin_undo_group(self.__actionName)
         index = 0
+        success_count = 0
         for obj in self.__objects:
             index += 1
             text = ''
@@ -39,13 +41,17 @@ class BatchProcessor(QThread):
             elif 'name' in obj:
                 text = obj['name']
             self.progressBarCallback.emit(index, text)
-            self.__processor(obj)
+            if self.__processor(obj):
+                success_count += 1
+        self.__messageText = f'应用【{self.__actionName}】到{success_count}/{index}个对象！'
         self.finishedCallback.emit()
-        WaapiTools.end_undo_group(self.__actionName)
+        WAAPI.end_undo_group(self.__actionName)
 
     def end(self):
         self.__progressBar.destroy()
         if self.__finishAction:
             self.__finishAction()
+        else:
+            ScriptingHelper.show_message_box('处理完成', self.__messageText)
 
 

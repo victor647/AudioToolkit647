@@ -1,11 +1,11 @@
-from QtDesign.BatchReplaceTool_ui import Ui_BatchReplaceTool
+from QtDesign.ReplaceByTemplate_ui import Ui_ReplaceByTemplate
 from PyQt6.QtWidgets import QDialog
-from Libraries import WaapiTools
-from ObjectTools import SoundBankTools, LocalizationTools
+from Libraries import WAAPI
+from ObjectTools import SoundBankTools, LocalizationTools, AudioSourceTools
 
 
 # 批量替换内容工具
-class BatchReplaceWindow(QDialog, Ui_BatchReplaceTool):
+class TemplateReplacer(QDialog, Ui_ReplaceByTemplate):
     __oldName = ''
     __newName = ''
 
@@ -23,10 +23,10 @@ class BatchReplaceWindow(QDialog, Ui_BatchReplaceTool):
     def start_replacing(self):
         self.__oldName = self.iptFindName.text()
         self.__newName = self.iptReplaceName.text()
-        WaapiTools.begin_undo_group('Batch Replace')
+        WAAPI.begin_undo_group('Batch Replace')
         for obj in self.__mainWindow.activeObjects:
             self.iterate_child_objects(obj)
-        WaapiTools.end_undo_group('Batch Replace')
+        WAAPI.end_undo_group('Batch Replace')
 
     # 遍历子对象
     def iterate_child_objects(self, obj: dict):
@@ -45,49 +45,49 @@ class BatchReplaceWindow(QDialog, Ui_BatchReplaceTool):
                 # 音效不需要去除_01的后缀，事件和Bank需要
                 if self.cbxObjectType.currentText() != 'AudioSource':
                     new_object_name = new_object_name.replace('_01', '')
-                WaapiTools.rename_object(obj, new_object_name)
-            for child in WaapiTools.get_child_objects(obj, False):
+                WAAPI.rename_object(obj, new_object_name)
+            for child in WAAPI.get_child_objects(obj, False):
                 self.iterate_child_objects(child)
 
     # 对声音文件进行替换
     def replace_source_wave(self, obj: dict):
         new_sound_name = obj['name'].replace(self.__oldName, self.__newName)
-        WaapiTools.rename_object(obj, new_sound_name)
+        WAAPI.rename_object(obj, new_sound_name)
 
-        sources = WaapiTools.get_child_objects(obj, False)
+        sources = WAAPI.get_child_objects(obj, False)
         for source in sources:
-            original_path = WaapiTools.get_object_property(source, 'sound:originalWavFilePath')
+            original_path = AudioSourceTools.get_source_file_path(source)
             language = LocalizationTools.get_sound_language(source)
             new_wave_path = original_path.replace(self.__oldName, self.__newName)
-            WaapiTools.delete_object(source)
-            WaapiTools.import_audio_file(new_wave_path, obj, new_sound_name, language)
+            WAAPI.delete_object(source)
+            WAAPI.import_audio_file(new_wave_path, obj, new_sound_name, language)
 
     # 对事件名和内容进行替换
     def replace_event(self, obj: dict):
         new_event_name = obj['name'].replace(self.__oldName, self.__newName).replace('_01', '')
-        WaapiTools.rename_object(obj, new_event_name)
-        for action in WaapiTools.get_child_objects(obj, False):
-            target = WaapiTools.get_object_property(action, 'Target')
-            target_full = WaapiTools.get_full_info_from_obj_id(target['id'])
+        WAAPI.rename_object(obj, new_event_name)
+        for action in WAAPI.get_child_objects(obj, False):
+            target = WAAPI.get_object_property(action, 'Target')
+            target_full = WAAPI.get_full_info_from_obj_id(target['id'])
             new_target_path = target_full['path'].replace(self.__oldName, self.__newName)
-            new_target = WaapiTools.get_object_from_path(new_target_path)
+            new_target = WAAPI.get_object_from_path(new_target_path)
             if new_target:
-                WaapiTools.set_object_reference(action, 'Target', new_target)
+                WAAPI.set_object_reference(action, 'Target', new_target)
 
     # 对bank内容进行替换
     def replace_bank(self, obj: dict):
         new_bank_name = obj['name'].replace(self.__oldName, self.__newName).replace('_01', '')
-        WaapiTools.rename_object(obj, new_bank_name)
+        WAAPI.rename_object(obj, new_bank_name)
         new_inclusion_objects = []
-        for old_inclusion_obj in SoundBankTools.get_bank_inclusions(obj):
-            target_full = WaapiTools.get_full_info_from_obj_id(old_inclusion_obj['object'])
+        for old_inclusion_obj in WAAPI.get_bank_inclusions(obj):
+            target_full = WAAPI.get_full_info_from_obj_id(old_inclusion_obj['object'])
             new_target_path = target_full['path'].replace(self.__oldName, self.__newName)
-            new_target = WaapiTools.get_object_from_path(new_target_path)
+            new_target = WAAPI.get_object_from_path(new_target_path)
             if new_target:
                 inclusion = {
                     'object': new_target['id'],
                     'filter': old_inclusion_obj['filter']
                 }
                 new_inclusion_objects.append(inclusion)
-        SoundBankTools.clear_bank_inclusions(obj)
+        WAAPI.clear_bank_inclusions(obj)
         SoundBankTools.add_objects_to_bank_with_individual_inclusion(obj, new_inclusion_objects)

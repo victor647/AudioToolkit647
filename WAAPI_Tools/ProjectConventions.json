@@ -1,0 +1,61 @@
+{
+    "WwiseVersion": 2023,
+    "NetRole":
+    {
+        "SwitchGroup": "Net_Role",
+        "SwitchValues":
+        {
+            "1P": "Self_1P",
+            "2P": "Teammate_2P",
+            "3P": "Enemy_3P"
+        },
+        "Suffix":
+        {
+            "1P": "_1P",
+            "2P": "_2P",
+            "3P": "_3P"
+        }
+    },
+    "ContainerSuffix":
+    {
+        "Random": "_\\d{2}$",
+        "Sequence": "_[A-Z]$"
+    },
+    "AcronymMap":
+    {
+        "Action": "ACT",
+        "Ambience": "AMB",
+        "Character": "CHR",
+        "Effect": "EFT",
+        "Enemy": "ENM",
+        "Interface": "UI",
+        "Music": "BGM",
+        "Object": "OBJ",
+        "Player": "PLR",
+        "Skill": "SKL",
+        "Setting": "SET",
+        "SpatialAudio": "SPX",
+        "Timeline": "TL",
+        "Vehicle": "VCL",
+        "Voice": "VO",
+        "Weapon": "WPN"
+    },
+    "ColorMap": {
+        "Effect": 14,
+        "Setting": 14,
+        "SpatialAudio": 14,
+        "Interface": 15,
+        "Timeline": 16,
+        "Ambience": 17,
+        "Object": 18,
+        "Voice": 19,
+        "Vehicle": 20,
+        "Action": 21,
+        "Character": 21,
+        "Player": 22,
+        "Weapon": 23,
+        "Enemy": 24,
+        "Skill": 25,
+        "Music": 26
+    }
+}

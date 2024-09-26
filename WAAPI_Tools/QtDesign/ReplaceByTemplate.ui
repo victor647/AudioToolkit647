@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>BatchReplaceTool</class>
- <widget class="QDialog" name="BatchReplaceTool">
+ <class>ReplaceByTemplate</class>
+ <widget class="QDialog" name="ReplaceByTemplate">
   <property name="geometry">
    <rect>
     <x>0</x>
@@ -11,7 +11,7 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>模板复制替换工具</string>
+   <string>模板批量替换</string>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
    <item>

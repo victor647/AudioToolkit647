@@ -1,18 +1,18 @@
 import os.path
-from PyQt6.QtWidgets import QDialog, QFileDialog, QTableWidgetItem, QHeaderView
-from Libraries import WaapiTools
+from PyQt6.QtWidgets import QDialog, QFileDialog, QTableWidgetItem
+from Libraries import WAAPI
 from QtDesign.UnityAssetManager_ui import Ui_UnityAssetManager
 
 
 # 管理Unity中的Asset文件
-class UnityAssetManagerWindow(QDialog, Ui_UnityAssetManager):
+class UnityAssetManager(QDialog, Ui_UnityAssetManager):
 
     def __init__(self):
         super().__init__()
         self.setupUi(self)
         self.setup_triggers()
         self.__workDir = ''
-        self.tblFileList.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeToContents)
+        self.tblFileList.resizeColumnsToContents()
 
     def setup_triggers(self):
         self.btnSelectAssetFolder.clicked.connect(self.select_folder)
@@ -35,7 +35,7 @@ class UnityAssetManagerWindow(QDialog, Ui_UnityAssetManager):
         row = self.tblFileList.rowCount()
         self.tblFileList.setRowCount(row + 1)
         file_guid = file_path.rstrip('.asset')
-        obj = WaapiTools.get_full_info_from_obj_id('{' + file_guid + '}')
+        obj = WAAPI.get_full_info_from_obj_id('{' + file_guid + '}')
         if obj:
             obj_name = obj['name']
             status = '正常'

@@ -6,227 +6,329 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>846</width>
-    <height>571</height>
+    <width>1010</width>
+    <height>714</height>
    </rect>
   </property>
   <property name="windowTitle">
    <string>工程规范检查</string>
   </property>
-  <layout class="QVBoxLayout" name="verticalLayout">
+  <layout class="QVBoxLayout" name="verticalLayout_5">
    <item>
-    <layout class="QHBoxLayout" name="horizontalLayout_3">
+    <layout class="QHBoxLayout" name="horizontalLayout_2">
      <item>
-      <widget class="QCheckBox" name="cbxCamelCaseNaming">
-       <property name="text">
-        <string>命名不符合大小写规范</string>
-       </property>
-       <property name="checked">
+      <widget class="QGroupBox" name="grpProjectStandards">
+       <property name="enabled">
         <bool>true</bool>
        </property>
-       <property name="autoRepeat">
-        <bool>true</bool>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="QCheckBox" name="cbxRepeatingNodeName">
-       <property name="text">
-        <string>名称与上级对象存在重合</string>
-       </property>
-       <property name="checked">
-        <bool>true</bool>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="QCheckBox" name="cbxColorConvention">
-       <property name="text">
-        <string>颜色不符合规范或未标记引用</string>
-       </property>
-       <property name="checked">
-        <bool>true</bool>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="QCheckBox" name="cbxDuplicatedRTPC">
-       <property name="text">
-        <string>RTPC重复绑定内部属性</string>
-       </property>
-       <property name="checked">
-        <bool>true</bool>
-       </property>
-      </widget>
-     </item>
-    </layout>
-   </item>
-   <item>
-    <layout class="QHBoxLayout" name="horizontalLayout_4">
-     <item>
-      <widget class="QCheckBox" name="cbxEventNamingMismatch">
-       <property name="text">
-        <string>Event命名与目标不一致</string>
-       </property>
-       <property name="checked">
-        <bool>true</bool>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="QCheckBox" name="cbxUnnecessaryEvent">
-       <property name="text">
-        <string>不必要的1P/3P Event</string>
-       </property>
-       <property name="checked">
-        <bool>true</bool>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="QCheckBox" name="cbxSoundNotInEvent">
-       <property name="text">
-        <string>Sound未被任何Event引用</string>
-       </property>
-       <property name="checked">
-        <bool>true</bool>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="QCheckBox" name="cbxEventNotInBank">
-       <property name="text">
-        <string>Event未被任何Bank包含</string>
-       </property>
-       <property name="checked">
-        <bool>true</bool>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="QCheckBox" name="cbxMissingEventNotes">
        <property name="font">
         <font>
-         <stylestrategy>PreferDefault</stylestrategy>
+         <italic>false</italic>
+         <bold>false</bold>
         </font>
        </property>
-       <property name="text">
-        <string>Event或播放对象缺少备注</string>
+       <property name="title">
+        <string>工程规范</string>
        </property>
-       <property name="checked">
+       <property name="checkable">
         <bool>true</bool>
        </property>
-      </widget>
-     </item>
-    </layout>
-   </item>
-   <item>
-    <layout class="QHBoxLayout" name="horizontalLayout_6">
-     <item>
-      <widget class="QCheckBox" name="cbxNestedWorkUnit">
-       <property name="text">
-        <string>WorkUnit仅嵌套其他WorkUnit</string>
-       </property>
-       <property name="checked">
-        <bool>true</bool>
-       </property>
-       <property name="autoRepeat">
-        <bool>true</bool>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="QCheckBox" name="cbxRedundantActorMixer">
-       <property name="text">
-        <string>ActorMixer无实际调整</string>
-       </property>
-       <property name="checked">
-        <bool>true</bool>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="QCheckBox" name="cbxSingleChildContainer">
-       <property name="text">
-        <string>容器仅包含一个子节点</string>
-       </property>
-       <property name="checked">
-        <bool>true</bool>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="QCheckBox" name="cbxEmptyObject">
-       <property name="text">
-        <string>对象不包含有效内容</string>
-       </property>
-       <property name="checked">
-        <bool>true</bool>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="QCheckBox" name="cbxInconsistentSourcePath">
-       <property name="text">
-        <string>Sound与样本命名不一致</string>
-       </property>
-       <property name="checked">
-        <bool>true</bool>
-       </property>
-      </widget>
-     </item>
-    </layout>
-   </item>
-   <item>
-    <layout class="QHBoxLayout" name="horizontalLayout_5">
-     <item>
-      <widget class="QCheckBox" name="cbxTrimOutOfRange">
-       <property name="text">
-        <string>样本裁剪超出范围</string>
-       </property>
-       <property name="checked">
-        <bool>true</bool>
-       </property>
+       <layout class="QVBoxLayout" name="verticalLayout_2">
+        <item>
+         <widget class="QCheckBox" name="cbxWrongCase">
+          <property name="text">
+           <string>不符合大小写规范</string>
+          </property>
+          <property name="checked">
+           <bool>true</bool>
+          </property>
+          <property name="autoRepeat">
+           <bool>true</bool>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QCheckBox" name="cbxWrongNameLength">
+          <property name="text">
+           <string>名称长短不符合规范</string>
+          </property>
+          <property name="checked">
+           <bool>true</bool>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QCheckBox" name="cbxColorTypeMismatch">
+          <property name="text">
+           <string>颜色与对象的类别不一致</string>
+          </property>
+          <property name="checked">
+           <bool>true</bool>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QCheckBox" name="cbxNoRefNotesOrColorTag">
+          <property name="text">
+           <string>引用备注/颜色标记缺失或错误</string>
+          </property>
+          <property name="checked">
+           <bool>true</bool>
+          </property>
+         </widget>
+        </item>
+       </layout>
       </widget>
      </item>
      <item>
-      <widget class="QCheckBox" name="cbxSoundNotImported">
-       <property name="text">
-        <string>样本未导入或缺失语言</string>
+      <widget class="QGroupBox" name="grpDesignStructure">
+       <property name="title">
+        <string>设计缺陷</string>
        </property>
-       <property name="checked">
+       <property name="checkable">
         <bool>true</bool>
        </property>
+       <layout class="QVBoxLayout" name="verticalLayout_4">
+        <item>
+         <widget class="QCheckBox" name="cbxNestedWorkUnit">
+          <property name="text">
+           <string>WorkUnit多层嵌套</string>
+          </property>
+          <property name="checked">
+           <bool>true</bool>
+          </property>
+          <property name="autoRepeat">
+           <bool>true</bool>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QCheckBox" name="cbxRedundantActorMixer">
+          <property name="text">
+           <string>ActorMixer无实际调整</string>
+          </property>
+          <property name="checked">
+           <bool>true</bool>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QCheckBox" name="cbxSingleChildContainer">
+          <property name="text">
+           <string>Container仅包含一个子节点</string>
+          </property>
+          <property name="checked">
+           <bool>true</bool>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QCheckBox" name="cbxEmptyNode">
+          <property name="text">
+           <string>对象不包含有效内容</string>
+          </property>
+          <property name="checked">
+           <bool>true</bool>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QCheckBox" name="cbxDuplicatedParameter">
+          <property name="text">
+           <string>RTPC重复绑定内部属性</string>
+          </property>
+          <property name="checked">
+           <bool>true</bool>
+          </property>
+         </widget>
+        </item>
+       </layout>
       </widget>
      </item>
      <item>
-      <widget class="QCheckBox" name="cbxSilentVoicePlaceholder">
-       <property name="text">
-        <string>临时静音替代语音</string>
+      <widget class="QGroupBox" name="grpSoundLocalization">
+       <property name="title">
+        <string>样本与本地化</string>
        </property>
-       <property name="checked">
+       <property name="checkable">
         <bool>true</bool>
        </property>
+       <layout class="QVBoxLayout" name="verticalLayout_3">
+        <item>
+         <widget class="QCheckBox" name="cbxSourceNameDifferent">
+          <property name="text">
+           <string>源文件与Sound命名不一致</string>
+          </property>
+          <property name="checked">
+           <bool>true</bool>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QCheckBox" name="cbxSourceNotImported">
+          <property name="text">
+           <string>未导入或缺失语言</string>
+          </property>
+          <property name="checked">
+           <bool>true</bool>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QCheckBox" name="cbxSilentPlaceholder">
+          <property name="text">
+           <string>使用静音临时替代资源</string>
+          </property>
+          <property name="checked">
+           <bool>true</bool>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QCheckBox" name="cbxSoundNotInEvent">
+          <property name="text">
+           <string>音效未被事件包含</string>
+          </property>
+          <property name="checked">
+           <bool>true</bool>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QCheckBox" name="cbxInvalidTrimRange">
+          <property name="text">
+           <string>音频裁剪超出范围</string>
+          </property>
+          <property name="checked">
+           <bool>true</bool>
+          </property>
+         </widget>
+        </item>
+       </layout>
       </widget>
      </item>
      <item>
-      <widget class="QCheckBox" name="cbxAbnormalBankSize">
-       <property name="text">
-        <string>Bank过大或过小</string>
+      <widget class="QGroupBox" name="grpEventBank">
+       <property name="title">
+        <string>Event与Bank</string>
        </property>
-       <property name="checked">
+       <property name="checkable">
         <bool>true</bool>
        </property>
+       <layout class="QVBoxLayout" name="verticalLayout">
+        <item>
+         <widget class="QCheckBox" name="cbxWrongEventName">
+          <property name="text">
+           <string>不符合命名规范</string>
+          </property>
+          <property name="checked">
+           <bool>true</bool>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QCheckBox" name="cbxEventDuplicatedByNetRole">
+          <property name="text">
+           <string>存在1P/3P两个事件</string>
+          </property>
+          <property name="checked">
+           <bool>true</bool>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QCheckBox" name="cbxEmptyEvent">
+          <property name="text">
+           <string>Event缺少动作或目标</string>
+          </property>
+          <property name="checked">
+           <bool>true</bool>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QCheckBox" name="cbxEventNotInBank">
+          <property name="text">
+           <string>Event未被任何Bank包含</string>
+          </property>
+          <property name="checked">
+           <bool>true</bool>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QCheckBox" name="cbxAbnormalBankSize">
+          <property name="text">
+           <string>Bank过大或过小</string>
+          </property>
+          <property name="checked">
+           <bool>true</bool>
+          </property>
+         </widget>
+        </item>
+       </layout>
       </widget>
      </item>
      <item>
-      <widget class="QCheckBox" name="cbxAssignedToMasterBus">
-       <property name="text">
-        <string>分配到了默认的MasterAudioBus</string>
+      <widget class="QGroupBox" name="grpMistakes">
+       <property name="title">
+        <string>粗心大意</string>
        </property>
-       <property name="checked">
+       <property name="checkable">
         <bool>true</bool>
        </property>
+       <layout class="QVBoxLayout" name="verticalLayout_6">
+        <item>
+         <widget class="QCheckBox" name="cbxUnassignedToBus">
+          <property name="text">
+           <string>未指定对应类别的Bus</string>
+          </property>
+          <property name="checked">
+           <bool>true</bool>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QCheckBox" name="cbxUnassignedSwitchContainer">
+          <property name="text">
+           <string>SwitchContainer未分配</string>
+          </property>
+          <property name="checked">
+           <bool>true</bool>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QCheckBox" name="cbxSwitchTo1PByDefault">
+          <property name="text">
+           <string>SwitchContainer默认播放1P</string>
+          </property>
+          <property name="checked">
+           <bool>true</bool>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QCheckBox" name="cbxMissingAttenuation">
+          <property name="text">
+           <string>3D音效未设置衰减曲线</string>
+          </property>
+          <property name="checked">
+           <bool>true</bool>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QCheckBox" name="cbxSoundNotStreamed">
+          <property name="text">
+           <string>音乐未设为Streaming</string>
+          </property>
+          <property name="checked">
+           <bool>true</bool>
+          </property>
+         </widget>
+        </item>
+       </layout>
       </widget>
      </item>
     </layout>
@@ -281,7 +383,7 @@
         </size>
        </property>
        <property name="text">
-        <string>检查主窗口列表</string>
+        <string>检查主窗口列表对象</string>
        </property>
       </widget>
      </item>
@@ -294,7 +396,7 @@
         </size>
        </property>
        <property name="text">
-        <string>检查Wwise选中对象</string>
+        <string>检查Wwise工程选中对象</string>
        </property>
       </widget>
      </item>
@@ -307,7 +409,7 @@
         </size>
        </property>
        <property name="text">
-        <string>将结果发送到主窗口</string>
+        <string>将列表选中项发送到主窗口</string>
        </property>
       </widget>
      </item>
@@ -342,17 +444,22 @@
      </attribute>
      <column>
       <property name="text">
+       <string>类别</string>
+      </property>
+     </column>
+     <column>
+      <property name="text">
        <string>问题</string>
       </property>
      </column>
      <column>
       <property name="text">
-       <string>类型</string>
+       <string>对象类型</string>
       </property>
      </column>
      <column>
       <property name="text">
-       <string>路径</string>
+       <string>对象路径（双击可在Wwise工程中查看）</string>
       </property>
      </column>
     </widget>

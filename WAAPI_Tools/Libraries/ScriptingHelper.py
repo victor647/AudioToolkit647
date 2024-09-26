@@ -1,38 +1,8 @@
 import fnmatch
 import re
 
-from Libraries import WaapiTools
-
-
-# 根据全名获取缩写名
-def convert_category_to_acronym(full_name: str):
-    if full_name.startswith('Voice'):
-        return 'VO'
-    if full_name.startswith('Ambien'):
-        return 'AMB'
-    if full_name.startswith('Action'):
-        return 'ACT'
-    if full_name.startswith('Character'):
-        return 'CHR'
-    if full_name.startswith('Effect'):
-        return 'EFT'
-    if full_name.startswith('Enemy'):
-        return 'ENM'
-    if full_name.startswith('Interface'):
-        return 'UI'
-    if full_name.startswith('Movie'):
-        return 'MVE'
-    if full_name.startswith('Music'):
-        return 'BGM'
-    if full_name.startswith('Object'):
-        return 'OBJ'
-    if full_name.startswith('Skill'):
-        return 'SKL'
-    if full_name.startswith('Vehicle'):
-        return 'VCL'
-    if full_name.startswith('Weapon'):
-        return 'WPN'
-    return full_name
+from Libraries import WAAPI
+from PyQt6.QtWidgets import QMessageBox
 
 
 # 根据条件筛选或筛除列表中对象
@@ -45,26 +15,26 @@ def filter_objects(objects: list, filter_input: str,
             continue
         match = False
 
-        objKey = obj['name'] if filter_by_name else obj['path']
+        obj_key = obj['name'] if filter_by_name else obj['path']
         # 查找*和?
-        if fnmatch.fnmatch(objKey, filter_input):
+        if fnmatch.fnmatch(obj_key, filter_input):
             match = True
         else:
             filter_input_for_match = filter_input if case_sensitive else filter_input.lower()
-            objKey = objKey if case_sensitive else objKey.lower()
+            obj_key = obj_key if case_sensitive else obj_key.lower()
 
             if match_whole_word:
-                if filter_input_for_match == objKey:
+                if filter_input_for_match == obj_key:
                     match = True
             elif use_regular_expression:
                 filter_input_for_match = trans_to_regular_expression(filter_input_for_match)
                 try:
-                    if re.search(filter_input_for_match, objKey):
+                    if re.search(filter_input_for_match, obj_key):
                         match = True
                 except:
                     print("regular match except")
             else:
-                if filter_input_for_match in objKey:
+                if filter_input_for_match in obj_key:
                     match = True
 
         if (inclusion and match) or (not inclusion and not match):
@@ -80,7 +50,7 @@ def filter_objects_by_inclusion(objects: list, inclusion: bool):
         # 音频资源没有inclusion选项
         if obj['type'] == 'AudioFileSource':
             continue
-        if WaapiTools.get_object_property(obj, 'Inclusion') == inclusion:
+        if WAAPI.get_object_property(obj, 'Inclusion') == inclusion:
             objects_filtered.append(obj)
     return objects_filtered
 
@@ -91,41 +61,6 @@ def filter_objects_by_type(objects: list, filter_type: str):
         return objects
     remaining_objects = [obj for obj in objects if obj['type'] == filter_type]
     return remaining_objects
-
-
-# 获取Originals根目录
-def get_originals_folder():
-    project_path = WaapiTools.get_project_directory()
-    project_dir = trim_path_from_right(project_path)
-    return project_dir + '\\Originals\\'
-
-
-# 从右侧截取路径
-def trim_path_from_right(path: str, levels=1):
-    for index in range(levels):
-        path = path[:path.rindex('\\')]
-    return path
-
-
-# 从左侧截取路径
-def trim_path_from_left(path: str, levels=1):
-    for index in range(levels + 1):
-        path = path[path.index('\\') + 1:]
-    return path
-
-
-# 从右侧保留路径
-def get_path_from_right(path: str, levels=1):
-    while path.count('\\') > levels:
-        path = path[path.rindex('\\'):]
-    return path
-
-
-# 从左侧保留路径
-def get_path_from_left(path: str, levels=1):
-    while path.count('\\') > levels:
-        path = path[:path.index('\\') + 1]
-    return path
 
 
 # 简化以支持正则表达式:
@@ -182,10 +117,9 @@ def trans_to_regular_expression(input: str):
     return input
 
 
-# 遍历子对象
-def iterate_child_sound_objects(obj, action):
-    if obj['type'] == 'Sound':
-        action(obj)
-    else:
-        for child in WaapiTools.get_child_objects(obj, False):
-            iterate_child_sound_objects(child, action)
+# 弹出消息框
+def show_message_box(title: str, text: str):
+    message = QMessageBox()
+    message.setWindowTitle(title)
+    message.setText(text)
+    message.exec()
