@@ -29,6 +29,7 @@ class UnityAssetManager(QDialog, Ui_UnityAssetManager):
                 for file in os.listdir(subfolder_path):
                     if file.endswith('.asset'):
                         self.add_file(file, subfolder)
+        self.tblFileList.resizeColumnsToContents()
 
     # 在表中添加文件
     def add_file(self, file_path: str, asset_type: str):

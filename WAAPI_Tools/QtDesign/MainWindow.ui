@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>738</width>
-    <height>510</height>
+    <width>800</width>
+    <height>600</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -145,9 +145,9 @@
      </layout>
     </item>
     <item>
-     <layout class="QGridLayout" name="gridLayout">
-      <item row="0" column="0">
-       <widget class="QComboBox" name="cbbDescendantType">
+     <layout class="QHBoxLayout" name="horizontalLayout_3">
+      <item>
+       <widget class="QComboBox" name="cbbFilterType">
         <property name="sizePolicy">
          <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
           <horstretch>0</horstretch>
@@ -261,10 +261,7 @@
         </item>
        </widget>
       </item>
-      <item row="4" column="2">
-       <layout class="QGridLayout" name="gridLayout_9"/>
-      </item>
-      <item row="0" column="1">
+      <item>
        <widget class="QLineEdit" name="iptSelectionFilter">
         <property name="sizePolicy">
          <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
@@ -286,10 +283,66 @@
         </property>
        </widget>
       </item>
-      <item row="4" column="3">
-       <layout class="QGridLayout" name="gridLayout_10"/>
+      <item>
+       <widget class="QCheckBox" name="cbxCaseSensitive">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="text">
+         <string>区分大小写</string>
+        </property>
+       </widget>
       </item>
-      <item row="1" column="1">
+      <item>
+       <widget class="QCheckBox" name="cbxMatchWholeWord">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="sizeIncrement">
+         <size>
+          <width>0</width>
+          <height>0</height>
+         </size>
+        </property>
+        <property name="text">
+         <string>全字匹配</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QCheckBox" name="cbxUseRegularExpression">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="text">
+         <string>使用正则表达式</string>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </item>
+    <item>
+     <layout class="QHBoxLayout" name="horizontalLayout_4">
+      <item>
+       <widget class="QLabel" name="lblFilterMode">
+        <property name="text">
+         <string>筛选方式    </string>
+        </property>
+        <property name="alignment">
+         <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+        </property>
+       </widget>
+      </item>
+      <item>
        <widget class="QGroupBox" name="groupBox">
         <property name="sizePolicy">
          <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
@@ -349,7 +402,7 @@
         </widget>
        </widget>
       </item>
-      <item row="2" column="1">
+      <item>
        <widget class="QGroupBox" name="groupBox_2">
         <property name="sizePolicy">
          <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
@@ -397,58 +450,6 @@
         </widget>
        </widget>
       </item>
-      <item row="0" column="2">
-       <widget class="QCheckBox" name="cbxCaseSensitive">
-        <property name="sizePolicy">
-         <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-          <horstretch>0</horstretch>
-          <verstretch>0</verstretch>
-         </sizepolicy>
-        </property>
-        <property name="text">
-         <string>区分大小写</string>
-        </property>
-       </widget>
-      </item>
-      <item row="1" column="2">
-       <widget class="QCheckBox" name="cbxMatchWholeWord">
-        <property name="sizePolicy">
-         <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
-          <horstretch>0</horstretch>
-          <verstretch>0</verstretch>
-         </sizepolicy>
-        </property>
-        <property name="sizeIncrement">
-         <size>
-          <width>0</width>
-          <height>0</height>
-         </size>
-        </property>
-        <property name="text">
-         <string>全字匹配</string>
-        </property>
-       </widget>
-      </item>
-      <item row="2" column="2">
-       <widget class="QCheckBox" name="cbxUseRegularExpression">
-        <property name="sizePolicy">
-         <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-          <horstretch>0</horstretch>
-          <verstretch>0</verstretch>
-         </sizepolicy>
-        </property>
-        <property name="text">
-         <string>使用正则表达式</string>
-        </property>
-       </widget>
-      </item>
-      <item row="0" column="3">
-       <widget class="QLabel" name="label">
-        <property name="text">
-         <string/>
-        </property>
-       </widget>
-      </item>
      </layout>
     </item>
    </layout>
@@ -458,7 +459,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>738</width>
+     <width>800</width>
      <height>22</height>
     </rect>
    </property>
@@ -468,8 +469,9 @@
     </property>
     <addaction name="actApplyEditsToOriginal"/>
     <addaction name="actResetSourceEdits"/>
-    <addaction name="actTrimTailSilence"/>
+    <addaction name="actTrimAudioSilence"/>
     <addaction name="separator"/>
+    <addaction name="actAutoImport"/>
     <addaction name="actRenameOriginalToWwise"/>
     <addaction name="actTidyOriginalFolders"/>
     <addaction name="actDeleteUnusedAKDFiles"/>
@@ -480,7 +482,7 @@
     </property>
     <widget class="QMenu" name="mnuSwitchContainer">
      <property name="title">
-      <string>Switch Container</string>
+      <string>Switch</string>
      </property>
      <widget class="QMenu" name="mnuSplitByNetRole">
       <property name="title">
@@ -488,16 +490,26 @@
       </property>
       <addaction name="actSplitTo1P3P"/>
       <addaction name="actSplitTo1P2P3P"/>
+      <addaction name="actSplitTo1P2P"/>
      </widget>
      <addaction name="actAssignSwitchMappings"/>
      <addaction name="actRemoveSwitchMappings"/>
+     <addaction name="actReplaceParent"/>
+     <addaction name="separator"/>
      <addaction name="actAssignToGenericPath"/>
      <addaction name="mnuSplitByNetRole"/>
     </widget>
+    <widget class="QMenu" name="menuRandom">
+     <property name="title">
+      <string>Random</string>
+     </property>
+     <addaction name="actRenameRandomChildren"/>
+     <addaction name="actGroupAsRandom"/>
+    </widget>
+    <action name=""/>
     <addaction name="actBreakContainer"/>
-    <addaction name="actReplaceParent"/>
-    <addaction name="actGroupAsRandom"/>
     <addaction name="mnuSwitchContainer"/>
+    <addaction name="menuRandom"/>
    </widget>
    <widget class="QMenu" name="mnuSoundBank">
     <property name="title">
@@ -525,7 +537,7 @@
     <property name="title">
      <string>通用</string>
     </property>
-    <widget class="QMenu" name="mnuRename">
+    <widget class="QMenu" name="mnuSetNameCase">
      <property name="title">
       <string>改变命名规则</string>
      </property>
@@ -555,10 +567,26 @@
      <addaction name="actCreateVirtualFolder"/>
      <addaction name="actCreateWorkUnit"/>
     </widget>
-    <addaction name="actOptimizeNameLength"/>
-    <addaction name="actRemoveNameSuffix"/>
+    <widget class="QMenu" name="mnuOptimizeName">
+     <property name="font">
+      <font>
+       <stylestrategy>PreferDefault</stylestrategy>
+      </font>
+     </property>
+     <property name="title">
+      <string>重命名</string>
+     </property>
+     <addaction name="actRenameToShort"/>
+     <addaction name="actRenameToFull"/>
+     <addaction name="separator"/>
+     <addaction name="actRemovePrefix"/>
+     <addaction name="actRemoveSuffix"/>
+     <addaction name="separator"/>
+     <addaction name="actUseAcronym"/>
+    </widget>
+    <addaction name="mnuOptimizeName"/>
+    <addaction name="mnuSetNameCase"/>
     <addaction name="actUpdateNoteAndColor"/>
-    <addaction name="mnuRename"/>
     <addaction name="separator"/>
     <addaction name="mnuConvertToType"/>
     <addaction name="mnuCreateParent"/>
@@ -574,8 +602,18 @@
     <property name="title">
      <string>Event</string>
     </property>
+    <widget class="QMenu" name="mnuFilterByEventReference">
+     <property name="title">
+      <string>根据Event引用筛选</string>
+     </property>
+     <addaction name="actHasEventReference"/>
+     <addaction name="actHasNoEventReference"/>
+    </widget>
     <addaction name="actCreatePlayEvent"/>
     <addaction name="actRenameEventByTarget"/>
+    <addaction name="separator"/>
+    <addaction name="mnuFilterByEventReference"/>
+    <addaction name="actExportAllEvents"/>
    </widget>
    <widget class="QMenu" name="mnuFile">
     <property name="title">
@@ -584,8 +622,10 @@
     <addaction name="actExportCriterias"/>
     <addaction name="actImportCriterias"/>
     <addaction name="separator"/>
-    <addaction name="actExportObjects"/>
-    <addaction name="actImportObjects"/>
+    <addaction name="actExportObjectList"/>
+    <addaction name="actImportObjectList"/>
+    <addaction name="separator"/>
+    <addaction name="actImportWorkUnit"/>
    </widget>
    <widget class="QMenu" name="mnuEdit">
     <property name="title">
@@ -634,15 +674,33 @@
     <property name="title">
      <string>Game Sync</string>
     </property>
-    <addaction name="actReplaceRTPC"/>
+    <addaction name="actCopyRtpcFromSelection"/>
    </widget>
    <widget class="QMenu" name="mnuMixing">
     <property name="title">
      <string>混音</string>
     </property>
+    <widget class="QMenu" name="mnuRenderEffect">
+     <property name="title">
+      <string>效果器预渲染</string>
+     </property>
+     <addaction name="actEnableEffectRender"/>
+     <addaction name="actDisableEffectRender"/>
+    </widget>
+    <widget class="QMenu" name="mnuBypassEffect">
+     <property name="title">
+      <string>效果器旁通</string>
+     </property>
+     <addaction name="actEnableEffectBypass"/>
+     <addaction name="actDisableEffectBypass"/>
+    </widget>
     <addaction name="actDownMixFader"/>
+    <addaction name="actVolumeToGain"/>
+    <addaction name="separator"/>
+    <addaction name="mnuRenderEffect"/>
+    <addaction name="mnuBypassEffect"/>
    </widget>
-   <widget class="QMenu" name="menu">
+   <widget class="QMenu" name="mnuLocalization">
     <property name="title">
      <string>本地化</string>
     </property>
@@ -655,12 +713,14 @@
     </widget>
     <addaction name="actLocalizeLanguages"/>
     <addaction name="mnuFillSilence"/>
+    <addaction name="separator"/>
+    <addaction name="actFilterByLanguage"/>
    </widget>
    <addaction name="mnuFile"/>
    <addaction name="mnuEdit"/>
    <addaction name="mnuCommon"/>
    <addaction name="mnuAudioSource"/>
-   <addaction name="menu"/>
+   <addaction name="mnuLocalization"/>
    <addaction name="mnuMixing"/>
    <addaction name="mnuContainer"/>
    <addaction name="mnuEvent"/>
@@ -841,7 +901,7 @@
   </action>
   <action name="actAddToSelectedBank">
    <property name="text">
-    <string>添加对象到选中的Bank</string>
+    <string>添加Media到选中的Bank</string>
    </property>
   </action>
   <action name="actRenameOriginalToWwise">
@@ -929,9 +989,9 @@
     <string>模板批量替换</string>
    </property>
   </action>
-  <action name="actTrimTailSilence">
+  <action name="actTrimAudioSilence">
    <property name="text">
-    <string>裁剪末尾静音</string>
+    <string>裁剪头尾静音</string>
    </property>
   </action>
   <action name="actFilterIncluded">
@@ -966,7 +1026,7 @@
   </action>
   <action name="actReplaceParent">
    <property name="text">
-    <string>替换上层</string>
+    <string>替换上层分配</string>
    </property>
   </action>
   <action name="actUnityAssetManager">
@@ -1009,9 +1069,9 @@
     <string>设为通用路径</string>
    </property>
   </action>
-  <action name="actReplaceRTPC">
+  <action name="actCopyRtpcFromSelection">
    <property name="text">
-    <string>替换RTPC</string>
+    <string>从选中对象复制RTPC</string>
    </property>
   </action>
   <action name="actTidyOriginalFolders">
@@ -1034,25 +1094,17 @@
     <string>工程检查</string>
    </property>
   </action>
-  <action name="actRemoveNameSuffix">
-   <property name="text">
-    <string>删除名称末尾</string>
-   </property>
-   <property name="iconText">
-    <string>删除名称末尾</string>
-   </property>
-  </action>
   <action name="actFixTrimRange">
    <property name="text">
     <string>修复超出范围裁剪</string>
    </property>
   </action>
-  <action name="actImportObjects">
+  <action name="actImportObjectList">
    <property name="text">
     <string>导入对象列表</string>
    </property>
   </action>
-  <action name="actExportObjects">
+  <action name="actExportObjectList">
    <property name="text">
     <string>导出对象列表</string>
    </property>
@@ -1065,11 +1117,6 @@
   <action name="actImportFMODPreset">
    <property name="text">
     <string>Preset</string>
-   </property>
-  </action>
-  <action name="actOptimizeNameLength">
-   <property name="text">
-    <string>优化名称长度</string>
    </property>
   </action>
   <action name="actUpdateNoteAndColor">
@@ -1089,7 +1136,7 @@
   </action>
   <action name="actSplitUnderScore">
    <property name="text">
-    <string>拆分下划线到文件夹</string>
+    <string>拆分命名到子文件夹</string>
    </property>
   </action>
   <action name="actRenameByDataTable">
@@ -1112,11 +1159,6 @@
     <string>生成事件对应表</string>
    </property>
   </action>
-  <action name="actGroupAsRandom">
-   <property name="text">
-    <string>归类为随机容器</string>
-   </property>
-  </action>
   <action name="actCreateSilenceForOtherLanguages">
    <property name="text">
     <string>静音填补其他语言</string>
@@ -1130,6 +1172,106 @@
   <action name="actFillSilenceForAllLanguages">
    <property name="text">
     <string>全部其他语言</string>
+   </property>
+  </action>
+  <action name="actRenameToShort">
+   <property name="text">
+    <string>简短信息</string>
+   </property>
+  </action>
+  <action name="actRemoveSuffix">
+   <property name="text">
+    <string>去除末尾</string>
+   </property>
+  </action>
+  <action name="actRemovePrefix">
+   <property name="text">
+    <string>去除开头</string>
+   </property>
+  </action>
+  <action name="actUseAcronym">
+   <property name="text">
+    <string>使用类型缩写</string>
+   </property>
+  </action>
+  <action name="actRenameRandomChildren">
+   <property name="text">
+    <string>重命名子对象</string>
+   </property>
+  </action>
+  <action name="actGroupAsRandom">
+   <property name="text">
+    <string>自动创建容器</string>
+   </property>
+  </action>
+  <action name="actRenameToFull">
+   <property name="text">
+    <string>完整路径</string>
+   </property>
+  </action>
+  <action name="actExportAllEvents">
+   <property name="text">
+    <string>导出全部事件播放列表</string>
+   </property>
+  </action>
+  <action name="actFilterByLanguage">
+   <property name="text">
+    <string>按当前语言筛选</string>
+   </property>
+  </action>
+  <action name="actHasEventReference">
+   <property name="text">
+    <string>被引用</string>
+   </property>
+  </action>
+  <action name="actHasNoEventReference">
+   <property name="text">
+    <string>不被引用</string>
+   </property>
+  </action>
+  <action name="actSplitTo1P2P">
+   <property name="text">
+    <string>1P/2P</string>
+   </property>
+  </action>
+  <action name="actExportObjectContents">
+   <property name="text">
+    <string>导出对象内容</string>
+   </property>
+  </action>
+  <action name="actImportWorkUnit">
+   <property name="text">
+    <string>导入WorkUnit</string>
+   </property>
+  </action>
+  <action name="actEnableEffectRender">
+   <property name="text">
+    <string>开启预渲染</string>
+   </property>
+  </action>
+  <action name="actDisableEffectRender">
+   <property name="text">
+    <string>关闭预渲染</string>
+   </property>
+  </action>
+  <action name="actDisableEffectBypass">
+   <property name="text">
+    <string>关闭旁通</string>
+   </property>
+  </action>
+  <action name="actEnableEffectBypass">
+   <property name="text">
+    <string>开启旁通</string>
+   </property>
+  </action>
+  <action name="actVolumeToGain">
+   <property name="text">
+    <string>音量调整改为增益</string>
+   </property>
+  </action>
+  <action name="actAutoImport">
+   <property name="text">
+    <string>根据路径自动导入</string>
    </property>
   </action>
  </widget>

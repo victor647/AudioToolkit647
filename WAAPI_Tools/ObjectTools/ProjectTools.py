@@ -7,6 +7,15 @@ def get_project_path():
     return WAAPI.get_project_property('filePath')
 
 
+# 判断工程是否带有特定名称的平台
+def has_platform(platform_name: str):
+    platforms = WAAPI.get_project_info('platforms')
+    for platform in platforms:
+        if platform['name'] == platform_name:
+            return True
+    return False
+
+
 # 获取工程所在文件夹
 def get_project_directory():
     return os.path.dirname(get_project_path())

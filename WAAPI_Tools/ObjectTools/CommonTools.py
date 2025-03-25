@@ -1,14 +1,6 @@
 import os.path
 from Libraries import WAAPI, ProjectConventions
-from ObjectTools import EventTools, AudioSourceTools, LogicContainerTools
-
-
-# 检查对象是否处于勾选状态
-def is_object_included(obj: dict):
-    included = WAAPI.get_object_property(obj, 'Inclusion')
-    if included is None:
-        return True
-    return included
+from ObjectTools import EventTools, AudioSourceTools, SoundBankTools
 
 
 # 重命名为包含完整路径的名称
@@ -19,30 +11,23 @@ def rename_to_full_name(obj: dict):
 
 # 通过递归拼成全名，用于创建Event或SoundBank
 def get_full_name_with_acronym(obj: dict):
-    obj_name = obj['name']
-    # 如果对象本身包含了下划线，视为完整路径
-    if '_' in obj_name:
-        return obj_name
-    return get_full_name(obj, obj['name'], True)
+    full_name = get_full_name(obj, obj['name'])
+    return get_name_with_acronym(full_name)
 
 
-def get_full_name(obj: dict, name: str, acronym: bool):
+# 获取全名
+def get_full_name(obj: dict, name: str):
     parent = WAAPI.get_parent_object(obj)
     if parent is None:
         return name
     parent_name = parent['name']
-    if parent_name == obj['name']:
-        return get_full_name(parent, name, acronym)
-
-    if acronym:
-        short_name = ProjectConventions.convert_category_to_acronym(parent_name)
-        if short_name != parent_name:
-            return f'{short_name}_{name}'
-    elif parent['type'] == 'WorkUnit':
+    if parent['path'] == f'\\{parent_name}':
         return name
-
-    name = f'{parent_name}_{name}'
-    return get_full_name(parent, name, acronym)
+    obj_name = obj['name']
+    # 上层名称重复，跳过
+    if parent_name in obj_name:
+        return get_full_name(parent, name)
+    return get_full_name(parent, f'{parent_name}_{name}')
 
 
 # 优化对象的名称长度
@@ -57,7 +42,7 @@ def optimize_name_length(obj: dict):
         return rename_to_short_name(obj)
     elif obj_path.startswith('\\Interactive Music Hierarchy'):
         if obj_type == 'MusicSegment' or obj_type == 'MusicTrack':
-            return True
+            return False
         return rename_to_short_name(obj)
     else:
         print(f"{obj_type} [{obj['name']}] does not need to follow naming length convention.")
@@ -113,39 +98,60 @@ def get_object_notes(obj: dict):
 
 # 更新带引用对象的备注和颜色
 def update_notes_and_color(obj: dict):
-    set_object_color_by_category(obj)
+    set_object_color_by_category(obj, False)
     # 对象是Event
     if obj['type'] == 'Event':
-        targets = EventTools.get_event_targets(obj)
-        if len(targets) == 1:
-            target = targets[0]
-            event_name = obj['name']
-            WAAPI.set_object_notes(target, f'Referenced by Event [{event_name}]')
-            WAAPI.set_object_notes(obj, target['path'])
-            set_object_color_by_category(target)
-            set_dark_color(target)
-            set_light_color(obj)
-            return True
+        actions = WAAPI.get_child_objects(obj)
+        for action in actions:
+            action_type = WAAPI.get_object_property(action, 'ActionType')
+            if action_type == 1:
+                target = WAAPI.get_object_property(action, 'Target')
+                event_name = obj['name']
+                if target:
+                    target = WAAPI.get_full_info_from_obj_id(target['id'])
+                    WAAPI.set_object_notes(target, f'Played by Event [{event_name}]')
+                    WAAPI.set_object_notes(obj, target['path'])
+                    set_object_color_by_category(target, False)
+                    set_dark_color(target)
+                    set_light_color(obj)
+                    return True
     # 对象是Event播放目标
     else:
         references = WAAPI.get_references_to_object(obj)
         for reference in references:
             ref_type = reference['type']
             if ref_type == 'Action':
-                event = WAAPI.get_parent_object(reference)
-                event_name = event['name']
-                WAAPI.set_object_notes(obj, f'Referenced by Event [{event_name}]')
-                target_path = obj['path']
-                WAAPI.set_object_notes(event, target_path)
-                set_dark_color(obj)
-                set_object_color_by_category(event)
-                return True
-            if ref_type == 'SoundBank':
+                action_type = WAAPI.get_object_property(reference, 'ActionType')
+                if action_type == 1:
+                    event = WAAPI.get_parent_object(reference)
+                    event_name = event['name']
+                    WAAPI.set_object_notes(obj, f'Played by Event [{event_name}]')
+                    target_path = obj['path']
+                    WAAPI.set_object_notes(event, target_path)
+                    set_dark_color(obj)
+                    set_object_color_by_category(event, False)
+                    return True
+            elif ref_type == 'SoundBank':
                 WAAPI.set_object_notes(obj, f"Included by SoundBank [{reference['name']}]")
-                set_object_color_by_category(reference)
+                set_object_color_by_category(reference, False)
                 set_dark_color(obj)
                 return True
+        WAAPI.set_object_notes(obj, '')
+        set_object_color_by_category(obj, False)
     return False
+
+
+# 是否因为引用需要使用深色标记
+def should_use_dark_color(obj: dict):
+    references = WAAPI.get_references_to_object(obj)
+    for reference in references:
+        ref_type = reference['type']
+        if ref_type == 'Action':
+            action_type = WAAPI.get_object_property(reference, 'ActionType')
+            if action_type == 1:
+                return True
+        elif ref_type == 'SoundBank':
+            return True
 
 
 # 将对象的颜色设为深色
@@ -156,7 +162,7 @@ def set_dark_color(obj: dict):
         return False
     dark_color = light_color - 13
     set_object_color(obj, dark_color)
-    children = WAAPI.get_child_objects(obj, False)
+    children = WAAPI.get_child_objects(obj)
     for child in children:
         set_object_color(child, light_color)
     return True
@@ -171,14 +177,24 @@ def set_light_color(obj: dict):
     return False
 
 
-# 勾选对象
-def set_included(obj: dict):
-    return WAAPI.set_object_property(obj, 'Inclusion', True)
+# 判断对象是否是启用的
+def is_object_included(obj: dict, check_ancestors=True):
+    if 'Hierarchy' not in obj['path']:
+        return True
+    included = WAAPI.get_object_property(obj, 'Inclusion')
+    if included is None:
+        return True
+    if included and check_ancestors:
+        parent = WAAPI.get_parent_object(obj)
+        if not parent:
+            return True
+        return is_object_included(parent)
+    return included
 
 
-# 取消勾选对象
-def set_excluded(obj: dict):
-    return WAAPI.set_object_property(obj, 'Inclusion', False)
+# 启用对象
+def set_object_inclusion(obj: dict, included: bool):
+    return WAAPI.set_object_property(obj, 'Inclusion', included)
 
 
 # 获取对象的颜色
@@ -187,12 +203,17 @@ def get_object_color(obj: dict):
 
 
 # 根据对象的类型自动识别并设置颜色
-def set_object_color_by_category(obj: dict):
+def set_object_color_by_category(obj: dict, check_dark: bool):
+    if not obj:
+        return False
     category = ProjectConventions.get_object_category(obj)
     if not category:
         return False
     color = ProjectConventions.get_color_by_category(category)
-    return set_object_color(obj, color)
+    result = set_object_color(obj, color)
+    if check_dark and should_use_dark_color(obj):
+        return set_dark_color(obj)
+    return result
 
 
 # 设置对象的颜色
@@ -223,20 +244,41 @@ def rename_to_upper_case(obj: dict):
     return False
 
 
-# 获取特定类型的全部子对象
-def get_descendants_by_type(obj: dict, type_name: str):
-    parent_obj = obj
-    descendants = WAAPI.get_child_objects(parent_obj, True)
-    return [obj for obj in descendants if obj['type'] == type_name]
+# 移除对象开头_前面的名字
+def remove_name_prefix(obj: dict):
+    old_name = obj['name']
+    index = old_name.find('_')
+    new_name = old_name[index+1:]
+    return WAAPI.rename_object(obj, new_name)
 
 
 # 移除对象末尾_后面的名字
 def remove_name_suffix(obj: dict):
     old_name = obj['name']
-    splits = old_name.split('_')
-    suffix_length = len(splits[-1]) + 1
-    new_name = old_name[:-suffix_length]
-    WAAPI.rename_object(obj, new_name)
+    index = old_name.rfind('_')
+    new_name = old_name[:index]
+    return WAAPI.rename_object(obj, new_name)
+
+
+# 使用带有缩写的名称
+def get_name_with_acronym(obj_name):
+    index = obj_name.find('_')
+    if index <= 0:
+        return ProjectConventions.convert_category_to_acronym(obj_name)
+    prefix = obj_name[:index]
+    acronym = ProjectConventions.convert_category_to_acronym(prefix)
+    if prefix == acronym:
+        return obj_name
+    return acronym + obj_name[index:]
+
+
+# 使用类型的简写作为名称
+def rename_with_acronym(obj: dict):
+    obj_name = obj['name']
+    new_name = get_name_with_acronym(obj_name)
+    if obj_name == new_name:
+        return False
+    return WAAPI.rename_object(obj, new_name)
 
 
 # 为对象创建父级
@@ -244,7 +286,7 @@ def create_parent(obj: dict, target_type: str):
     # 先在父级创建一个不同名的新对象
     old_parent = WAAPI.get_parent_object(obj)
     original_name = obj['name']
-    new_parent = WAAPI.create_object(original_name + '_Temp', target_type, old_parent, 'rename')
+    new_parent = WAAPI.create_child_object(original_name + '_Temp', target_type, old_parent, 'rename')
     if new_parent is None:
         return
     WAAPI.move_object(obj, new_parent)
@@ -256,19 +298,23 @@ def create_parent(obj: dict, target_type: str):
 
 # 为路径依次创建文件夹
 def create_folders_for_path(path: str):
-    obj = WAAPI.get_object_from_path(path)
+    obj = WAAPI.find_object_by_path(path)
     if obj:
         return obj
     splits = path.split('\\')
     node_path = '\\' + splits[1]
-    parent = WAAPI.get_object_from_path(node_path)
+    parent = WAAPI.find_object_by_path(node_path)
     node = None
     for i in range(2, len(splits)):
         node_name = ProjectConventions.convert_acronym_to_category(splits[i])
         node_path = f'{node_path}\\{node_name}'
-        node = WAAPI.get_object_from_path(node_path)
+        node = WAAPI.find_object_by_path(node_path)
         if not node:
-            node = WAAPI.create_object(node_name, 'Folder', parent)
+            node = WAAPI.create_child_object(node_name, 'Folder', parent)
+            # 没有WorkUnit无法创建VirtualFolder
+            if not node:
+                node = WAAPI.create_child_object(node_name, 'WorkUnit', parent)
+            set_object_color_by_category(node, False)
         parent = node
     return node
 
@@ -282,36 +328,44 @@ def split_underscore_to_folder(obj: dict):
     folder_name = splits[0]
     # 先找已有文件夹，找不到就创建
     folder_path = str(os.path.join(os.path.dirname(obj['path']), folder_name))
-    folder = WAAPI.get_object_from_path(folder_path)
+    folder = WAAPI.find_object_by_path(folder_path)
     if not folder:
         parent = WAAPI.get_parent_object(obj)
-        folder = WAAPI.create_object(folder_name, 'Folder', parent)
+        folder = WAAPI.create_child_object(folder_name, 'Folder', parent)
     WAAPI.move_object(obj, folder)
-    WAAPI.rename_object(obj, obj_name[len(folder_name) + 1:])
+    return WAAPI.rename_object(obj, obj_name[len(folder_name) + 1:])
 
 
 # 将对象转换类型
 def convert_to_type(obj: dict, target_type: str):
+    if obj['type'] == target_type:
+        return False
+    references = WAAPI.get_references_to_object(obj)
     # 先在父级创建一个不同名的新对象
     parent = WAAPI.get_parent_object(obj)
     original_name = obj['name']
-    new_obj = WAAPI.create_object(original_name + '_Temp', target_type, parent, 'rename')
+    new_obj = WAAPI.create_child_object(original_name + '_Temp', target_type, parent, 'rename')
     # 创建失败，返回
     if new_obj is None:
         return False
     # 将所有子对象移至新对象上
-    for child in WAAPI.get_child_objects(obj, False):
+    for child in WAAPI.get_child_objects(obj):
         WAAPI.move_object(child, new_obj)
     # 刷新SwitchContainer分配
     if parent['type'] == 'SwitchContainer':
-        mappings = LogicContainerTools.get_switch_mappings(parent)
+        mappings = WAAPI.get_switch_mappings(parent)
         for mapping in mappings:
             if mapping['child'] == obj['id']:
-                LogicContainerTools.assign_switch_mapping(new_obj, mapping['stateOrSwitch'])
-    # 删除原对象
-    WAAPI.delete_object(obj)
-    # 将新对象重命名成原对象名
-    WAAPI.rename_object(new_obj, original_name)
+                WAAPI.assign_switch_mapping(new_obj, mapping['stateOrSwitch'])
+    if WAAPI.delete_object(obj):
+        WAAPI.rename_object(new_obj, original_name)
+    # 刷新引用
+    for reference in references:
+        if reference['type'] == 'SoundBank':
+            SoundBankTools.set_inclusions(reference, new_obj, True)
+        elif reference['type'] == 'Action':
+            EventTools.set_action_target(reference, new_obj)
+    # todo: 复制Bus，衰减和RTPC
     print(f'{obj} converted to type {target_type}')
     return True
 
@@ -331,4 +385,13 @@ def move_to_selection(obj: dict):
     selections = WAAPI.get_selected_objects()
     if len(selections) == 0:
         return False
-    WAAPI.move_object(obj, selections[0])
+    return WAAPI.move_object(obj, selections[0])
+
+
+# 在对象的同一层级查找指定名字的对象
+def find_parallel_object(source_obj: dict, name: str):
+    parent = WAAPI.get_parent_object(source_obj)
+    for child in WAAPI.get_child_objects(parent):
+        if child['name'] == name:
+            return child
+    return None

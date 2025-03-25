@@ -1,5 +1,5 @@
 import os
-from Libraries import WAAPI, ProjectConventions
+from Libraries import WAAPI, ProjectConventions, FileTools, ScriptingHelper
 from ObjectTools import CommonTools, AudioSourceTools
 
 
@@ -30,47 +30,67 @@ def create_play_event(obj: dict):
             parent = CommonTools.create_folders_for_path(parent_path)
         else:
             parent_path = '\\Events\\Default Work Unit'
-            parent = WAAPI.get_object_from_path(parent_path)
-        event = WAAPI.create_object(event_name, 'Event', parent)
+            parent = WAAPI.find_object_by_path(parent_path)
+        if not parent:
+            return False
+        event = WAAPI.create_child_object(event_name, 'Event', parent)
         create_event_action(event, obj, 1)
+        # End的事件需要停止Start
+        if obj['name'] == 'End':
+            obj_start = CommonTools.find_parallel_object(obj, 'Start')
+            if obj_start:
+                action = create_event_action(event, obj_start, 2)
+                WAAPI.set_object_property(action, 'FadeTime', 0.5)
     CommonTools.update_notes_and_color(obj)
-    WAAPI.select_objects_in_wwise([event])
-    return True
+    return WAAPI.select_objects_in_wwise([event])
 
 
 # 为事件创建播放动作
 def create_event_action(event: dict, target: dict, action_type: int):
     if not event or not target:
         return False
-    action = WAAPI.create_object(event['name'], 'Action', event)
+    action = WAAPI.create_child_object(event['name'], 'Action', event)
     WAAPI.set_object_property(action, 'ActionType', action_type)
-    return set_action_target(action, target)
+    set_action_target(action, target)
+    return action
 
 
 # 清除事件中所有的动作
 def clear_event_actions(event: dict):
-    actions = WAAPI.get_child_objects(event, False)
+    actions = WAAPI.get_child_objects(event)
     for action in actions:
         WAAPI.delete_object(action)
+    return True
 
 
 # 获取对象对应的事件名称
 def get_event_name(obj: dict):
-    if obj['type'] == 'Sound' and AudioSourceTools.get_source_file_path(obj):
-        return obj['name']
-    return CommonTools.get_full_name_with_acronym(obj)
+    obj_name = obj['name']
+    if obj['type'] == 'Sound' and ProjectConventions.use_full_name_in_sound():
+        if '_' in obj_name and AudioSourceTools.get_source_file_path(obj):
+            event_name = obj_name
+        else:
+            event_name = CommonTools.get_full_name_with_acronym(obj)
+    elif '_' in obj_name:
+        event_name = obj_name
+    else:
+        event_name = CommonTools.get_full_name_with_acronym(obj)
+    if obj['path'].startswith('\\Interactive Music Hierarchy'):
+        event_name = 'BGM_' + event_name
+    if ProjectConventions.has_event_play_prefix():
+        event_name = 'Play_' + event_name
+    return event_name
 
 
 # 获取Event的目标对象
 def get_event_targets(event: dict):
-    actions = WAAPI.get_child_objects(event, False)
+    actions = WAAPI.get_child_objects(event)
     if len(actions) == 0:
         print(f"Event [{event['name']}] has no actions!")
         return []
     targets = []
     for action in actions:
-        info = get_action_info(action)
-        target = info['Target']
+        target = WAAPI.get_object_property(action, 'Target')
         if not target:
             print(f"Event [{event['name']}] has an action with no target!")
             continue
@@ -80,21 +100,6 @@ def get_event_targets(event: dict):
         target = WAAPI.get_full_info_from_obj_id(target['id'])
         targets.append(target)
     return targets
-
-
-# 获取Action的类型和对象
-def get_action_info(action: dict):
-    if action['type'] != 'Action':
-        return None
-    action_id = action['id']
-    get_args = {
-        'waql': f'from object \"{action_id}\"',
-        'options': {
-            'return': ['ActionType', 'Target']
-        }
-    }
-    result = WAAPI.Client.call('ak.wwise.core.object.get', get_args)
-    return result['return'][0]
 
 
 # 改变Action的目标对象
@@ -113,3 +118,26 @@ def rename_event_by_target(event: dict):
         CommonTools.update_notes_and_color(event)
         return True
     return False
+
+
+# 对象是否被某个事件所引用
+def has_event_reference(obj):
+    references = WAAPI.get_references_to_object(obj)
+    for reference in references:
+        if reference['type'] == 'Action':
+            return True
+    return False
+
+
+# 导出全部事件及其播放内容
+def export_all_events():
+    data = []
+    all_events = WAAPI.find_all_objects_by_type('Event')
+    for event in all_events:
+        targets = get_event_targets(event)
+        event_data = [event['name']]
+        for target in targets:
+            event_data.append(target['path'])
+        data.append(event_data)
+    FileTools.export_to_csv(data, 'All_Events')
+    ScriptingHelper.show_message_box('导出完成', f'共导出{len(data)}条事件')

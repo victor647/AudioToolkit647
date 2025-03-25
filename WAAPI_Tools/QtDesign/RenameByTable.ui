@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>372</width>
-    <height>630</height>
+    <width>640</width>
+    <height>480</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -17,9 +17,133 @@
    <item>
     <layout class="QHBoxLayout" name="horizontalLayout">
      <item>
-      <widget class="QPushButton" name="btnChooseConfig">
+      <widget class="QLabel" name="lblObjectType">
+       <property name="maximumSize">
+        <size>
+         <width>60</width>
+         <height>16777215</height>
+        </size>
+       </property>
        <property name="text">
-        <string>选择CSV文件</string>
+        <string>查找类型</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QComboBox" name="cbbObjectType">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
+       <property name="currentIndex">
+        <number>5</number>
+       </property>
+       <item>
+        <property name="text">
+         <string>ActorMixer</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>AudioFileSource</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>AuxBus</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>BlendContainer</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>Bus</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>Event</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>Folder</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>GameParameter</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>MusicPlaylistContainer</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>MusicSegment</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>MusicSwitchContainer</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>MusicTrack</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>RandomSequenceContainer</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>Sound</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>SoundBank</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>State</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>Switch</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>SwitchContainer</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>WorkUnit</string>
+        </property>
+       </item>
+      </widget>
+     </item>
+     <item>
+      <widget class="QCheckBox" name="cbxExactMatch">
+       <property name="text">
+        <string>全字匹配</string>
+       </property>
+       <property name="checked">
+        <bool>true</bool>
        </property>
       </widget>
      </item>
@@ -34,33 +158,16 @@
       </widget>
      </item>
      <item>
+      <widget class="QPushButton" name="btnChooseConfig">
+       <property name="text">
+        <string>读取CSV文件</string>
+       </property>
+      </widget>
+     </item>
+     <item>
       <widget class="QPushButton" name="btnDoRename">
        <property name="text">
         <string>进行重命名</string>
-       </property>
-      </widget>
-     </item>
-    </layout>
-   </item>
-   <item>
-    <layout class="QHBoxLayout" name="horizontalLayout_2">
-     <item>
-      <widget class="QCheckBox" name="cbxPlayPrefix">
-       <property name="text">
-        <string>Event带有Play_前缀</string>
-       </property>
-       <property name="checked">
-        <bool>true</bool>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="QCheckBox" name="cbxHasRoleSuffix">
-       <property name="text">
-        <string>Event带有1P/3P后缀</string>
-       </property>
-       <property name="checked">
-        <bool>true</bool>
        </property>
       </widget>
      </item>
@@ -83,7 +190,7 @@
      </column>
      <column>
       <property name="text">
-       <string>当前配置</string>
+       <string>当前状态</string>
       </property>
      </column>
     </widget>

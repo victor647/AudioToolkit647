@@ -1,5 +1,5 @@
 import itertools
-from Libraries import WAAPI
+from Libraries import WAAPI, ProjectConventions
 from ObjectTools import SoundBankTools
 from PyQt6.QtWidgets import QDialog, QTableWidgetItem
 from QtDesign.BankAssignmentMatrix_ui import Ui_BankAssignmentMatrix
@@ -26,17 +26,17 @@ class BankAssignmentMatrix(QDialog, Ui_BankAssignmentMatrix):
 
     # 从选中的对象的子对象填充列表
     def get_children_from_selection(self):
-        selected_objects = WAAPI.get_selected_objects()
-        if len(selected_objects) == 0:
+        selection = WAAPI.get_selected_objects()
+        if len(selection) == 0:
             return
-
-        children = WAAPI.get_child_objects(selected_objects[0], False)
-        row = 0
-        for child in children:
-            if row >= self.tblMatrix.rowCount():
-                self.tblMatrix.setRowCount(row + 1)
-            self.tblMatrix.setItem(row, 0, QTableWidgetItem(child['name']))
-            row += 1
+        category = ProjectConventions.get_object_category(selection[0])
+        self.tblMatrix.setRowCount(1)
+        self.tblMatrix.setItem(0, 0, QTableWidgetItem(ProjectConventions.convert_category_to_acronym(category)))
+        for row in range(len(selection)):
+            obj = selection[row]
+            self.tblMatrix.setItem(row, 1, QTableWidgetItem(obj['name']))
+            self.tblMatrix.setRowCount(row + 2)
+        self.tblMatrix.setRowCount(len(selection))
 
     # 获取所有Bank名称排列组合
     def get_permutations(self):
@@ -79,7 +79,7 @@ class BankAssignmentMatrix(QDialog, Ui_BankAssignmentMatrix):
 
     # 遍历每个子对象
     def iterate_through_children(self, obj):
-        children = WAAPI.get_child_objects(obj, False)
+        children = WAAPI.get_child_objects(obj)
         for child in children:
             # 找不到就继续往里层找，直到Sound这一级为止
             if not self.find_matching_bank(child) and child['type'] != 'Sound':
@@ -91,6 +91,8 @@ class BankAssignmentMatrix(QDialog, Ui_BankAssignmentMatrix):
         for permutation in self.permutations:
             match = True
             for item in permutation:
+                if item.isupper():
+                    item = ProjectConventions.convert_acronym_to_category(item)
                 if item not in obj['path']:
                     match = False
                     break

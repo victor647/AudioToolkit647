@@ -1,15 +1,18 @@
 import sys
 import traceback
-from SubWindows.AudioTailTrimWindow import AudioTailTrimWindow as AudioTailTrimWindow
+import logging
+import clipboard
+from SubWindows.AudioSilenceTrimWindow import AudioSilenceTrimWindow as AudioSilenceTrimWindow
 from SubWindows.TableRenameWindow import TableRenamer as TableRenamer
 from SubWindows.TemplateReplaceWindow import TemplateReplacer as TemplateReplacer
 from SubWindows.BankAssignmentMatrix import BankAssignmentMatrix as BankAssignmentMatrix
 from SubWindows.ProjectValidationWindow import ProjectValidation as ProjectValidation
 from SubWindows.UnityAssetManageWindow import UnityAssetManager as UnityAssetManager
+from SubWindows.WorkUnitImportWindow import WorkUnitImporter as WorkUnitImporter
 from waapi import CannotConnectToWaapiException
 from PyQt6.QtWidgets import QApplication, QMainWindow, QTableWidgetItem
 from QtDesign.MainWindow_ui import Ui_MainWindow
-from ObjectTools import AudioSourceTools, CommonTools, EventTools, ImportTools, LogicContainerTools
+from ObjectTools import AudioSourceTools, CommonTools, EventTools, MigrationTools, LogicContainerTools, GameSyncTools
 from ObjectTools import LocalizationTools, MixingTools, SoundBankTools, TempTools, ProjectTools
 from Threading.BatchProcessor import BatchProcessor
 from Libraries import ScriptingHelper, WAAPI, FileTools, ProjectConventions
@@ -21,14 +24,14 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         super().__init__()
         self.setupUi(self)
         self.setup_triggers()
-        self.cacheObjects = []  # 通过Get Seletion、Find Children等操作获得的obj列表
+        self.cacheObjects = []  # 通过Get Selection/Find Children等操作获得的obj列表
         self.activeObjects = []  # cacheObjects经过filter过滤后的obj列表
         self.statusbar.showMessage('Wwise无法连接...')
-        # 初始化默认尝试连接wwise
+        # 初始化默认尝试连接Wwise
         self.connect_to_wwise()
 
     def setup_triggers(self):
-        self.reset_filter()
+        self.tblActiveObjects.itemClicked.connect(self.copy_object_path)
         self.tblActiveObjects.itemDoubleClicked.connect(self.show_object_in_wwise)
         self.tblActiveObjects.setColumnWidth(2, 600)
         # 所有按键
@@ -45,14 +48,15 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         # 文件菜单
         self.actImportCriterias.triggered.connect(self.import_criterias)
         self.actExportCriterias.triggered.connect(self.export_criterias)
-        self.actImportObjects.triggered.connect(self.import_objects)
-        self.actExportObjects.triggered.connect(self.export_objects)
+        self.actImportObjectList.triggered.connect(self.import_object_list)
+        self.actExportObjectList.triggered.connect(self.export_object_list)
+        self.actImportWorkUnit.triggered.connect(self.import_from_work_unit)
         # 编辑菜单
         self.actUndo.triggered.connect(WAAPI.undo)
         self.actRedo.triggered.connect(WAAPI.redo)
 
-        self.setup_batch_processor(self.actSetIncluded, CommonTools.set_included)
-        self.setup_batch_processor(self.actSetExcluded, CommonTools.set_excluded)
+        self.setup_batch_processor(self.actSetIncluded, lambda obj: CommonTools.set_object_inclusion(obj, True))
+        self.setup_batch_processor(self.actSetExcluded, lambda obj: CommonTools.set_object_inclusion(obj, False))
         self.setup_batch_processor(self.actDeleteObjects, WAAPI.delete_object)
         self.actFilterIncluded.triggered.connect(lambda: self.filter_by_inclusion(True))
         self.actFilterExcluded.triggered.connect(lambda: self.filter_by_inclusion(False))
@@ -77,38 +81,53 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.setup_batch_processor(self.actChangeToLowerCase, CommonTools.rename_to_lower_case)
         self.setup_batch_processor(self.actChangeToTitleCase, CommonTools.rename_to_title_case)
         self.setup_batch_processor(self.actChangeToUpperCase, CommonTools.rename_to_upper_case)
-        self.setup_batch_processor(self.actOptimizeNameLength, CommonTools.optimize_name_length)
-        self.setup_batch_processor(self.actRemoveNameSuffix, CommonTools.remove_name_suffix)
+        self.setup_batch_processor(self.actRenameToShort, CommonTools.rename_to_short_name)
+        self.setup_batch_processor(self.actRenameToFull, CommonTools.rename_to_full_name)
+        self.setup_batch_processor(self.actRemovePrefix, CommonTools.remove_name_prefix)
+        self.setup_batch_processor(self.actRemoveSuffix, CommonTools.remove_name_suffix)
+        self.setup_batch_processor(self.actUseAcronym, CommonTools.rename_with_acronym)
         self.setup_batch_processor(self.actUpdateNoteAndColor, CommonTools.update_notes_and_color)
         self.setup_batch_processor(self.actSplitUnderScore, CommonTools.split_underscore_to_folder)
 
         self.actReplaceByTemplate.triggered.connect(self.open_template_replace_window)
         self.actRenameByDataTable.triggered.connect(self.open_table_rename_window)
         # 源文件菜单
-        self.actTrimTailSilence.triggered.connect(self.open_audio_tail_trimmer_window)
+        self.actTrimAudioSilence.triggered.connect(self.open_audio_silence_trimmer_window)
         self.setup_batch_processor(self.actApplyEditsToOriginal, AudioSourceTools.apply_source_edits)
         self.setup_batch_processor(self.actResetSourceEdits, AudioSourceTools.reset_source_editor)
         self.setup_batch_processor(self.actRenameOriginalToWwise, AudioSourceTools.rename_original_to_wwise)
+        self.setup_batch_processor(self.actAutoImport, AudioSourceTools.auto_import_by_path)
         self.setup_batch_processor(self.actTidyOriginalFolders, AudioSourceTools.tidy_original_folders)
         self.actDeleteUnusedAKDFiles.triggered.connect(AudioSourceTools.delete_unused_akd_files)
         # 本地化菜单
         self.setup_batch_processor(self.actLocalizeLanguages, LocalizationTools.localize_languages)
         self.setup_batch_processor(self.actFillSilenceForRefLanguage, LocalizationTools.import_silence_for_ref_language)
         self.setup_batch_processor(self.actFillSilenceForAllLanguages, LocalizationTools.import_silence_for_all_languages)
+        self.actFilterByLanguage.triggered.connect(self.filter_by_active_language)
         # 混音菜单
         self.setup_batch_processor(self.actDownMixFader, MixingTools.down_mix_fader)
+        self.setup_batch_processor(self.actVolumeToGain, MixingTools.volume_to_gain)
+        self.setup_batch_processor(self.actEnableEffectRender, lambda obj: MixingTools.set_effect_slot_property(obj, 'Render', True))
+        self.setup_batch_processor(self.actDisableEffectRender, lambda obj: MixingTools.set_effect_slot_property(obj, 'Render', False))
+        self.setup_batch_processor(self.actEnableEffectBypass, lambda obj: MixingTools.set_effect_slot_property(obj, 'Bypass', True))
+        self.setup_batch_processor(self.actDisableEffectBypass, lambda obj: MixingTools.set_effect_slot_property(obj, 'Bypass', False))
         # Container菜单
         self.setup_batch_processor(self.actBreakContainer, LogicContainerTools.break_container)
         self.setup_batch_processor(self.actReplaceParent, LogicContainerTools.replace_parent)
-        self.setup_batch_processor(self.actAssignSwitchMappings, LogicContainerTools.assign_switch_mappings)
-        self.setup_batch_processor(self.actRemoveSwitchMappings, LogicContainerTools.remove_switch_mappings)
+        self.setup_batch_processor(self.actAssignSwitchMappings, LogicContainerTools.auto_assign_switch_mappings)
+        self.setup_batch_processor(self.actRemoveSwitchMappings, WAAPI.remove_switch_mappings)
         self.setup_batch_processor(self.actAssignToGenericPath, LogicContainerTools.assign_to_generic_path)
-        self.setup_batch_processor(self.actSplitTo1P3P, lambda obj: LogicContainerTools.split_by_net_role(obj, False))
-        self.setup_batch_processor(self.actSplitTo1P2P3P, lambda obj: LogicContainerTools.split_by_net_role(obj, True))
+        self.setup_batch_processor(self.actSplitTo1P3P, lambda obj: LogicContainerTools.split_by_net_role(obj, False, True))
+        self.setup_batch_processor(self.actSplitTo1P2P3P, lambda obj: LogicContainerTools.split_by_net_role(obj, True, True))
+        self.setup_batch_processor(self.actSplitTo1P2P, lambda obj: LogicContainerTools.split_by_net_role(obj, True, False))
         self.setup_batch_processor(self.actGroupAsRandom, LogicContainerTools.group_as_random)
+        self.setup_batch_processor(self.actRenameRandomChildren, LogicContainerTools.rename_random_children)
         # Event菜单
         self.setup_batch_processor(self.actCreatePlayEvent, EventTools.create_play_event)
         self.setup_batch_processor(self.actRenameEventByTarget, EventTools.rename_event_by_target)
+        self.actExportAllEvents.triggered.connect(EventTools.export_all_events)
+        self.actHasEventReference.triggered.connect(lambda: self.filter_by_event_reference(True))
+        self.actHasNoEventReference.triggered.connect(lambda: self.filter_by_event_reference(False))
         # SoundBank菜单
         self.setup_batch_processor(self.actCreateSoundBank, SoundBankTools.create_bank_for_object)
         self.setup_batch_processor(self.actClearInclusions, WAAPI.clear_bank_inclusions)
@@ -120,16 +139,24 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         self.actBankAssignmentMatrix.triggered.connect(self.open_bank_assignment_matrix_window)
         self.actGenerateEventBankMap.triggered.connect(SoundBankTools.generate_event_bank_map)
+        # GameSync菜单
+        self.actCopyRtpcFromSelection.triggered.connect(self.copy_rtpc_from_selection)
         # 其他菜单
         self.actProjectValidation.triggered.connect(self.open_project_validation_window)
         self.actTempTool.triggered.connect(lambda: TempTools.temp_tool(self.activeObjects))
         self.actUnityAssetManager.triggered.connect(self.open_unity_asset_manager_window)
-        self.actImportFMODEvent.triggered.connect(ImportTools.import_fmod_events)
-        self.actImportFMODPreset.triggered.connect(ImportTools.import_fmod_presets)
+        self.actImportFMODEvent.triggered.connect(MigrationTools.import_fmod_events)
+        self.actImportFMODPreset.triggered.connect(MigrationTools.import_fmod_presets)
 
     # 连接批处理器到操作
     def setup_batch_processor(self, action, obj_func):
-        action.triggered.connect(lambda: BatchProcessor(self.activeObjects, obj_func, action.text()).start())
+        action.triggered.connect(lambda: BatchProcessor(self.activeObjects, obj_func, action.text(), self.update_status_bar).start())
+
+    # 更新底部状态栏文字
+    def update_status_bar(self, text: str):
+        self.statusbar.showMessage(text)
+        self.update_active_objects()
+        self.activateWindow()
 
     # 重置筛选条件
     def reset_filter(self):
@@ -138,37 +165,37 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.rbnFilterByPath.toggled.disconnect(self.filter_and_show_list)
             self.rbnFilterByInclude.toggled.disconnect(self.filter_and_show_list)
             self.rbnFilterByExclude.toggled.disconnect(self.filter_and_show_list)
-            self.cbxUseRegularExpression.toggled.disconnect(self.filter_and_show_list)
-            self.cbxMatchWholeWord.toggled.disconnect(self.filter_and_show_list)
+            self.cbbFilterType.currentIndexChanged.disconnect(self.filter_and_show_list)
             self.cbxCaseSensitive.toggled.disconnect(self.filter_and_show_list)
-            self.cbbDescendantType.currentIndexChanged.disconnect(self.filter_and_show_list)
+            self.cbxMatchWholeWord.toggled.disconnect(self.filter_and_show_list)
+            self.cbxUseRegularExpression.toggled.disconnect(self.filter_and_show_list)
             self.iptSelectionFilter.textChanged.disconnect(self.filter_and_show_list)
         except Exception as e:
-            print(e)
+            logging.error(e)
 
         self.rbnFilterByName.setChecked(True)
         self.rbnFilterByInclude.setChecked(True)
-        self.cbxUseRegularExpression.setChecked(False)
-        self.cbxMatchWholeWord.setChecked(False)
+        self.cbbFilterType.setCurrentIndex(0)
         self.cbxCaseSensitive.setChecked(False)
-        self.cbbDescendantType.setCurrentIndex(0)
+        self.cbxMatchWholeWord.setChecked(False)
+        self.cbxUseRegularExpression.setChecked(False)
         self.iptSelectionFilter.setText("")
 
         self.rbnFilterByName.toggled.connect(self.filter_and_show_list)
         self.rbnFilterByPath.toggled.connect(self.filter_and_show_list)
         self.rbnFilterByInclude.toggled.connect(self.filter_and_show_list)
         self.rbnFilterByExclude.toggled.connect(self.filter_and_show_list)
-        self.cbxUseRegularExpression.toggled.connect(self.filter_and_show_list)
-        self.cbxMatchWholeWord.toggled.connect(self.filter_and_show_list)
+        self.cbbFilterType.currentIndexChanged.connect(self.filter_and_show_list)
         self.cbxCaseSensitive.toggled.connect(self.filter_and_show_list)
-        self.cbbDescendantType.currentIndexChanged.connect(self.filter_and_show_list)
+        self.cbxMatchWholeWord.toggled.connect(self.filter_and_show_list)
+        self.cbxUseRegularExpression.toggled.connect(self.filter_and_show_list)
         self.iptSelectionFilter.textChanged.connect(self.filter_and_show_list)
 
     # 通过指定的端口连接到Wwise
     def connect_to_wwise(self):
         try:
             client = WAAPI.get_client()
-            if client:
+            if client.is_connected():
                 client.subscribe('ak.wwise.core.project.postClosed', self.on_wwise_closed)
                 project_path = ProjectTools.get_project_path()
                 if project_path:
@@ -198,6 +225,11 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.reset_filter()
         self.filter_and_show_list()
 
+    # 操作后刷新列表对象
+    def update_active_objects(self):
+        self.cacheObjects = [WAAPI.get_full_info_from_obj_id(obj['id']) for obj in self.activeObjects]
+        self.filter_and_show_list()
+
     # 删去表格中选中的对象
     def remove_table_selection(self):
         for item in self.tblActiveObjects.selectedItems():
@@ -225,10 +257,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                                                             self.cbxCaseSensitive.isChecked(),
                                                             self.cbxMatchWholeWord.isChecked(),
                                                             self.cbxUseRegularExpression.isChecked(),
-                                                            self.cbbDescendantType.currentText(),
+                                                            self.cbbFilterType.currentText(),
                                                             self.rbnFilterByName.isChecked(),
-                                                            self.rbnFilterByInclude.isChecked()
-                                                            )
+                                                            self.rbnFilterByInclude.isChecked())
 
     def show_obj_list(self):
         self.tblActiveObjects.setRowCount(0)
@@ -239,6 +270,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.tblActiveObjects.setItem(row_count, 1, QTableWidgetItem(obj['type']))
             self.tblActiveObjects.setItem(row_count, 2, QTableWidgetItem(obj['path']))
         self.tblActiveObjects.resizeColumnsToContents()
+        self.statusbar.showMessage(f'共{len(self.activeObjects)}个对象')
 
     # 在表中显示筛选过的对象
     def filter_and_show_list(self):
@@ -269,22 +301,37 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.reset_filter()
         self.filter_and_show_list()
 
-    @staticmethod
-    def on_ui_executed(**kwargs):
-        # 获取对象类型
-        obj_type = kwargs.get("object", {}).get("type")
-        # 获取之前的名字
-        old_name = kwargs.get("oldName")
-        # 获取新名字
-        new_name = kwargs.get("newName")
+    # 筛选只被Event引用的对象
+    def filter_by_active_language(self):
+        self.cacheObjects = []
+        active_language = LocalizationTools.get_current_language()
+        for obj in self.activeObjects:
+            if LocalizationTools.get_sound_language(obj) == active_language:
+                self.cacheObjects.append(obj)
+        self.activeObjects = self.cacheObjects
+        self.show_obj_list()
 
-        # 使用 format 格式化函数进行输出信息（其中的{}代表 format() 函数中的对应变量），告知用户XXX类型的对象从 A 改名到了 B
-        print("Object '{}' (of type '{}') was renamed to '{}'\n".format(old_name, obj_type, new_name))
+    # 筛选只被Event引用的对象
+    def filter_by_event_reference(self, with_ref: bool):
+        self.cacheObjects = []
+        for obj in self.activeObjects:
+            has_reference = EventTools.has_event_reference(obj)
+            if (with_ref and has_reference) or (not with_ref and not has_reference):
+                self.cacheObjects.append(obj)
+        self.activeObjects = self.cacheObjects
+        self.show_obj_list()
 
+    # 复制对象的路径
+    def copy_object_path(self, item: QTableWidgetItem):
+        if item.column() != 2:
+            item = self.tblActiveObjects.item(item.row(), 2)
+        clipboard.copy(item.text())
+
+    # 在Wwise中选中列表中双击的对象
     def show_object_in_wwise(self, item: QTableWidgetItem):
         if item.column() != 2:
             item = self.tblActiveObjects.item(item.row(), 2)
-        obj = WAAPI.get_object_from_path(item.text())
+        obj = WAAPI.find_object_by_path(item.text())
         if obj:
             WAAPI.select_objects_in_wwise([obj])
 
@@ -300,7 +347,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.cbxCaseSensitive.objectName(): self.cbxCaseSensitive.isChecked(),
             self.cbxMatchWholeWord.objectName(): self.cbxMatchWholeWord.isChecked(),
             self.cbxUseRegularExpression.objectName(): self.cbxUseRegularExpression.isChecked(),
-            self.cbbDescendantType.objectName(): self.cbbDescendantType.currentIndex(),
+            self.cbbFilterType.objectName(): self.cbbFilterType.currentIndex(),
             self.iptSelectionFilter.objectName(): self.iptSelectionFilter.text()
         }
         FileTools.export_to_json(options, 'WAAPI_Tools_Criteria')
@@ -318,18 +365,25 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.cbxCaseSensitive.setChecked(options[self.cbxCaseSensitive.objectName()])
             self.cbxMatchWholeWord.setChecked(options[self.cbxMatchWholeWord.objectName()])
             self.cbxUseRegularExpression.setChecked(options[self.cbxUseRegularExpression.objectName()])
-            self.cbbDescendantType.setCurrentIndex(options[self.cbbDescendantType.objectName()])
+            self.cbbFilterType.setCurrentIndex(options[self.cbbFilterType.objectName()])
             self.iptSelectionFilter.setText(options[self.iptSelectionFilter.objectName()])
         self.filter_and_show_list()
 
     # 导出对象列表
-    def export_objects(self):
+    def export_object_list(self):
         FileTools.export_to_json(self.activeObjects, 'WAAPI_Tools_Objects')
 
     # 导入对象列表
-    def import_objects(self):
+    def import_object_list(self):
         self.activeObjects = FileTools.import_from_json()
         self.show_obj_list()
+
+    # 导入Work Unit
+    @staticmethod
+    def import_from_work_unit():
+        import_window = WorkUnitImporter()
+        import_window.show()
+        import_window.exec()
 
     # 通用操作
     def filter_by_inclusion(self, included: bool):
@@ -360,19 +414,17 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         rename_window.exec()
 
     # 打开音频末尾静音裁剪窗口
-    def open_audio_tail_trimmer_window(self):
-        trim_window = AudioTailTrimWindow(self.activeObjects)
+    def open_audio_silence_trimmer_window(self):
+        trim_window = AudioSilenceTrimWindow(self.activeObjects)
         trim_window.show()
         trim_window.exec()
 
     # 计算列表中Bank的总大小
     def calculate_bank_total_size(self):
-        total_wav_size, total_wem_size, total_files_count, unused_files = SoundBankTools.get_total_bank_size(self.activeObjects)
-        text = f'原始Wav文件: {total_wav_size}MB\n压缩后的Wem: {total_files_count}个文件, 共{total_wem_size}MB'
-        if len(unused_files) > 0:
-            text += f'\n未使用或未生成到Bank中的文件:\n'
-            for file in unused_files:
-                text += f'{file}\n'
+        wav_size, memory_wem_size, stream_wem_size, used_files = SoundBankTools.get_total_bank_size(self.activeObjects)
+        total_wem_size = memory_wem_size + stream_wem_size
+        text = (f'共统计{len(self.activeObjects)}个Bank\n共包含{len(used_files)}个音频文件\n原始wav大小: {wav_size}MB'
+                f'\n压缩后的wem: {total_wem_size}MB\n内存加载的wem: {memory_wem_size}MB\n流式加载的wem: {stream_wem_size}MB')
         ScriptingHelper.show_message_box('统计完毕', text)
 
     # 添加列表对象到选中的Bank中
@@ -387,6 +439,13 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         matrix_window = BankAssignmentMatrix(self)
         matrix_window.show()
         matrix_window.exec()
+
+    # 替换对象上的RTPC
+    def copy_rtpc_from_selection(self):
+        selection = WAAPI.get_selected_objects()
+        if len(selection) < 1:
+            return False
+        GameSyncTools.copy_rtpc(selection[0], self.activeObjects)
 
     # 打开Unity资产管理器窗口
     @staticmethod

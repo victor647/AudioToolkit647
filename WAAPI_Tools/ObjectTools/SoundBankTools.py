@@ -1,7 +1,7 @@
 import os
 
 from Libraries import WAAPI, FileTools
-from ObjectTools import CommonTools
+from ObjectTools import CommonTools, EventTools, AudioSourceTools
 
 
 # 为每个选中的对象创建一个SoundBank
@@ -14,7 +14,7 @@ def create_bank_for_object(obj: dict):
         bank = create_sound_bank_by_name(bank_name)
     else:
         print(f'SoundBank [{bank_name}] already exists, replacing its inclusion instead.')
-    WAAPI.set_bank_inclusion(bank, obj)
+    WAAPI.set_bank_inclusion(bank, obj, True)
     CommonTools.update_notes_and_color(obj)
     WAAPI.select_objects_in_wwise([bank])
     return True
@@ -28,111 +28,98 @@ def create_sound_bank_by_name(bank_name: str):
         parent = CommonTools.create_folders_for_path(parent_path)
     else:
         parent_path = '\\SoundBanks\\Default Work Unit'
-        parent = WAAPI.get_object_from_path(parent_path)
-    new_bank = WAAPI.create_object(bank_name, 'SoundBank', parent)
+        parent = WAAPI.find_object_by_path(parent_path)
+    new_bank = WAAPI.create_child_object(bank_name, 'SoundBank', parent)
     return new_bank
-
-
-# 传统方式获取Bank大小
-def get_bank_size(bank: dict):
-    wav_size = wem_size = used_files_count = 0
-    unused_files = []
-    for inclusion in WAAPI.get_bank_inclusions(bank):
-        if 'media' in inclusion['filter']:
-            bank_id = inclusion['object']
-            get_args = {
-                'waql': f'from object \"{bank_id}\" select descendants where type = \"AudioFileSource\"',
-                'options': {
-                    'return': ['name', 'originalWavFilePath', 'convertedWemFilePath', 'audioSourceLanguage']
-                }
-            }
-            result = WAAPI.Client.call('ak.wwise.core.object.get', get_args)
-            bank_name = bank['name']
-            if len(result) == 0:
-                print(f'Bank[{bank_name}]不包含任何资源！')
-                return 5
-
-            for audio_source in result['return']:
-                language = audio_source['audioSourceLanguage']['name']
-                if language == 'SFX' or language == 'Chinese':
-                    wav_path = audio_source['originalWavFilePath']
-                    if not os.path.exists(wav_path):
-                        print(f'在Bank[{bank_name}]中找不到源文件[{wav_path}!]')
-                        continue
-                    wav_name = os.path.basename(wav_path)
-                    wav_size += os.path.getsize(wav_path) / 1024
-                    wem_path = audio_source['convertedWemFilePath']
-                    if os.path.exists(wem_path):
-                        wem_size += os.path.getsize(wem_path) / 1024
-                        used_files_count += 1
-                    else:
-                        unused_files.append(wav_name)
-
-    wav_size = round(wav_size / 1024, 2)
-    wem_size = round(wem_size / 1024, 2)
-    return wav_size, wem_size, used_files_count, unused_files
 
 
 # 计算多个Bank合计大小
 def get_total_bank_size(banks: list):
-    total_wav_size = total_wem_size = total_used_files_count = 0
-    total_unused_files = []
+    wav_size = memory_wem_size = stream_wem_size = 0
+    used_files = []
     for bank in banks:
         if bank['type'] == 'SoundBank':
-            wav_size, wem_size, used_files_count, unused_files = get_bank_size(bank)
+            wav_size, memory_wem_size, stream_wem_size, used_files = get_bank_size(bank, wav_size, memory_wem_size, stream_wem_size, used_files)
+    wav_size = round(wav_size / 1024, 2)
+    memory_wem_size = round(memory_wem_size / 1024, 2)
+    stream_wem_size = round(stream_wem_size / 1024, 2)
+    return wav_size, memory_wem_size, stream_wem_size, used_files
+
+
+# 传统方式获取Bank大小
+def get_bank_size(bank: dict, total_wav_size: float, total_memory_wem_size: float, total_stream_wem_size: float, used_files: list):
+    for inclusion in WAAPI.get_bank_inclusions(bank):
+        if 'media' in inclusion['filter']:
+            inclusion_obj = WAAPI.get_full_info_from_obj_id(inclusion['object'])
+            # Bank包含Events中的内容
+            if 'Events' in inclusion_obj['path']:
+                total_wav_size, total_memory_wem_size, total_stream_wem_size, used_files = (
+                    get_event_media_size(inclusion_obj, total_wav_size, total_memory_wem_size, total_stream_wem_size, used_files))
+            # Bank包含ActorMixerHierarchy中的内容
+            else:
+                total_wav_size, total_memory_wem_size, total_stream_wem_size, used_files = (
+                    get_object_media_size(inclusion_obj, total_wav_size, total_memory_wem_size, total_stream_wem_size, used_files))
+    return total_wav_size, total_memory_wem_size, total_stream_wem_size, used_files
+
+
+# 获取Events中的对象包含的所有音频文件的大小
+def get_event_media_size(obj: dict, total_wav_size: float, total_memory_wem_size: float, total_stream_wem_size: float, used_files: list):
+    events = WAAPI.get_descendants_of_type(obj, 'Event')
+    if len(events) > 0:
+        for event in events:
+            targets = EventTools.get_event_targets(event)
+            for target in targets:
+                total_wav_size, total_memory_wem_size, total_stream_wem_size, used_files = (
+                    get_object_media_size(target, total_wav_size, total_memory_wem_size, total_stream_wem_size, used_files))
+    return total_wav_size, total_memory_wem_size, total_stream_wem_size, used_files
+
+
+# 获取ActorMixerHierarchy中的对象包含的所有音频文件的大小
+def get_object_media_size(obj: dict, total_wav_size: float, total_memory_wem_size: float, total_stream_wem_size: float, used_files: list):
+    audio_sources = WAAPI.get_descendants_of_type(obj, 'AudioFileSource')
+    if len(audio_sources) > 0:
+        for audio_source in audio_sources:
+            wav_path = AudioSourceTools.get_source_file_path(audio_source)
+            if not os.path.exists(wav_path) or wav_path in used_files:
+                continue
+            used_files.append(wav_path)
+            wav_size = os.path.getsize(wav_path) / 1024
             total_wav_size += wav_size
-            total_wem_size += wem_size
-            total_used_files_count += used_files_count
-            total_unused_files += unused_files
-    return total_wav_size, total_wem_size, total_used_files_count, total_unused_files
+            print(f'{wav_path} has size of {wav_size}KB')
+            wem_path = WAAPI.get_object_property(audio_source, 'convertedWemFilePath')
+            if os.path.exists(wem_path):
+                wem_size = os.path.getsize(wem_path) / 1024
+                is_streaming = WAAPI.get_object_property(WAAPI.get_parent_object(audio_source), 'IsStreamingEnabled')
+                if is_streaming:
+                    total_stream_wem_size += wem_size
+                else:
+                    total_memory_wem_size += wem_size
+                print(f'{wem_path} has size of {wem_size}KB')
+    return total_wav_size, total_memory_wem_size, total_stream_wem_size, used_files
 
 
 # 把一批对象添加到的bank中，使用统一的inclusion
 def add_objects_to_bank(bank: dict, objects: list, inclusion_type: list):
-    inclusions = []
     for obj in objects:
-        inclusion = {
-            'object': obj['id'],
-            'filter': inclusion_type
-        }
-        inclusions.append(inclusion)
-
-    set_args = {
-        'soundbank': bank['id'],
-        'operation': 'add',
-        'inclusions': inclusions
-    }
-    WAAPI.Client.call('ak.wwise.core.soundbank.setInclusions', set_args)
-
-
-# 把一批对象添加到的bank中，每个对象使用单独的inclusion
-def add_objects_to_bank_with_individual_inclusion(bank: dict, objects):
-    set_args = {
-        'soundbank': bank['id'],
-        'operation': 'add',
-        'inclusions': objects
-    }
-    WAAPI.Client.call('ak.wwise.core.soundbank.setInclusions', set_args)
+        WAAPI.set_bank_inclusion(bank, obj, False, inclusion_type)
+    return True
 
 
 # 设置SoundBank的包含内容
 def set_inclusion_type(bank: dict, inclusion_types: list):
     if bank['type'] != 'SoundBank':
         return
-    get_args = {
-        'soundbank': bank['id']
-    }
-    # 获取bank的内容并更改inclusion类别
-    inclusions = WAAPI.Client.call('ak.wwise.core.soundbank.getInclusions', get_args)['inclusions']
+    inclusions = WAAPI.get_bank_inclusions(bank)
     for inclusion in inclusions:
         inclusion['filter'] = inclusion_types
-    # 设置新的内容
-    set_args = {
-        'soundbank': bank['id'],
-        'operation': 'replace',
-        'inclusions': inclusions
-    }
-    WAAPI.Client.call('ak.wwise.core.soundbank.setInclusions', set_args)
+        WAAPI.set_bank_inclusion(bank, inclusion, False)
+
+
+# 为Bank添加内容，可选择是否清除已有内容
+def set_inclusions(bank: dict, inclusion: dict, remove_existing: bool):
+    if remove_existing:
+        WAAPI.clear_bank_inclusions(bank)
+    return WAAPI.set_bank_inclusion(bank, inclusion, remove_existing)
 
 
 # 生成所有Event与Bank的对应关系
@@ -145,7 +132,7 @@ def generate_event_bank_map():
             obj_id = inclusion['object']
             obj = WAAPI.get_full_info_from_obj_id(obj_id)
             if obj['path'].startswith('\\Events\\'):
-                descendants = CommonTools.get_descendants_by_type(obj, 'Event')
+                descendants = WAAPI.get_descendants_of_type(obj, 'Event')
                 for event in descendants:
                     event_bank_map[event['name']] = bank['name']
     FileTools.export_to_json(event_bank_map, 'EventBankMap')

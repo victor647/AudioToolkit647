@@ -1,7 +1,7 @@
 import fnmatch
 import re
 
-from Libraries import WAAPI
+from ObjectTools import CommonTools
 from PyQt6.QtWidgets import QMessageBox
 
 
@@ -11,7 +11,7 @@ def filter_objects(objects: list, filter_input: str,
                    filter_type: str, filter_by_name: bool, inclusion: bool):
     objects_filtered = []
     for obj in objects:
-        if (filter_type != '全部类型') and obj['type'] != filter_type:
+        if not obj or filter_type != '全部类型' and obj['type'] != filter_type:
             continue
         match = False
 
@@ -47,10 +47,8 @@ def filter_objects(objects: list, filter_input: str,
 def filter_objects_by_inclusion(objects: list, inclusion: bool):
     objects_filtered = []
     for obj in objects:
-        # 音频资源没有inclusion选项
-        if obj['type'] == 'AudioFileSource':
-            continue
-        if WAAPI.get_object_property(obj, 'Inclusion') == inclusion:
+        included = CommonTools.is_object_included(obj)
+        if inclusion == included:
             objects_filtered.append(obj)
     return objects_filtered
 

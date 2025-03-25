@@ -2,6 +2,7 @@ import os
 import json
 import csv
 import shutil
+import xml.etree.ElementTree as ElementTree
 from PyQt6.QtWidgets import QFileDialog
 
 use_filetypes = [('wwise tool save files', '.json')]
@@ -26,6 +27,16 @@ def export_to_json(json_obj, file_name: str):
     file.write(json.dumps(json_obj, indent=2))
 
 
+# 导出二维数组到csv文件
+def export_to_csv(data: list, file_name: str):
+    file_path = QFileDialog.getSaveFileName(filter='CSV(*.csv)', directory=file_name)
+    if file_path[0] == '':
+        return
+    file = open(file_path[0], mode='w', newline='')
+    writer = csv.writer(file)
+    writer.writerows(data)
+
+
 # 从csv文件导入
 def import_from_csv():
     file_path = QFileDialog.getOpenFileName(filter='CSV(*.csv)')
@@ -33,6 +44,16 @@ def import_from_csv():
         return None
     file = open(file_path[0], 'r')
     return list(csv.reader(file))
+
+
+# 从xml或WorkUnit文件导入
+def import_from_work_unit():
+    file_path = QFileDialog.getOpenFileName(filter='XML(*.wwu)')
+    if file_path[0] == '':
+        return None, None
+    tree = ElementTree.parse(file_path[0])
+    root = tree.getroot()
+    return root, file_path[0]
 
 
 # 移动文件

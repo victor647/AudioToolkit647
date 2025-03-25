@@ -61,7 +61,7 @@ class ProjectValidation(QDialog, Ui_ProjectValidation):
             return
         if item.column() != 3:
             item = self.tblValidationResults.item(item.row(), 3)
-        obj = WAAPI.get_object_from_path(item.text())
+        obj = WAAPI.find_object_by_path(item.text())
         if obj:
             WAAPI.select_objects_in_wwise([obj])
 
@@ -96,7 +96,7 @@ class ProjectValidation(QDialog, Ui_ProjectValidation):
         elif problem_type == self.cbxWrongNameLength.text():
             fixed = CommonTools.optimize_name_length(obj)
         elif problem_type == self.cbxColorTypeMismatch.text():
-            fixed = CommonTools.set_object_color_by_category(obj)
+            fixed = CommonTools.set_object_color_by_category(obj, True)
         elif problem_type == self.cbxNoRefNotesOrColorTag.text():
             fixed = CommonTools.update_notes_and_color(obj)
         # DesignStructure
@@ -136,14 +136,15 @@ class ProjectValidation(QDialog, Ui_ProjectValidation):
         elif problem_type == self.cbxUnassignedToBus.text():
             fixed = MixingTools.auto_assign_bus_by_category(obj)
         elif problem_type == self.cbxUnassignedSwitchContainer.text():
-            fixed = LogicContainerTools.assign_switch_mappings(obj)
+            fixed = LogicContainerTools.auto_assign_switch_mappings(obj)
         elif problem_type == self.cbxSwitchTo1PByDefault.text():
             fixed = LogicContainerTools.set_default_switch_to_3p(obj)
         elif problem_type == self.cbxMissingAttenuation.text():
             fixed = False
         elif problem_type == self.cbxSoundNotStreamed.text():
             fixed = WAAPI.set_object_property(obj, 'IsStreamingEnabled', True)
-        problem_item.setForeground(QColor(0, 200, 0) if fixed else QColor(200, 200, 0))            
+        problem_item.setForeground(QColor(0, 200, 0) if fixed else QColor(200, 200, 0))
+        return fixed
 
     # 检查整个Wwise工程
     def validate_entire_project(self):
@@ -168,7 +169,7 @@ class ProjectValidation(QDialog, Ui_ProjectValidation):
         self.__batchProcessor.start()
 
     # 将检查结果写入json文件
-    def on_validate_finished(self):
+    def on_validate_finished(self, message):
         self.tblValidationResults.resizeColumnsToContents()
         problem_count = len(self.problematicObjects)
         if problem_count == 0:
@@ -179,8 +180,7 @@ class ProjectValidation(QDialog, Ui_ProjectValidation):
 
     # 检查单个对象
     def validate_object(self, obj: dict):
-        obj_path = obj['path']
-        if 'Unused' in obj_path or not CommonTools.is_object_included(obj):
+        if not CommonTools.is_object_included(obj):
             return
         obj_type = obj['type']
         if obj_type == 'Action':
@@ -191,7 +191,7 @@ class ProjectValidation(QDialog, Ui_ProjectValidation):
             self.check_object_by_rule(obj, self.cbxWrongCase, is_not_camel_cased)
             self.check_object_by_rule(obj, self.cbxWrongNameLength, violates_naming_length)
             self.check_object_by_rule(obj, self.cbxColorTypeMismatch, color_mismatch_category)
-            self.check_object_by_rule(obj, self.cbxNoRefNotesOrColorTag, missing_ref_notes_or_color_tag)
+            self.check_object_by_rule(obj, self.cbxNoRefNotesOrColorTag, wrong_reference_notes_or_color)
 
         if self.grpDesignStructure.isChecked():
             self.__currentTitle = self.grpDesignStructure.title()
@@ -292,7 +292,7 @@ def remove_unnecessary_event(event: dict):
         if existing_event:
             return True
         WAAPI.rename_object(event, new_event_name)
-        actions = WAAPI.get_child_objects(event, False)
+        actions = WAAPI.get_child_objects(event)
         for action in actions:
             target = WAAPI.get_object_property(action, 'Target')
             if target and target['name'].endswith(suffix):
@@ -358,6 +358,8 @@ def violates_naming_length(obj: dict):
 
 # 检查对象的颜色是否符合类型规范
 def color_mismatch_category(obj: dict):
+    if obj['type'] == 'AudioFileSource':
+        return False
     category = ProjectConventions.get_object_category(obj)
     if not category:
         return False
@@ -370,8 +372,10 @@ def color_mismatch_category(obj: dict):
 
 
 # 检查对象是否缺少引用的备注与颜色标记
-def missing_ref_notes_or_color_tag(obj: dict):
-    if obj['type'] == 'Event':
+def wrong_reference_notes_or_color(obj: dict):
+    obj_type = obj['type']
+    # 对象是Event且播放别的对象
+    if obj_type == 'Event':
         targets = EventTools.get_event_targets(obj)
         if len(targets) == 1:
             target = targets[0]
@@ -385,22 +389,27 @@ def missing_ref_notes_or_color_tag(obj: dict):
                     return True
             return not has_dark_color_tag(target)
     else:
-        obj_path = obj['path']
-        if not obj_path.startswith('\\Actor-Mixer Hierarchy') and not obj_path.startswith('\\Interactive Music Hierarchy'):
-            return False
         references = WAAPI.get_references_to_object(obj)
-        for reference in references:
-            ref_type = reference['type']
-            notes = CommonTools.get_object_notes(obj)
-            if ref_type == 'Action':
-                event = WAAPI.get_parent_object(reference)
-                if notes != f"Referenced by Event [{event['name']}]":
-                    return True
-                return not has_dark_color_tag(obj)
-            elif ref_type == 'SoundBank':
-                if notes != f"Included by SoundBank [{reference['name']}]":
-                    return True
-                return not has_dark_color_tag(obj)
+        notes = CommonTools.get_object_notes(obj)
+        obj_path = obj['path']
+        # 对象被SoundBank引用
+        if obj_type == 'Folder' or obj_type == 'WorkUnit':
+            if obj_path.startswith('\\Events'):
+                for reference in references:
+                    if reference['type'] == 'SoundBank':
+                        if notes != f"Included by SoundBank [{reference['name']}]":
+                            return True
+                        return not has_dark_color_tag(obj)
+        # 对象被Event引用
+        elif 'Hierarchy' in obj_path:
+            for reference in references:
+                if reference['type'] == 'Action':
+                    action_type = WAAPI.get_object_property(reference, 'ActionType')
+                    if action_type == 1:
+                        event = WAAPI.get_parent_object(reference)
+                        if notes != f"Played by Event [{event['name']}]":
+                            return True
+                    return not has_dark_color_tag(obj)
     return False
 
 
@@ -429,7 +438,7 @@ def is_work_unit_nested(work_unit: dict):
     work_unit_type = WAAPI.get_object_property(work_unit, 'workUnitType')
     if work_unit_type == 'folder':
         return False
-    children = WAAPI.get_child_objects(work_unit, False)
+    children = WAAPI.get_child_objects(work_unit)
     # 空的占位WorkUnit可以接受
     if len(children) == 0:
         return False
@@ -460,7 +469,7 @@ def container_has_single_child(container: dict):
     # 音乐容器可以只包含一首
     if container['type'] == 'MusicPlaylistContainer':
         return False
-    children = WAAPI.get_child_objects(container, False)
+    children = WAAPI.get_child_objects(container)
     return len(children) == 1
 
 
@@ -474,7 +483,7 @@ def is_node_empty(obj: dict):
         return False
     if obj['name'] == 'Default Work Unit':
         return False
-    children = WAAPI.get_child_objects(obj, False)
+    children = WAAPI.get_child_objects(obj)
     return len(children) == 0
 # endregion DesignStructure
 
@@ -486,7 +495,7 @@ def file_path_different_from_sound(sound: dict):
         return False
     sound_name = sound['name']
     suffix = ProjectConventions.get_net_role_suffix_from_name(sound_name)
-    children = WAAPI.get_child_objects(sound, False)
+    children = WAAPI.get_child_objects(sound)
     for audio_source in children:
         source_path = AudioSourceTools.get_source_file_path(audio_source)
         if source_path:
@@ -504,26 +513,32 @@ def file_path_different_from_sound(sound: dict):
 def sound_missing_or_not_localized(sound: dict):
     if sound['type'] != 'Sound':
         return False
+    implemented_languages = ProjectConventions.get_implemented_languages()
     if LocalizationTools.get_sound_language(sound) == 'SFX':
         path = AudioSourceTools.get_source_file_path(sound)
         if not path:
             return not AudioSourceTools.sound_play_from_plugin(sound)
         return not os.path.exists(path)
     else:
-        children = WAAPI.get_child_objects(sound, False)
-        missing_languages = 2
+        children = WAAPI.get_child_objects(sound)
+        missing_languages = len(implemented_languages)
         for child in children:
             language = LocalizationTools.get_sound_language(child)
-            if 'Chinese' in language or 'English' in language:
+            if language in implemented_languages:
                 missing_languages -= 1
         return missing_languages > 0
 
 
 # 检查样本是否是静音替代资源
-def is_audio_source_silent(audio_source: dict):
-    if audio_source['type'] != 'AudioFileSource':
+def is_audio_source_silent(source: dict):
+    source_type = source['type']
+    if source_type != 'AudioFileSource':
+        # 检查Wwise Silence插件的情况
+        if source_type == 'SourcePlugin':
+            class_id = WAAPI.get_object_property(source, 'classId')
+            return class_id == 6619138
         return False
-    source_path = AudioSourceTools.get_source_file_path(audio_source)
+    source_path = AudioSourceTools.get_source_file_path(source)
     silent = AudioEditTools.is_sound_completely_silent(source_path)
     if silent:
         return True
@@ -562,6 +577,9 @@ def event_has_wrong_name(event: dict):
     if event['type'] != 'Event':
         return False
     event_name = event['name']
+    # 暂时跳过Stop的Event
+    if event_name.startswith('Stop_'):
+        return False
     targets = EventTools.get_event_targets(event)
     if len(targets) == 0:
         return False
@@ -609,12 +627,15 @@ def event_not_included_in_any_banks(event: dict):
 def is_bank_size_abnormal(bank: dict):
     if bank['type'] != 'SoundBank':
         return False
-    wav_size, wem_size, used_files_count, unused_files = SoundBankTools.get_bank_size(bank)
-    abnormal = wem_size < 1 or wem_size > 10
+    wav_size = memory_wem_size = stream_wem_size = 0
+    used_files = []
+    _, memory_wem_size, stream_wem_size, _ = SoundBankTools.get_bank_size(bank, wav_size, memory_wem_size, stream_wem_size, used_files)
+    total_wem_size = memory_wem_size + stream_wem_size
+    abnormal = total_wem_size < 1 or total_wem_size > 10
     if abnormal:
         bank_name = bank['name']
-        size_str = 'too small' if wem_size < 1 else 'too large'
-        print(f'Bank [{bank_name}] has size of {wem_size}MB, {size_str}!')
+        size_str = 'too small' if total_wem_size < 1 else 'too large'
+        print(f'Bank [{bank_name}] has size of {total_wem_size}MB, {size_str}!')
     return abnormal
 # endregion EventBank
 
@@ -640,10 +661,10 @@ def is_bus_unassigned(obj: dict):
 def is_switch_container_unassigned(container: dict):
     if 'SwitchContainer' not in container['type']:
         return False
-    mappings = LogicContainerTools.get_switch_mappings(container)
+    mappings = WAAPI.get_switch_mappings(container)
     if len(mappings) == 0:
         return True
-    children = WAAPI.get_child_objects(container, False)
+    children = WAAPI.get_child_objects(container)
     for child in children:
         found = False
         for mapping in mappings:

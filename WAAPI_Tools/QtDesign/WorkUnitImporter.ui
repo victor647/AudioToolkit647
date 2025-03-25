@@ -1,0 +1,185 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>WorkUnitImporter</class>
+ <widget class="QDialog" name="WorkUnitImporter">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>356</width>
+    <height>166</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>WorkUnit导入工具</string>
+  </property>
+  <layout class="QHBoxLayout" name="horizontalLayout_2">
+   <item>
+    <widget class="QGroupBox" name="groupBox">
+     <property name="maximumSize">
+      <size>
+       <width>120</width>
+       <height>16777215</height>
+      </size>
+     </property>
+     <property name="title">
+      <string>导入内容</string>
+     </property>
+     <widget class="QCheckBox" name="cbxImportEffects">
+      <property name="geometry">
+       <rect>
+        <x>31</x>
+        <y>120</y>
+        <width>68</width>
+        <height>20</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>效果器</string>
+      </property>
+      <property name="checked">
+       <bool>true</bool>
+      </property>
+     </widget>
+     <widget class="QCheckBox" name="cbxImportSourceFile">
+      <property name="geometry">
+       <rect>
+        <x>31</x>
+        <y>20</y>
+        <width>71</width>
+        <height>20</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>音频样本</string>
+      </property>
+      <property name="checked">
+       <bool>true</bool>
+      </property>
+     </widget>
+     <widget class="QCheckBox" name="cbxImportConversion">
+      <property name="geometry">
+       <rect>
+        <x>31</x>
+        <y>80</y>
+        <width>71</width>
+        <height>20</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>压缩设置</string>
+      </property>
+      <property name="checked">
+       <bool>true</bool>
+      </property>
+     </widget>
+     <widget class="QCheckBox" name="cbxImportAttenuation">
+      <property name="geometry">
+       <rect>
+        <x>31</x>
+        <y>60</y>
+        <width>71</width>
+        <height>20</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>衰减曲线</string>
+      </property>
+      <property name="checked">
+       <bool>true</bool>
+      </property>
+     </widget>
+     <widget class="QCheckBox" name="cbxImportBus">
+      <property name="geometry">
+       <rect>
+        <x>31</x>
+        <y>100</y>
+        <width>68</width>
+        <height>20</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>输出Bus</string>
+      </property>
+      <property name="checked">
+       <bool>true</bool>
+      </property>
+     </widget>
+     <widget class="QCheckBox" name="cbxImportRTPC">
+      <property name="geometry">
+       <rect>
+        <x>31</x>
+        <y>40</y>
+        <width>53</width>
+        <height>20</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>RTPC</string>
+      </property>
+      <property name="checked">
+       <bool>true</bool>
+      </property>
+     </widget>
+    </widget>
+   </item>
+   <item>
+    <layout class="QVBoxLayout" name="verticalLayout">
+     <item>
+      <layout class="QHBoxLayout" name="horizontalLayout">
+       <item>
+        <widget class="QLabel" name="lblMissingAction">
+         <property name="text">
+          <string>找不到同名对象时</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QComboBox" name="cbbMissingAction">
+         <item>
+          <property name="text">
+           <string>创建</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>警告</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>忽略</string>
+          </property>
+         </item>
+        </widget>
+       </item>
+      </layout>
+     </item>
+     <item>
+      <widget class="QPushButton" name="btnStartImport">
+       <property name="text">
+        <string>选择文件并导入</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QLabel" name="lblCurrentObject">
+       <property name="text">
+        <string> </string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QLabel" name="lblObjectCount">
+       <property name="text">
+        <string> </string>
+       </property>
+      </widget>
+     </item>
+    </layout>
+   </item>
+  </layout>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>

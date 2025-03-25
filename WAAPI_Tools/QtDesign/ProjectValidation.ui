@@ -217,9 +217,9 @@
        </property>
        <layout class="QVBoxLayout" name="verticalLayout">
         <item>
-         <widget class="QCheckBox" name="cbxWrongEventName">
+         <widget class="QCheckBox" name="cbxEventDuplicatedByNetRole">
           <property name="text">
-           <string>不符合命名规范</string>
+           <string>存在1P/3P两个事件</string>
           </property>
           <property name="checked">
            <bool>true</bool>
@@ -227,9 +227,9 @@
          </widget>
         </item>
         <item>
-         <widget class="QCheckBox" name="cbxEventDuplicatedByNetRole">
+         <widget class="QCheckBox" name="cbxWrongEventName">
           <property name="text">
-           <string>存在1P/3P两个事件</string>
+           <string>Event与播放对象命名冲突</string>
           </property>
           <property name="checked">
            <bool>true</bool>
@@ -321,7 +321,7 @@
         <item>
          <widget class="QCheckBox" name="cbxSoundNotStreamed">
           <property name="text">
-           <string>音乐未设为Streaming</string>
+           <string>音乐环境语音未Streaming</string>
           </property>
           <property name="checked">
            <bool>true</bool>

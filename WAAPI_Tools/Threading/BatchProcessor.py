@@ -1,7 +1,7 @@
 from PyQt6.QtCore import pyqtSignal, QThread
 from PyQt6.QtWidgets import QTableWidgetItem
 from Threading.ProgressBar import ProgressBar
-from Libraries import WAAPI, ScriptingHelper
+from Libraries import WAAPI
 
 
 # 处理线程
@@ -50,8 +50,6 @@ class BatchProcessor(QThread):
     def end(self):
         self.__progressBar.destroy()
         if self.__finishAction:
-            self.__finishAction()
-        else:
-            ScriptingHelper.show_message_box('处理完成', self.__messageText)
+            self.__finishAction(self.__messageText)
 
 

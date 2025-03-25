@@ -10,7 +10,7 @@ def temp_tool(objects: list):
 
 def temp_action(obj: dict):
     if obj['type'] == 'Event' and obj['name'].endswith('_1P'):
-        actions = WAAPI.get_child_objects(obj, False)
+        actions = WAAPI.get_child_objects(obj)
         for action in actions:
             old_target = WAAPI.get_object_property(action, 'Target')
             new_target_name = old_target['name'].replace('_3P', '_1P')

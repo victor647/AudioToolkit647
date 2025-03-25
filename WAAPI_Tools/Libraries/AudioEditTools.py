@@ -48,22 +48,31 @@ def find_next_silence(audio_data, threshold: float, samples_per_frame: int, gap_
 
 # 在指定路径创建静音文件
 def create_silence_audio_file(path: str, duration: int, sample_rate=44100):
+    if os.path.exists(path):
+        return False
     num_samples = int(duration * sample_rate)
     silence_data = [0] * num_samples
     soundfile.write(path, silence_data, sample_rate)
+    return True
 
 
-# 获取音频尾巴静音部分长度（以采样窗口为单位）
-def get_tail_silence_duration_frames(audio_data, samples_per_frame: int, threshold: float):
+# 获取音频静音部分长度（以采样窗口为单位）
+def get_silence_duration_frames(audio_data, samples_per_frame: int, threshold: float, direction_tail: bool):
     silence_frames = 0
     while True:
         if len(audio_data) < samples_per_frame:
             return silence_frames
-        frame_data = audio_data[-samples_per_frame:]
+        if direction_tail:
+            frame_data = audio_data[-samples_per_frame:]
+        else:
+            frame_data = audio_data[:samples_per_frame]
         if get_sound_frame_max_amp(frame_data) > threshold:
             return silence_frames
         silence_frames += 1
-        audio_data = audio_data[:len(audio_data) - samples_per_frame]
+        if direction_tail:
+            audio_data = audio_data[:-samples_per_frame]
+        else:
+            audio_data = audio_data[samples_per_frame:]
 
 
 # 获取一个采样窗口的最大振幅
@@ -77,12 +86,21 @@ def get_sound_frame_max_amp(frame_data):
 
 # 淡入淡出，1为淡入，-1为淡出
 def fade(audio_data, duration_samples: int, fade_direction: int):
+    duration_samples = round(duration_samples)
     if duration_samples > len(audio_data):
         return
     for index in range(duration_samples):
         audio_data[fade_direction * index] *= index / duration_samples
 
 
+# 裁剪音频数据
 def trim(audio_data, start_samples: int, end_samples: int):
-    audio_data = audio_data[start_samples:end_samples]
+    start_samples = round(start_samples)
+    end_samples = round(end_samples)
+    if end_samples == 0:
+        audio_data = audio_data[start_samples:]
+    elif start_samples == 0:
+        audio_data = audio_data[:end_samples]
+    else:
+        audio_data = audio_data[start_samples:end_samples]
     return audio_data

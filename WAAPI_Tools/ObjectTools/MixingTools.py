@@ -12,11 +12,16 @@ def is_mixing_root(obj: dict):
     return True
 
 
+# 清除对象上绑定的效果器
+def clear_effects(obj: dict):
+    WAAPI.clear_slots(obj, 'Effects')
+
+
 # 创建新的bus
 def get_or_create_bus(bus_name: str, parent_bus: dict):
     bus = WAAPI.find_object_by_name_and_type(bus_name, 'Bus')
     if bus is None:
-        bus = WAAPI.create_object(bus_name, 'Bus', parent_bus, 'replace')
+        bus = WAAPI.create_child_object(bus_name, 'Bus', parent_bus, 'replace')
     return bus
 
 
@@ -67,13 +72,33 @@ def down_mix_fader(obj: dict):
         down_mix_fader_param(obj, 'MakeUpGain')
 
 
+# 向下传递特定的混音参数
 def down_mix_fader_param(obj: dict, param_name: str):
     param_delta = WAAPI.get_object_property(obj, param_name)
     WAAPI.set_object_property(obj, param_name, 0)
-    children = WAAPI.get_child_objects(obj, False)
+    children = WAAPI.get_child_objects(obj)
     for child in children:
         param_base = WAAPI.get_object_property(child, param_name)
         WAAPI.set_object_property(child, param_name, param_base + param_delta)
         # 递归应用编辑
         if child['type'] != 'Sound':
             down_mix_fader_param(child, param_name)
+
+
+# 音量调整改为增益
+def volume_to_gain(obj: dict):
+    volume = WAAPI.get_object_property(obj, 'Volume')
+    gain = WAAPI.get_object_property(obj, 'MakeUpGain')
+    final_value = volume + gain
+    WAAPI.set_object_property(obj, 'Volume', 0)
+    WAAPI.set_object_property(obj, 'MakeUpGain', final_value)
+
+
+# 将效果器设为渲染模式
+def set_effect_slot_property(obj: dict, property_name: str, value: bool):
+    effect_slots = WAAPI.get_object_property(obj, '@Effects')
+    if effect_slots is None:
+        return False
+    for effect_slot in effect_slots:
+        WAAPI.set_object_property(effect_slot, property_name, value)
+    return True
